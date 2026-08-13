@@ -20,13 +20,14 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: (id: string) => {
+        manualChunks: (id: string): string | undefined => {
           if (id.includes("node_modules/recharts")) {
             return "recharts";
           }
           if (id.includes("node_modules/@radix-ui")) {
             return "radix";
           }
+          return undefined;
         },
       },
     },

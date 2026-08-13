@@ -51,9 +51,10 @@ interface CertificationDashboardProps {
 }
 
 const AI_BACKEND_URL =
-  typeof import.meta !== "undefined" && import.meta.env?.VITE_AI_API_URL
-    ? (import.meta.env.VITE_AI_API_URL as string)
+  typeof import.meta !== "undefined" && import.meta.env?.["VITE_AI_API_URL"]
+    ? (import.meta.env["VITE_AI_API_URL"] as string)
     : "http://localhost:8000";
+
 
 /**
  * Downloads a server-side generated PDF certificate from the FastAPI backend.
