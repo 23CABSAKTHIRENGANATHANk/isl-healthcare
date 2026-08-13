@@ -1,0 +1,620 @@
+/**
+ * Mock records shaped exactly like the future backend tables.
+ * Components never import this file directly — they go through src/services/*.
+ */
+import type {
+  Achievement,
+  ActivityItem,
+  Assessment,
+  AppUser,
+  Certificate,
+  Hospital,
+  HospitalAnalytics,
+  Lesson,
+  LessonProgress,
+  Sign,
+  SignCategory,
+  StaffMember,
+  UserProgressSummary,
+} from "@/types";
+
+export const categories: SignCategory[] = [
+  {
+    id: "basic",
+    name: "Basic Communication",
+    description: "Everyday greetings and confirmations used at any front desk.",
+    icon: "MessageCircle",
+    sector: "healthcare",
+  },
+  {
+    id: "healthcare",
+    name: "Healthcare",
+    description: "Clinical vocabulary for symptoms, staff roles and urgency.",
+    icon: "Stethoscope",
+    sector: "healthcare",
+  },
+  {
+    id: "navigation",
+    name: "Hospital Navigation",
+    description: "Directing patients to the right place inside a facility.",
+    icon: "Map",
+    sector: "healthcare",
+  },
+  {
+    id: "needs",
+    name: "Patient Needs",
+    description: "Core comfort and safety requests patients make most often.",
+    icon: "HandHeart",
+    sector: "healthcare",
+  },
+];
+
+const sign = (
+  gloss: string,
+  meaning: string,
+  category_id: string,
+  difficulty: Sign["difficulty"],
+  region_note: string,
+  steps: string[],
+): Sign => ({
+  id: gloss.toLowerCase().replace(/\s+/g, "-"),
+  gloss,
+  meaning,
+  category_id,
+  difficulty,
+  region_note,
+  video_url: null,
+  steps,
+});
+
+export const signs: Sign[] = [
+  sign("HELLO", "Greeting a patient or visitor", "basic", "beginner", "Widely consistent across regions", [
+    "Open palm faces forward at shoulder height, fingers relaxed together.",
+    "Move the hand outward and slightly away from the forehead in one smooth arc.",
+    "Finish with the palm angled toward the person and hold briefly with eye contact.",
+  ]),
+  sign("THANK YOU", "Expressing gratitude", "basic", "beginner", "Minor regional variation in start position", [
+    "Flat hand starts with fingertips near the chin, palm inward.",
+    "Move the hand forward and down toward the other person.",
+    "End with the palm open and a nod.",
+  ]),
+  sign("YES", "Confirmation", "basic", "beginner", "Consistent across regions", [
+    "Make a loose fist, knuckles facing forward.",
+    "Bend the wrist down and up like a nodding head.",
+    "Repeat twice at a calm pace.",
+  ]),
+  sign("NO", "Negation", "basic", "beginner", "Consistent across regions", [
+    "Extend index and middle finger with the thumb open.",
+    "Close the two fingers onto the thumb in one motion.",
+    "Hold the closed shape briefly.",
+  ]),
+  sign("NUMBERS", "Counting one to ten", "basic", "beginner", "Some states use variant hand shapes above five", [
+    "Palm faces forward at chest height.",
+    "Raise fingers in sequence for one to five.",
+    "Rotate the palm inward for six to ten.",
+  ]),
+  sign("DOCTOR", "Referring to a doctor", "healthcare", "beginner", "Two accepted variants in North and South India", [
+    "Index and middle fingers touch the inside of the opposite wrist.",
+    "Tap twice, as if checking a pulse.",
+    "Return the hand to a neutral position.",
+  ]),
+  sign("NURSE", "Referring to a nurse", "healthcare", "beginner", "Regional variants exist; label locally", [
+    "Two fingers tap the wrist as for DOCTOR.",
+    "Follow with a flat hand brushing across the forehead like a cap edge.",
+    "Hold the final position briefly.",
+  ]),
+  sign("MEDICINE", "Medicine or tablets", "healthcare", "beginner", "Widely consistent", [
+    "Middle finger touches the open palm of the other hand.",
+    "Rotate the finger in a small circle on the palm.",
+    "Lift the hand slightly to finish.",
+  ]),
+  sign("PAIN", "Indicating pain", "healthcare", "beginner", "Location of sign follows the painful body part", [
+    "Index fingers point toward each other, a short distance apart.",
+    "Twist both wrists inward with a tense expression.",
+    "Move the hands near the affected body part.",
+  ]),
+  sign("FEVER", "High temperature", "healthcare", "intermediate", "Some regions add a shivering movement", [
+    "Back of the flat hand touches the forehead.",
+    "Move the hand slightly away and back once.",
+    "Finish with a concerned facial expression.",
+  ]),
+  sign("BLOOD", "Blood or blood test", "healthcare", "intermediate", "Consistent across most regions", [
+    "One hand signs RED at the lip with the index finger.",
+    "Open both hands and let the fingers trickle downward.",
+    "End with the hands lowered.",
+  ]),
+  sign("EMERGENCY", "Urgent situation", "healthcare", "intermediate", "Urgency is carried by speed and expression", [
+    "Both hands form fists with thumbs extended upward.",
+    "Shake the fists sharply near shoulder height.",
+    "Hold with an urgent facial expression.",
+  ]),
+  sign("RECEPTION", "Front desk", "navigation", "beginner", "Fingerspelled in some regions", [
+    "Flat hands form a low counter shape in front of the body.",
+    "Move both hands outward along the counter line.",
+    "Point toward the actual reception area.",
+  ]),
+  sign("PHARMACY", "Medicine counter", "navigation", "beginner", "Often combined with MEDICINE + SHOP", [
+    "Sign MEDICINE on the open palm.",
+    "Follow with both flat hands forming a counter.",
+    "Point in the direction of the pharmacy.",
+  ]),
+  sign("WARD", "Inpatient ward", "navigation", "intermediate", "Variants use BED + ROOM", [
+    "Both flat hands outline a bed shape.",
+    "Move the hands sideways to show a row of beds.",
+    "Point toward the ward corridor.",
+  ]),
+  sign("BATHROOM", "Toilet", "navigation", "beginner", "Widely consistent", [
+    "Form the letter T with the thumb between two fingers.",
+    "Shake the hand gently side to side.",
+    "Point toward the facility.",
+  ]),
+  sign("WAITING ROOM", "Where to wait", "navigation", "intermediate", "Composed of WAIT + ROOM", [
+    "Wiggle the fingers of both hands facing upward for WAIT.",
+    "Outline a square room shape with flat hands.",
+    "Point toward the seating area.",
+  ]),
+  sign("HELP", "Requesting or offering help", "needs", "beginner", "Widely consistent across regions", [
+    "Make a fist with the thumb up, resting on the open flat palm of the other hand.",
+    "Lift both hands upward together, keeping contact.",
+    "Stop at chest height, holding the shape with eye contact.",
+  ]),
+  sign("WATER", "Drinking water", "needs", "beginner", "Widely consistent", [
+    "Form the letter W near the mouth.",
+    "Tap the chin twice lightly.",
+    "Lower the hand.",
+  ]),
+  sign("FOOD", "Food or eating", "needs", "beginner", "Widely consistent", [
+    "Bring pinched fingers toward the mouth.",
+    "Tap the lips twice.",
+    "Lower the hand naturally.",
+  ]),
+  sign("REST", "Rest or sleep", "needs", "beginner", "Some regions tilt the head onto the hands", [
+    "Cross both flat hands over the chest.",
+    "Close the eyes briefly and tilt the head.",
+    "Release the hands slowly.",
+  ]),
+  sign("STOP", "Stop or wait here", "needs", "beginner", "Consistent across regions", [
+    "One flat hand is held vertically, palm sideways.",
+    "Chop it once onto the open palm of the other hand.",
+    "Hold the contact firmly.",
+  ]),
+  sign("WAIT", "Please wait", "needs", "beginner", "Widely consistent", [
+    "Both palms face upward at waist height.",
+    "Wiggle the fingers gently.",
+    "Hold with a reassuring expression.",
+  ]),
+];
+
+const quiz = (
+  id: string,
+  prompt: string,
+  options: string[],
+  answer: string,
+  kind: Assessment["questions"][number]["kind"] = "multiple_choice",
+  target_sign?: string,
+) => ({ id, prompt, options, answer, kind, target_sign });
+
+export const lessons: Lesson[] = [
+  {
+    id: "l1",
+    slug: "greetings-at-reception",
+    code: "Lesson 01",
+    title: "Greetings at Reception",
+    summary: "Welcome a Deaf patient, confirm their name and set a calm tone in the first 30 seconds.",
+    category_id: "basic",
+    duration_minutes: 8,
+    difficulty: "beginner",
+    sign_ids: ["hello", "thank-you", "yes", "no"],
+    thumbnail_tone: "primary",
+    captions: [
+      { at: 0, text: "Face the patient directly before you begin signing." },
+      { at: 4, text: "Sign HELLO with an open palm at shoulder height." },
+      { at: 9, text: "Wait for the patient to respond before continuing." },
+    ],
+    quiz: [quiz("l1q1", "What does this sign mean?", ["Hello", "Medicine", "Ward", "Pain"], "Hello", "identify")],
+  },
+  {
+    id: "l2",
+    slug: "asking-about-pain",
+    code: "Lesson 02",
+    title: "Asking About Pain",
+    summary: "Locate and grade pain without an interpreter, using body-anchored signs.",
+    category_id: "healthcare",
+    duration_minutes: 12,
+    difficulty: "intermediate",
+    sign_ids: ["pain", "fever", "yes", "no"],
+    thumbnail_tone: "teal",
+    captions: [
+      { at: 0, text: "Sign PAIN near the body part the patient indicates." },
+      { at: 5, text: "Use a questioning facial expression to ask, not tell." },
+    ],
+    quiz: [quiz("l2q1", "What does this sign mean?", ["Pain", "Water", "Rest", "Hello"], "Pain", "identify")],
+  },
+  {
+    id: "l3",
+    slug: "finding-the-doctor",
+    code: "Lesson 03",
+    title: "Finding the Doctor",
+    summary: "Explain who the patient will see, and where, using role and direction signs.",
+    category_id: "healthcare",
+    duration_minutes: 10,
+    difficulty: "beginner",
+    sign_ids: ["doctor", "nurse", "ward", "wait"],
+    thumbnail_tone: "primary",
+    captions: [
+      { at: 0, text: "Tap the wrist twice to sign DOCTOR." },
+      { at: 6, text: "Point clearly toward the real location afterwards." },
+    ],
+    quiz: [quiz("l3q1", "What does this sign mean?", ["Doctor", "Food", "Stop", "Blood"], "Doctor", "identify")],
+  },
+  {
+    id: "l4",
+    slug: "asking-for-help",
+    code: "Lesson 04",
+    title: "Asking for Help",
+    summary: "The single most useful sign in a hospital: offering and requesting assistance.",
+    category_id: "needs",
+    duration_minutes: 9,
+    difficulty: "beginner",
+    sign_ids: ["help", "stop", "wait", "yes"],
+    thumbnail_tone: "success",
+    captions: [
+      { at: 0, text: "Thumb-up fist rests on the open flat palm." },
+      { at: 4, text: "Lift both hands together to chest height." },
+      { at: 8, text: "Hold the shape and keep eye contact." },
+    ],
+    quiz: [quiz("l4q1", "What does this sign mean?", ["Help", "Fever", "Reception", "Numbers"], "Help", "identify")],
+  },
+  {
+    id: "l5",
+    slug: "medicine-communication",
+    code: "Lesson 05",
+    title: "Medicine Communication",
+    summary: "Dosage, timing and pharmacy directions for counter staff and pharmacists.",
+    category_id: "healthcare",
+    duration_minutes: 14,
+    difficulty: "intermediate",
+    sign_ids: ["medicine", "numbers", "pharmacy", "water"],
+    thumbnail_tone: "gold",
+    captions: [
+      { at: 0, text: "Circle the middle finger on the open palm for MEDICINE." },
+      { at: 7, text: "Use number signs to show how many times a day." },
+    ],
+    quiz: [
+      quiz("l5q1", "What does this sign mean?", ["Medicine", "Help", "Nurse", "Rest"], "Medicine", "identify"),
+    ],
+  },
+  {
+    id: "l6",
+    slug: "emergency-communication",
+    code: "Lesson 06",
+    title: "Emergency Communication",
+    summary: "Fast, unambiguous signs for triage, casualty and security staff.",
+    category_id: "healthcare",
+    duration_minutes: 11,
+    difficulty: "advanced",
+    sign_ids: ["emergency", "blood", "doctor", "help"],
+    thumbnail_tone: "teal",
+    captions: [
+      { at: 0, text: "Shake both thumb-up fists sharply for EMERGENCY." },
+      { at: 5, text: "Keep signs large and expressions clear under pressure." },
+    ],
+    quiz: [
+      quiz("l6q1", "What does this sign mean?", ["Emergency", "Yes", "Ward", "Food"], "Emergency", "identify"),
+    ],
+  },
+  {
+    id: "l7",
+    slug: "hospital-navigation",
+    code: "Lesson 07",
+    title: "Hospital Navigation",
+    summary: "Guide patients between reception, pharmacy, wards and washrooms.",
+    category_id: "navigation",
+    duration_minutes: 13,
+    difficulty: "intermediate",
+    sign_ids: ["reception", "pharmacy", "ward", "bathroom", "waiting-room"],
+    thumbnail_tone: "primary",
+    captions: [
+      { at: 0, text: "Outline the counter shape, then point to the real place." },
+      { at: 6, text: "Always pair a direction sign with a physical point." },
+    ],
+    quiz: [
+      quiz("l7q1", "What does this sign mean?", ["Bathroom", "Blood", "Hello", "Rest"], "Bathroom", "identify"),
+    ],
+  },
+  {
+    id: "l8",
+    slug: "basic-patient-needs",
+    code: "Lesson 08",
+    title: "Basic Patient Needs",
+    summary: "Water, food, rest and stop — the comfort vocabulary every ward needs.",
+    category_id: "needs",
+    duration_minutes: 10,
+    difficulty: "beginner",
+    sign_ids: ["water", "food", "rest", "stop", "help"],
+    thumbnail_tone: "success",
+    captions: [
+      { at: 0, text: "Sign WATER with the W handshape at the chin." },
+      { at: 5, text: "Check for understanding after each request." },
+    ],
+    quiz: [quiz("l8q1", "What does this sign mean?", ["Water", "Doctor", "Fever", "No"], "Water", "identify")],
+  },
+];
+
+export const lessonProgress: LessonProgress[] = [
+  { lesson_id: "l1", user_id: "u1", percent: 100, completed: true, last_opened_at: "2026-08-09T09:10:00Z" },
+  { lesson_id: "l2", user_id: "u1", percent: 100, completed: true, last_opened_at: "2026-08-10T09:10:00Z" },
+  { lesson_id: "l3", user_id: "u1", percent: 100, completed: true, last_opened_at: "2026-08-11T07:40:00Z" },
+  { lesson_id: "l4", user_id: "u1", percent: 45, completed: false, last_opened_at: "2026-08-13T06:30:00Z" },
+  { lesson_id: "l5", user_id: "u1", percent: 20, completed: false, last_opened_at: "2026-08-12T15:20:00Z" },
+  { lesson_id: "l6", user_id: "u1", percent: 0, completed: false, last_opened_at: "2026-08-01T10:00:00Z" },
+  { lesson_id: "l7", user_id: "u1", percent: 0, completed: false, last_opened_at: "2026-08-01T10:00:00Z" },
+  { lesson_id: "l8", user_id: "u1", percent: 60, completed: false, last_opened_at: "2026-08-12T18:00:00Z" },
+];
+
+export const currentUser: AppUser = {
+  id: "u1",
+  full_name: "Ananya Rao",
+  email: "ananya.rao@example.org",
+  role: "nurse",
+  hospital_id: "h1",
+  sector: "healthcare",
+  level: "bronze",
+  created_at: "2026-06-02T09:00:00Z",
+};
+
+export const progressSummary: UserProgressSummary = {
+  overall_percent: 42,
+  level: "bronze",
+  streak_days: 6,
+  accuracy_percent: 88,
+  daily_goal_minutes: 15,
+  daily_goal_done_minutes: 9,
+  signs_learned: 17,
+  weekly: [
+    { day: "Mon", minutes: 12, accuracy: 82 },
+    { day: "Tue", minutes: 18, accuracy: 86 },
+    { day: "Wed", minutes: 8, accuracy: 79 },
+    { day: "Thu", minutes: 22, accuracy: 90 },
+    { day: "Fri", minutes: 15, accuracy: 88 },
+    { day: "Sat", minutes: 26, accuracy: 92 },
+    { day: "Sun", minutes: 9, accuracy: 88 },
+  ],
+};
+
+export const activity: ActivityItem[] = [
+  {
+    id: "a1",
+    kind: "lesson",
+    title: "Completed “Finding the Doctor”",
+    detail: "4 signs reviewed · 10 minutes",
+    at: "2026-08-13T06:40:00Z",
+  },
+  {
+    id: "a2",
+    kind: "practice",
+    title: "Practised HELP in Demo Mode",
+    detail: "6 attempts · 94% simulated confidence",
+    at: "2026-08-12T18:12:00Z",
+  },
+  {
+    id: "a3",
+    kind: "assessment",
+    title: "Bronze practice quiz",
+    detail: "16 / 20 correct",
+    at: "2026-08-11T11:05:00Z",
+  },
+  {
+    id: "a4",
+    kind: "lesson",
+    title: "Started “Medicine Communication”",
+    detail: "20% complete",
+    at: "2026-08-10T15:22:00Z",
+  },
+];
+
+export const achievements: Achievement[] = [
+  {
+    id: "ach1",
+    name: "First Sign",
+    description: "Completed your first ISL lesson.",
+    icon: "Sparkles",
+    earned: true,
+    earned_at: "2026-06-03T09:00:00Z",
+  },
+  {
+    id: "ach2",
+    name: "Week Streak",
+    description: "Practised on 7 consecutive days.",
+    icon: "Flame",
+    earned: true,
+    earned_at: "2026-07-14T09:00:00Z",
+  },
+  {
+    id: "ach3",
+    name: "Reception Ready",
+    description: "Finished the Basic Communication category.",
+    icon: "ConciergeBell",
+    earned: true,
+    earned_at: "2026-07-28T09:00:00Z",
+  },
+  {
+    id: "ach4",
+    name: "Accuracy 90",
+    description: "Reach 90% practice accuracy over a week.",
+    icon: "Target",
+    earned: false,
+    earned_at: null,
+  },
+  {
+    id: "ach5",
+    name: "Bronze Certified",
+    description: "Pass the Bronze healthcare assessment.",
+    icon: "Award",
+    earned: false,
+    earned_at: null,
+  },
+  {
+    id: "ach6",
+    name: "Ward Navigator",
+    description: "Complete every Hospital Navigation lesson.",
+    icon: "Map",
+    earned: false,
+    earned_at: null,
+  },
+];
+
+export const bronzeAssessment: Assessment = {
+  id: "as-bronze",
+  tier: "bronze",
+  title: "Healthcare ISL Assessment",
+  duration_minutes: 15,
+  pass_percent: 70,
+  questions: [
+    quiz("q1", "Which meaning matches this sign: HELP?", ["Help", "Food", "Ward", "Fever"], "Help", "identify"),
+    quiz("q2", "Match the sign to its meaning: tapping the wrist twice", ["Doctor", "Water", "Stop", "No"], "Doctor", "match"),
+    quiz("q3", "A patient points to their stomach and twists both index fingers. They are signing:", ["Pain", "Rest", "Hello", "Numbers"], "Pain"),
+    quiz("q4", "Show the sign for HELP to the camera.", ["HELP"], "HELP", "camera_task", "HELP"),
+    quiz("q5", "Which sign should you use to direct a patient to the medicine counter?", ["Pharmacy", "Ward", "Blood", "Yes"], "Pharmacy"),
+    quiz("q6", "The W handshape tapped at the chin means:", ["Water", "Wait", "Ward", "Warning"], "Water", "match"),
+    quiz("q7", "Which meaning matches this sign: EMERGENCY?", ["Urgent situation", "Thank you", "Waiting room", "Food"], "Urgent situation", "identify"),
+    quiz("q8", "Show the sign for DOCTOR to the camera.", ["DOCTOR"], "DOCTOR", "camera_task", "DOCTOR"),
+    quiz("q9", "Circling the middle finger on the open palm means:", ["Medicine", "Rest", "Nurse", "Stop"], "Medicine", "match"),
+    quiz("q10", "The best way to confirm a Deaf patient understood you is to:", ["Ask them to sign it back", "Speak louder", "Write in English only", "Assume they understood"], "Ask them to sign it back"),
+    quiz("q11", "Which meaning matches this sign: STOP?", ["Stop or wait here", "Blood test", "Hello", "Fever"], "Stop or wait here", "identify"),
+    quiz("q12", "Show the sign for MEDICINE to the camera.", ["MEDICINE"], "MEDICINE", "camera_task", "MEDICINE"),
+    quiz("q13", "Pain signs are usually made:", ["Near the affected body part", "Above the head", "Behind the back", "At the knee only"], "Near the affected body part"),
+    quiz("q14", "The flat hand moving from the chin outward means:", ["Thank you", "No", "Ward", "Water"], "Thank you", "match"),
+    quiz("q15", "Which sign directs a patient to the front desk?", ["Reception", "Rest", "Blood", "Fever"], "Reception"),
+    quiz("q16", "Which meaning matches this sign: FEVER?", ["High temperature", "Waiting room", "Numbers", "Help"], "High temperature", "identify"),
+    quiz("q17", "Show the sign for EMERGENCY to the camera.", ["EMERGENCY"], "EMERGENCY", "camera_task", "EMERGENCY"),
+    quiz("q18", "ISL regional variation means you should:", ["Confirm the local variant with the patient", "Always use one national form", "Avoid signing", "Use written English only"], "Confirm the local variant with the patient"),
+    quiz("q19", "Wiggling upward-facing fingers means:", ["Wait", "Stop", "Blood", "Doctor"], "Wait", "match"),
+    quiz("q20", "For a complex consent conversation you should:", ["Involve a qualified interpreter", "Rely only on this app", "Use gestures alone", "Ask a family member to guess"], "Involve a qualified interpreter"),
+  ],
+};
+
+export const certificates: Certificate[] = [
+  {
+    id: "cert-bronze",
+    tier: "bronze",
+    title: "Bronze",
+    subtitle: "40 Essential Healthcare Signs",
+    requirements: [
+      "Complete the Basic Communication category",
+      "Complete 4 healthcare lessons",
+      "Score 70% or higher on the Bronze assessment",
+    ],
+    signs_required: 40,
+    signs_completed: 40,
+    status: "completed",
+    issued_at: "2026-07-30T09:00:00Z",
+    credential_id: "ISLS-BRZ-2026-004182",
+  },
+  {
+    id: "cert-silver",
+    tier: "silver",
+    title: "Silver",
+    subtitle: "150 Clinical Signs",
+    requirements: [
+      "Hold a valid Bronze credential",
+      "Complete all Healthcare and Navigation lessons",
+      "Score 75% or higher on the Silver assessment",
+    ],
+    signs_required: 150,
+    signs_completed: 58,
+    status: "in_progress",
+    issued_at: null,
+    credential_id: null,
+  },
+  {
+    id: "cert-gold",
+    tier: "gold",
+    title: "Gold",
+    subtitle: "Advanced Healthcare Communication",
+    requirements: [
+      "Hold a valid Silver credential",
+      "Complete the advanced counselling module",
+      "Pass a reviewed live signing task",
+    ],
+    signs_required: 300,
+    signs_completed: 0,
+    status: "locked",
+    issued_at: null,
+    credential_id: null,
+  },
+];
+
+export const hospital: Hospital = {
+  id: "h1",
+  name: "Sunrise District Hospital",
+  city: "Nagpur",
+  state: "Maharashtra",
+  readiness: "in_progress",
+  departments_covered: 6,
+  departments_total: 9,
+  last_training_at: "2026-08-08T10:00:00Z",
+};
+
+export const staff: StaffMember[] = [
+  { id: "s1", full_name: "Ananya Rao", role: "nurse", department: "Casualty", certification: "bronze", progress_percent: 42, status: "training" },
+  { id: "s2", full_name: "Vikram Iyer", role: "doctor", department: "General Medicine", certification: "silver", progress_percent: 78, status: "active" },
+  { id: "s3", full_name: "Meera Joshi", role: "receptionist", department: "Front Desk", certification: "bronze", progress_percent: 100, status: "active" },
+  { id: "s4", full_name: "Rahul Deshmukh", role: "pharmacist", department: "Pharmacy", certification: "bronze", progress_percent: 64, status: "training" },
+  { id: "s5", full_name: "Sunita Patil", role: "asha_anm", department: "Community Outreach", certification: "silver", progress_percent: 88, status: "active" },
+  { id: "s6", full_name: "Imran Sheikh", role: "security", department: "Main Gate", certification: null, progress_percent: 18, status: "training" },
+  { id: "s7", full_name: "Kavita Nair", role: "counsellor", department: "Counselling", certification: "gold", progress_percent: 100, status: "active" },
+  { id: "s8", full_name: "Deepak Verma", role: "nurse", department: "Ward B", certification: "bronze", progress_percent: 55, status: "inactive" },
+];
+
+export const hospitalAnalytics: HospitalAnalytics = {
+  certification_progress: [
+    { month: "Mar", bronze: 4, silver: 0, gold: 0 },
+    { month: "Apr", bronze: 9, silver: 1, gold: 0 },
+    { month: "May", bronze: 14, silver: 3, gold: 0 },
+    { month: "Jun", bronze: 19, silver: 5, gold: 1 },
+    { month: "Jul", bronze: 24, silver: 8, gold: 1 },
+    { month: "Aug", bronze: 28, silver: 11, gold: 2 },
+  ],
+  department_coverage: [
+    { department: "Front Desk", covered: 92 },
+    { department: "Casualty", covered: 74 },
+    { department: "Pharmacy", covered: 68 },
+    { department: "General Medicine", covered: 55 },
+    { department: "Ward B", covered: 41 },
+    { department: "Outreach", covered: 80 },
+  ],
+  monthly_training: [
+    { month: "Mar", hours: 18 },
+    { month: "Apr", hours: 26 },
+    { month: "May", hours: 31 },
+    { month: "Jun", hours: 44 },
+    { month: "Jul", hours: 52 },
+    { month: "Aug", hours: 38 },
+  ],
+};
+
+/** Vocabulary the Demo Mode recognition simulation can return. */
+export const demoVocabulary = [
+  "HELP",
+  "PAIN",
+  "DOCTOR",
+  "MEDICINE",
+  "EMERGENCY",
+  "WAIT",
+  "WATER",
+  "YES",
+  "NO",
+] as const;
+
+export const demoPhrases: Record<string, string> = {
+  HELP: "I need help.",
+  PAIN: "I am in pain.",
+  DOCTOR: "I need to see a doctor.",
+  MEDICINE: "I need my medicine.",
+  EMERGENCY: "This is an emergency.",
+  WAIT: "Please wait a moment.",
+  WATER: "I would like some water.",
+  YES: "Yes.",
+  NO: "No.",
+};
