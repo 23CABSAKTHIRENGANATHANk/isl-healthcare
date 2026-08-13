@@ -17,6 +17,8 @@ import { HospitalCharts } from "@/features/hospital/HospitalCharts";
 import { StaffTable } from "@/features/hospital/StaffTable";
 import { certifiedCounts, getHospital, getHospitalAnalytics, listStaff } from "@/services/hospital.service";
 
+import { ProtectedRoute } from "@/components/common/ProtectedRoute";
+
 export const Route = createFileRoute("/hospital")({
   head: () => ({
     meta: [
@@ -32,8 +34,16 @@ export const Route = createFileRoute("/hospital")({
       },
     ],
   }),
-  component: HospitalPage,
+  component: HospitalPageWrapper,
 });
+
+function HospitalPageWrapper() {
+  return (
+    <ProtectedRoute>
+      <HospitalPage />
+    </ProtectedRoute>
+  );
+}
 
 const readinessStatus: Record<string, StatusKind> = {
   not_started: "not_started",

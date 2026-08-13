@@ -99,11 +99,26 @@ export function CertificateDialog({ certificate, user, open, onOpenChange }: Cer
         <div className="flex justify-end gap-3 print:hidden">
           <Button
             variant="hero"
-            onClick={() => {
-              toast.success("Preparing certificate for download", {
-                description: "Use your browser's print dialog to save it as a PDF.",
-              });
-              window.print();
+            onClick={async () => {
+              try {
+                toast.loading("Preparing certificate PDF...");
+                const id = certificate.credential_id || certificate.id || "pending";
+                const resp = await fetch(`http://127.0.0.1:8000/api/certificate/${encodeURIComponent(id)}/pdf`);
+                if (!resp.ok) throw new Error("Failed to generate certificate");
+                const blob = await resp.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `certificate-${id}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+                toast.dismiss();
+                toast.success("Certificate downloaded");
+              } catch (err) {
+                toast.error("Certificate download failed");
+              }
             }}
           >
             <Download aria-hidden="true" />

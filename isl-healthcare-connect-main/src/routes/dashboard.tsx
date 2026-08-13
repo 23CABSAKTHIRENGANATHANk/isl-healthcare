@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
@@ -11,7 +12,12 @@ import {
   Target,
   TrendingUp,
 } from "lucide-react";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip as ChartTooltip, XAxis, YAxis } from "recharts";
+
+// Dynamic import of recharts — defers loading the chart chunk until
+// the dashboard is first visited, keeping initial JS bundle smaller.
+const DashboardAreaChart = lazy(() =>
+  import("@/components/charts/DashboardAreaChart").then((m) => ({ default: m.DashboardAreaChart }))
+);
 
 import { PageShell } from "@/components/layout/AppLayout";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -35,6 +41,8 @@ import {
   progressForLesson,
 } from "@/services/progress.service";
 
+import { ProtectedRoute } from "@/components/common/ProtectedRoute";
+
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
@@ -47,8 +55,16 @@ export const Route = createFileRoute("/dashboard")({
       { property: "og:description", content: "Your ISL learning progress, streak and certification path." },
     ],
   }),
-  component: DashboardPage,
+  component: DashboardPageWrapper,
 });
+
+function DashboardPageWrapper() {
+  return (
+    <ProtectedRoute>
+      <DashboardPage />
+    </ProtectedRoute>
+  );
+}
 
 function greeting(): string {
   const hour = new Date().getHours();
@@ -188,35 +204,9 @@ function DashboardPage() {
                 {summary.data ? (
                   <>
                     <div className="h-64 w-full">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={summary.data.weekly} margin={{ left: -18, right: 8, top: 8 }}>
-                          <defs>
-                            <linearGradient id="minutesFill" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="0%" stopColor="var(--color-chart-1)" stopOpacity={0.35} />
-                              <stop offset="100%" stopColor="var(--color-chart-1)" stopOpacity={0.02} />
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid stroke="var(--color-border)" vertical={false} />
-                          <XAxis dataKey="day" stroke="var(--color-muted-foreground)" fontSize={12} tickLine={false} />
-                          <YAxis stroke="var(--color-muted-foreground)" fontSize={12} tickLine={false} axisLine={false} />
-                          <ChartTooltip
-                            contentStyle={{
-                              background: "var(--color-card)",
-                              border: "1px solid var(--color-border)",
-                              borderRadius: 12,
-                              color: "var(--color-card-foreground)",
-                            }}
-                          />
-                          <Area
-                            type="monotone"
-                            dataKey="minutes"
-                            name="Minutes practised"
-                            stroke="var(--color-chart-1)"
-                            fill="url(#minutesFill)"
-                            strokeWidth={2.5}
-                          />
-                        </AreaChart>
-                      </ResponsiveContainer>
+                      <Suspense fallback={<div className="h-64 animate-pulse rounded-xl bg-muted/50" />}>
+                        <DashboardAreaChart data={summary.data.weekly} />
+                      </Suspense>
                     </div>
                     <p className="mt-2 text-sm text-muted-foreground">
                       You practised on {summary.data.weekly.filter((d) => d.minutes > 0).length} of 7 days this week,

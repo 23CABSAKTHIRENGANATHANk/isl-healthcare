@@ -16,6 +16,12 @@ dist-ssr
 .nitro
 *.local
 
+# Datasets & ML artifacts
+sign dataset/
+dataset viedo/
+*.csv
+*.mp4
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars

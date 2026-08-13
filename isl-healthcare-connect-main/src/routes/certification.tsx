@@ -9,6 +9,8 @@ import { CertificationDashboard } from "@/features/certification/CertificationDa
 import { Toaster } from "@/components/ui/sonner";
 import { listCertificates } from "@/services/assessment.service";
 
+import { ProtectedRoute } from "@/components/common/ProtectedRoute";
+
 export const Route = createFileRoute("/certification")({
   head: () => ({
     meta: [
@@ -24,8 +26,16 @@ export const Route = createFileRoute("/certification")({
       },
     ],
   }),
-  component: CertificationPage,
+  component: CertificationPageWrapper,
 });
+
+function CertificationPageWrapper() {
+  return (
+    <ProtectedRoute>
+      <CertificationPage />
+    </ProtectedRoute>
+  );
+}
 
 function CertificationPage() {
   const { data: certificates, isLoading, isError } = useQuery({

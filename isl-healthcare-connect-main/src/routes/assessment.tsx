@@ -9,6 +9,8 @@ import { CardSkeleton } from "@/components/common/LoadingStates";
 import { AssessmentRunner } from "@/features/assessment/AssessmentRunner";
 import { getAssessment } from "@/services/assessment.service";
 
+import { ProtectedRoute } from "@/components/common/ProtectedRoute";
+
 export const Route = createFileRoute("/assessment")({
   head: () => ({
     meta: [
@@ -24,8 +26,16 @@ export const Route = createFileRoute("/assessment")({
       },
     ],
   }),
-  component: AssessmentPage,
+  component: AssessmentPageWrapper,
 });
+
+function AssessmentPageWrapper() {
+  return (
+    <ProtectedRoute>
+      <AssessmentPage />
+    </ProtectedRoute>
+  );
+}
 
 function AssessmentPage() {
   const { data: assessment, isLoading, isError } = useQuery({

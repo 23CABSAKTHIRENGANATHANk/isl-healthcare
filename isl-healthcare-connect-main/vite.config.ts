@@ -5,6 +5,32 @@ import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
+  server: {
+    watch: {
+      ignored: [
+        "**/sign dataset/**",
+        "**/dataset viedo/**",
+        "**/Sample Videos/**",
+        "**/backend/**",
+        "**/*.csv",
+        "**/*.mp4",
+      ],
+    },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: (id: string) => {
+          if (id.includes("node_modules/recharts")) {
+            return "recharts";
+          }
+          if (id.includes("node_modules/@radix-ui")) {
+            return "radix";
+          }
+        },
+      },
+    },
+  },
   plugins: [
     tsConfigPaths(),
     tanstackStart({

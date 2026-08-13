@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Award, CheckCircle2, Download, Eye, FileWarning, Lock } from "lucide-react";
+import { Award, CheckCircle2, Download, Eye, FileWarning, Loader2, Lock } from "lucide-react";
 
 import logo from "@/assets/isl-setu-logo.png";
 import { CertificateDialog } from "@/features/certification/CertificateDialog";
@@ -17,8 +17,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useAuth } from "@/hooks/use-auth";
 import { getDemoUser } from "@/services/progress.service";
-import type { Certificate } from "@/types";
+import { toast } from "sonner";
+import type { AppUser, Certificate } from "@/types";
 
 const statusMap: Record<Certificate["status"], StatusKind> = {
   completed: "completed",
@@ -48,9 +50,91 @@ interface CertificationDashboardProps {
   certificates: Certificate[];
 }
 
+const AI_BACKEND_URL =
+  typeof import.meta !== "undefined" && import.meta.env?.VITE_AI_API_URL
+    ? (import.meta.env.VITE_AI_API_URL as string)
+    : "http://localhost:8000";
+
+/**
+ * Downloads a server-side generated PDF certificate from the FastAPI backend.
+ * Falls back to browser print if backend is unavailable.
+ */
+async function downloadServerPdf(
+  certificate: Certificate,
+  userName: string,
+  role: string
+): Promise<void> {
+  const params = new URLSearchParams({
+    name: userName,
+    tier: certificate.tier,
+    role,
+    score: String(80),
+    ...(certificate.issued_at ? { issued_at: certificate.issued_at } : {}),
+  });
+
+  const url = `${AI_BACKEND_URL}/api/certificate/${encodeURIComponent(certificate.credential_id ?? certificate.id)}/pdf?${params.toString()}`;
+
+  try {
+    const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    if (!response.ok) throw new Error(`Server returned ${response.status}`);
+
+    const blob = await response.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = objectUrl;
+    anchor.download = `ISL-Setu-Certificate-${certificate.credential_id ?? certificate.id}.pdf`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(objectUrl);
+  } catch {
+    // Fallback: browser print dialog
+    window.print();
+    throw new Error("backend_unavailable");
+  }
+}
+
 export function CertificationDashboard({ certificates }: CertificationDashboardProps) {
-  const { data: user } = useQuery({ queryKey: ["demo-user"], queryFn: getDemoUser });
+  const { profile, displayName, user: authUser } = useAuth();
+  const { data: demoUser } = useQuery({ queryKey: ["demo-user"], queryFn: getDemoUser });
   const [activeCertificate, setActiveCertificate] = useState<Certificate | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+
+  const currentUser: AppUser = profile || (authUser ? {
+    id: authUser.id,
+    full_name: displayName,
+    email: authUser.email || "",
+    role: "nurse",
+    hospital_id: null,
+    sector: "healthcare",
+    level: "bronze",
+    created_at: new Date().toISOString(),
+  } : demoUser || {
+    id: "guest",
+    full_name: displayName,
+    email: "",
+    role: "nurse",
+    hospital_id: null,
+    sector: "healthcare",
+    level: "bronze",
+    created_at: new Date().toISOString(),
+  });
+
+  async function handleDownload(certificate: Certificate) {
+    setDownloadingId(certificate.id);
+    try {
+      await downloadServerPdf(certificate, currentUser.full_name, currentUser.role);
+      toast.success("Certificate downloaded successfully!");
+    } catch (err) {
+      if ((err as Error).message === "backend_unavailable") {
+        toast.info("AI server offline — opened browser print dialog instead.");
+      } else {
+        toast.error("Download failed. Please try again.");
+      }
+    } finally {
+      setDownloadingId(null);
+    }
+  }
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -62,6 +146,7 @@ export function CertificationDashboard({ certificates }: CertificationDashboardP
           );
           const isCompleted = certificate.status === "completed";
           const isLocked = certificate.status === "locked";
+          const isDownloading = downloadingId === certificate.id;
 
           return (
             <RevealItem key={certificate.id}>
@@ -81,6 +166,12 @@ export function CertificationDashboard({ certificates }: CertificationDashboardP
                     <img src={logo} alt="" aria-hidden="true" className="h-8 w-auto opacity-80" />
                     <p className="text-xs text-muted-foreground">{certificate.subtitle}</p>
                   </div>
+
+                  {certificate.credential_id && isCompleted ? (
+                    <p className="rounded-xl bg-primary/5 px-3 py-2 font-mono text-xs font-semibold tracking-wider text-primary">
+                      {certificate.credential_id}
+                    </p>
+                  ) : null}
 
                   <div>
                     <div className="flex items-center justify-between text-sm">
@@ -115,20 +206,27 @@ export function CertificationDashboard({ certificates }: CertificationDashboardP
                     {isCompleted ? (
                       <>
                         <Button
+                          id={`view-cert-${certificate.id}`}
                           variant="outline"
                           className="min-h-11 flex-1"
                           onClick={() => setActiveCertificate(certificate)}
                         >
                           <Eye aria-hidden="true" />
-                          View Certificate
+                          View
                         </Button>
                         <Button
+                          id={`download-cert-${certificate.id}`}
                           variant="hero"
                           className="min-h-11 flex-1"
-                          onClick={() => setActiveCertificate(certificate)}
+                          onClick={() => void handleDownload(certificate)}
+                          disabled={isDownloading}
                         >
-                          <Download aria-hidden="true" />
-                          Download Certificate
+                          {isDownloading ? (
+                            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                          ) : (
+                            <Download aria-hidden="true" />
+                          )}
+                          {isDownloading ? "Generating…" : "Download PDF"}
                         </Button>
                       </>
                     ) : (
@@ -177,10 +275,10 @@ export function CertificationDashboard({ certificates }: CertificationDashboardP
         </Button>
       </div>
 
-      {activeCertificate && user ? (
+      {activeCertificate && currentUser ? (
         <CertificateDialog
           certificate={activeCertificate}
-          user={user}
+          user={currentUser}
           open={Boolean(activeCertificate)}
           onOpenChange={(open) => {
             if (!open) setActiveCertificate(null);

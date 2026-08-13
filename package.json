@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "dev": "npm run dev --prefix isl-healthcare-connect-main",
+    "dev:backend": "cd isl-healthcare-connect-main/backend && python main.py",
     "build": "npm run build --prefix isl-healthcare-connect-main",
     "preview": "npm run preview --prefix isl-healthcare-connect-main",
     "lint": "npm run lint --prefix isl-healthcare-connect-main"

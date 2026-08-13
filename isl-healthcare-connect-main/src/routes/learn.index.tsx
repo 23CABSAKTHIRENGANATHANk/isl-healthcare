@@ -9,10 +9,11 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { SignCard } from "@/components/common/SignCard";
 import { StatCard } from "@/components/common/StatCard";
 import { PageShell } from "@/components/layout/AppLayout";
+import { ProtectedRoute } from "@/components/common/ProtectedRoute";
 import { Reveal } from "@/components/motion/Reveal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { listLessonsByCategory, listSigns } from "@/services/content.service";
-import { getProgressSummary, progressForLesson } from "@/services/progress.service";
+import { getProgressSummary, listLessonProgress } from "@/services/progress.service";
 
 export const Route = createFileRoute("/learn/")({
   head: () => ({
@@ -27,13 +28,24 @@ export const Route = createFileRoute("/learn/")({
       { property: "og:description", content: "Structured ISL lessons for hospital teams, with captions and quizzes." },
     ],
   }),
-  component: LearnPage,
+  component: LearnPageWrapper,
 });
+
+function LearnPageWrapper() {
+  return (
+    <ProtectedRoute>
+      <LearnPage />
+    </ProtectedRoute>
+  );
+}
 
 function LearnPage() {
   const grouped = useQuery({ queryKey: ["lessons-by-category"], queryFn: listLessonsByCategory });
-  const summary = useQuery({ queryKey: ["progress-summary"], queryFn: getProgressSummary });
+  const summary = useQuery({ queryKey: ["progress-summary"], queryFn: () => getProgressSummary() });
+  const progressQuery = useQuery({ queryKey: ["all-lesson-progress"], queryFn: () => listLessonProgress() });
   const signs = useQuery({ queryKey: ["signs"], queryFn: listSigns });
+
+  const progressMap = new Map((progressQuery.data ?? []).map((p) => [p.lesson_id, p.percent]));
 
   return (
     <PageShell>
@@ -58,7 +70,14 @@ function LearnPage() {
               icon={TrendingUp}
               progress={summary.data.overall_percent}
             />
-            <StatCard label="Current Level" value="Bronze" icon={Trophy} tone="gold" animate={false} helper="ISL Setu platform tier" />
+            <StatCard
+              label="Current Level"
+              value={summary.data.level.toUpperCase()}
+              icon={Trophy}
+              tone="gold"
+              animate={false}
+              helper="ISL Setu platform tier"
+            />
             <StatCard
               label="Daily Goal"
               value={summary.data.daily_goal_done_minutes}
@@ -105,7 +124,7 @@ function LearnPage() {
                   <div className="-mx-4 flex snap-x gap-5 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-3">
                     {group.lessons.map((lesson) => (
                       <div key={lesson.id} className="min-w-[78vw] snap-start sm:min-w-0">
-                        <LessonCard lesson={lesson} percent={progressForLesson(lesson.id)} />
+                        <LessonCard lesson={lesson} percent={progressMap.get(lesson.id) ?? 0} />
                       </div>
                     ))}
                   </div>

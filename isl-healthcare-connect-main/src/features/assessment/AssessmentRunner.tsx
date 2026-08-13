@@ -20,7 +20,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { signByGloss } from "@/services/content.service";
-import { scoreAssessment } from "@/services/assessment.service";
+import { submitAssessment, scoreAssessment } from "@/services/assessment.service";
 import type { Assessment, AssessmentResult } from "@/types";
 
 const GLOSS_PATTERN = /\b([A-Z]{3,})\b/;
@@ -47,10 +47,20 @@ export function AssessmentRunner({ assessment }: AssessmentRunnerProps) {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [secondsLeft, setSecondsLeft] = useState(totalSeconds);
   const [result, setResult] = useState<AssessmentResult | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const submittedRef = useRef(false);
 
   const question = assessment.questions[index];
   const total = assessment.questions.length;
+
+  const handleSubmit = async () => {
+    if (submittedRef.current) return;
+    submittedRef.current = true;
+    setIsSubmitting(true);
+    const res = await submitAssessment({ assessment, answers });
+    setResult(res);
+    setIsSubmitting(false);
+  };
 
   useEffect(() => {
     if (result) return;
@@ -68,10 +78,8 @@ export function AssessmentRunner({ assessment }: AssessmentRunnerProps) {
 
   useEffect(() => {
     if (secondsLeft === 0 && !result && !submittedRef.current) {
-      submittedRef.current = true;
-      setResult(scoreAssessment(assessment, answers));
+      void handleSubmit();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [secondsLeft]);
 
   const gloss = useMemo(() => {
@@ -284,13 +292,11 @@ export function AssessmentRunner({ assessment }: AssessmentRunnerProps) {
           <Button
             variant="hero"
             size="lg"
-            onClick={() => {
-              submittedRef.current = true;
-              setResult(scoreAssessment(assessment, answers));
-            }}
+            disabled={isSubmitting}
+            onClick={() => void handleSubmit()}
           >
             <CheckCircle2 aria-hidden="true" />
-            Submit Assessment
+            {isSubmitting ? "Calculating Results…" : "Submit Assessment"}
           </Button>
         ) : (
           <Button variant="default" size="lg" onClick={() => setIndex((i) => Math.min(total - 1, i + 1))}>

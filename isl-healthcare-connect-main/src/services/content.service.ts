@@ -1,63 +1,225 @@
 /**
- * Content service: lessons, signs and categories.
- * Mock-backed today; each function maps 1:1 to a future table query.
+ * Content service: lessons, signs and categories with Supabase backend.
  */
-import { categories, lessons, signs } from "./mock/data";
-import type { Lesson, Sign, SignCategory } from "@/types";
+import { supabase } from "@/integrations/supabase/client";
+import { categories, lessons as mockLessons, signs as mockSigns } from "./mock/data";
+import type { Lesson, QuizQuestion, Sign, SignCategory } from "@/types";
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
-const latency = (ms = 220) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function listCategories(): Promise<SignCategory[]> {
-  await latency();
   return clone(categories);
 }
 
 export async function listLessons(): Promise<Lesson[]> {
-  await latency();
-  return clone(lessons);
+  try {
+    const { data, error } = await supabase
+      .from("lessons")
+      .select("*")
+      .eq("is_published", true)
+      .order("order_index", { ascending: true });
+
+    if (!error && data && data.length > 0) {
+      return data.map((row) => ({
+        id: row.id,
+        slug: row.slug,
+        code: row.code,
+        title: row.title,
+        summary: row.summary,
+        category_id: row.category_id,
+        duration_minutes: row.duration_minutes,
+        difficulty: row.difficulty as Lesson["difficulty"],
+        sign_ids: (Array.isArray(row.sign_ids) ? row.sign_ids : []) as string[],
+        thumbnail_tone: (row.thumbnail_tone as Lesson["thumbnail_tone"]) || "primary",
+        captions: (Array.isArray(row.captions) ? row.captions : []) as { at: number; text: string }[],
+        quiz: (Array.isArray(row.quiz) ? row.quiz : []) as QuizQuestion[],
+      }));
+    }
+  } catch (err) {
+    console.warn("[ContentService] Supabase listLessons fallback:", err);
+  }
+  return clone(mockLessons);
 }
 
 export async function listLessonsByCategory(): Promise<{ category: SignCategory; lessons: Lesson[] }[]> {
-  await latency();
-  return clone(
-    categories.map((category) => ({
-      category,
-      lessons: lessons.filter((lesson) => lesson.category_id === category.id),
-    })),
-  );
+  const allLessons = await listLessons();
+  return categories.map((category) => ({
+    category,
+    lessons: allLessons.filter((lesson) => lesson.category_id === category.id),
+  }));
 }
 
 export async function getLesson(slug: string): Promise<Lesson | null> {
-  await latency();
-  return clone(lessons.find((lesson) => lesson.slug === slug) ?? null);
-}
+  try {
+    const { data, error } = await supabase
+      .from("lessons")
+      .select("*")
+      .or(`slug.eq.${slug},id.eq.${slug}`)
+      .maybeSingle();
 
-export async function listSigns(): Promise<Sign[]> {
-  await latency();
-  return clone(signs);
-}
+    if (!error && data) {
+      return {
+        id: data.id,
+        slug: data.slug,
+        code: data.code,
+        title: data.title,
+        summary: data.summary,
+        category_id: data.category_id,
+        duration_minutes: data.duration_minutes,
+        difficulty: data.difficulty as Lesson["difficulty"],
+        sign_ids: (Array.isArray(data.sign_ids) ? data.sign_ids : []) as string[],
+        thumbnail_tone: (data.thumbnail_tone as Lesson["thumbnail_tone"]) || "primary",
+        captions: (Array.isArray(data.captions) ? data.captions : []) as { at: number; text: string }[],
+        quiz: (Array.isArray(data.quiz) ? data.quiz : []) as QuizQuestion[],
+      };
+    }
+  } catch (err) {
+    console.warn("[ContentService] Supabase getLesson fallback:", err);
+  }
 
-export async function listSignsByCategory(categoryId: string): Promise<Sign[]> {
-  await latency();
-  return clone(signs.filter((s) => s.category_id === categoryId));
-}
-
-export async function getSignsForLesson(lesson: Lesson): Promise<Sign[]> {
-  await latency(120);
-  return clone(lesson.sign_ids.map((id) => signs.find((s) => s.id === id)).filter(Boolean) as Sign[]);
+  const fallback = mockLessons.find((l) => l.slug === slug || l.id === slug);
+  return fallback ? clone(fallback) : null;
 }
 
 export const getLessonBySlug = getLesson;
 
+export async function listSigns(): Promise<Sign[]> {
+  try {
+    const { data, error } = await supabase
+      .from("signs")
+      .select("*")
+      .eq("is_published", true);
+
+    if (!error && data && data.length > 0) {
+      return data.map((row) => ({
+        id: row.id,
+        gloss: row.gloss,
+        meaning: row.meaning,
+        category_id: row.category_id,
+        difficulty: row.difficulty as Sign["difficulty"],
+        region_note: row.region_note,
+        video_url: row.video_url,
+        steps: (Array.isArray(row.steps) ? row.steps : []) as string[],
+      }));
+    }
+  } catch (err) {
+    console.warn("[ContentService] Supabase listSigns fallback:", err);
+  }
+  return clone(mockSigns);
+}
+
+export async function listSignsByCategory(categoryId: string): Promise<Sign[]> {
+  const allSigns = await listSigns();
+  return allSigns.filter((s) => s.category_id === categoryId);
+}
+
+export async function getSignsForLesson(lesson: Lesson): Promise<Sign[]> {
+  const allSigns = await listSigns();
+  return lesson.sign_ids.map((id) => allSigns.find((s) => s.id === id)).filter(Boolean) as Sign[];
+}
+
 export async function listSignsForLesson(lessonId: string): Promise<Sign[]> {
-  await latency(120);
-  const target = lessons.find((l) => l.id === lessonId || l.slug === lessonId);
-  if (!target) return [];
-  return clone(target.sign_ids.map((id) => signs.find((s) => s.id === id)).filter(Boolean) as Sign[]);
+  const lesson = await getLesson(lessonId);
+  if (!lesson) return [];
+  return getSignsForLesson(lesson);
 }
 
-export function signByGloss(gloss: string): Sign | null {
-  return clone(signs.find((s) => s.gloss === gloss) ?? null);
+export async function signByGloss(gloss: string): Promise<Sign | null> {
+  const allSigns = await listSigns();
+  return allSigns.find((s) => s.gloss.toUpperCase() === gloss.toUpperCase()) ?? null;
 }
 
+// -----------------------------------------------------------------------------
+// Admin CRUD helpers
+// -----------------------------------------------------------------------------
+
+export async function createLesson(lesson: Partial<Lesson>): Promise<{ error: string | null; data?: Lesson }> {
+  try {
+    const id = lesson.slug || `lesson-${Date.now()}`;
+    const { data, error } = await supabase
+      .from("lessons")
+      .insert({
+        id,
+        slug: lesson.slug || id,
+        code: lesson.code || "MED-NEW",
+        title: lesson.title || "New Lesson",
+        summary: lesson.summary || "",
+        category_id: lesson.category_id || "healthcare",
+        duration_minutes: lesson.duration_minutes || 10,
+        difficulty: lesson.difficulty || "beginner",
+        thumbnail_tone: lesson.thumbnail_tone || "primary",
+        sign_ids: (lesson.sign_ids || []) as never,
+        quiz: (lesson.quiz || []) as never,
+        is_published: true,
+      } as never)
+      .select()
+      .single();
+
+    if (error) return { error: error.message };
+    return { error: null, data: data as unknown as Lesson };
+  } catch (err) {
+    return { error: (err as Error).message };
+  }
+}
+
+export async function updateLesson(id: string, updates: Partial<Lesson>): Promise<{ error: string | null }> {
+  try {
+    const { error } = await supabase
+      .from("lessons")
+      .update({
+        title: updates.title,
+        summary: updates.summary,
+        category_id: updates.category_id,
+        duration_minutes: updates.duration_minutes,
+        difficulty: updates.difficulty,
+        sign_ids: updates.sign_ids as never,
+      } as never)
+      .eq("id", id);
+    return { error: error?.message ?? null };
+  } catch (err) {
+    return { error: (err as Error).message };
+  }
+}
+
+export async function deleteLesson(id: string): Promise<{ error: string | null }> {
+  try {
+    const { error } = await supabase.from("lessons").delete().eq("id", id);
+    return { error: error?.message ?? null };
+  } catch (err) {
+    return { error: (err as Error).message };
+  }
+}
+
+export async function createSign(sign: Partial<Sign>): Promise<{ error: string | null; data?: Sign }> {
+  try {
+    const id = (sign.gloss || "new-sign").toLowerCase().replace(/\s+/g, "-");
+    const { data, error } = await supabase
+      .from("signs")
+      .insert({
+        id,
+        gloss: (sign.gloss || "NEW SIGN").toUpperCase(),
+        meaning: sign.meaning || "",
+        category_id: sign.category_id || "healthcare",
+        difficulty: sign.difficulty || "beginner",
+        region_note: sign.region_note || "Consistent across regions",
+        steps: (sign.steps || []) as never,
+        is_published: true,
+      } as never)
+      .select()
+      .single();
+
+    if (error) return { error: error.message };
+    return { error: null, data: data as unknown as Sign };
+  } catch (err) {
+    return { error: (err as Error).message };
+  }
+}
+
+export async function deleteSign(id: string): Promise<{ error: string | null }> {
+  try {
+    const { error } = await supabase.from("signs").delete().eq("id", id);
+    return { error: error?.message ?? null };
+  } catch (err) {
+    return { error: (err as Error).message };
+  }
+}

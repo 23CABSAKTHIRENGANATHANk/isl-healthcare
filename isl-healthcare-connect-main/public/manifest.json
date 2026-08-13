@@ -1,0 +1,22 @@
+{
+  "short_name": "ISL Setu",
+  "name": "ISL Setu — Indian Sign Language Healthcare Platform",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/favicon.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/dashboard",
+  "background_color": "#0F172A",
+  "theme_color": "#2563EB",
+  "display": "standalone",
+  "orientation": "portrait",
+  "description": "Learn Indian Sign Language, practice signs with AI camera feedback, communicate via VoiceBridge, complete assessments and earn healthcare credentials."
+}

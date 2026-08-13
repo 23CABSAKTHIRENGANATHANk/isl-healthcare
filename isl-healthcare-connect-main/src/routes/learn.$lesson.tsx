@@ -1,15 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, CheckCircle2, Repeat, Volume2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Repeat, Sparkles, Volume2 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 import { PageShell } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/common/PageHeader";
+import { ProtectedRoute } from "@/components/common/ProtectedRoute";
 import { SignCard } from "@/components/common/SignCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { getLessonBySlug, listSignsForLesson } from "@/services/content.service";
+import { getRecommendedLessons, updateLessonProgress } from "@/services/progress.service";
 import { speak } from "@/services/ai.service";
 
 export const Route = createFileRoute("/learn/$lesson")({
@@ -32,18 +35,66 @@ export const Route = createFileRoute("/learn/$lesson")({
       ],
     };
   },
-  component: LessonPlayer,
+  component: LessonPlayerWrapper,
 });
+
+function LessonPlayerWrapper() {
+  return (
+    <ProtectedRoute>
+      <LessonPlayer />
+    </ProtectedRoute>
+  );
+}
 
 function LessonPlayer() {
   const { lesson } = Route.useLoaderData();
   const signs = useQuery({ queryKey: ["lesson-signs", lesson.id], queryFn: () => listSignsForLesson(lesson.id) });
+  const recommendedQuery = useQuery({ queryKey: ["recommended-lessons"], queryFn: () => getRecommendedLessons(2) });
+
   const [step, setStep] = useState(0);
   const [done, setDone] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const items = signs.data ?? [];
   const current = items[step];
-  const percent = items.length > 0 ? Math.round(((step + 1) / items.length) * 100) : 0;
+  const percent = items.length > 0 ? Math.min(100, Math.round(((step + 1) / items.length) * 100)) : 0;
+
+  const handleFinishLesson = async () => {
+    setSaving(true);
+    setDone(true);
+    setStep(items.length);
+
+    const res = await updateLessonProgress({
+      lessonId: lesson.id,
+      percent: 100,
+      completed: true,
+    });
+
+    setSaving(false);
+    if (!res.error) {
+      toast.success("Lesson completed! 🎉", {
+        description: "Your progress and learning streak have been recorded.",
+      });
+    }
+  };
+
+  const handleStepForward = () => {
+    if (step + 1 >= items.length) {
+      void handleFinishLesson();
+    } else {
+      const nextStep = step + 1;
+      setStep(nextStep);
+      const intermediatePercent = Math.round(((nextStep + 1) / items.length) * 100);
+      void updateLessonProgress({
+        lessonId: lesson.id,
+        percent: intermediatePercent,
+        completed: false,
+        lastPosition: nextStep,
+      });
+    }
+  };
+
+  const nextLesson = (recommendedQuery.data ?? []).find((l) => l.id !== lesson.id);
 
   return (
     <PageShell>
@@ -57,9 +108,9 @@ function LessonPlayer() {
       <PageHeader eyebrow={lesson.code} title={lesson.title} description={lesson.summary} />
 
       <div className="mt-6">
-        <Progress value={percent} className="h-2" aria-label={`Lesson progress: ${percent}%`} />
+        <Progress value={done ? 100 : percent} className="h-2" aria-label={`Lesson progress: ${done ? 100 : percent}%`} />
         <p className="mt-2 text-sm text-muted-foreground">
-          Sign {items.length === 0 ? 0 : step + 1} of {items.length} · {lesson.duration_minutes} min lesson
+          {done ? "Completed 100%" : `Sign ${items.length === 0 ? 0 : step + 1} of ${items.length}`} · {lesson.duration_minutes} min lesson
         </p>
       </div>
 
@@ -69,7 +120,7 @@ function LessonPlayer() {
             <CardTitle className="text-lg">{current ? current.gloss : "Lesson complete"}</CardTitle>
           </CardHeader>
           <CardContent>
-            {current ? (
+            {current && !done ? (
               <>
                 <div className="grid aspect-video w-full place-items-center rounded-2xl bg-gradient-brand text-center text-primary-foreground">
                   <div className="px-6">
@@ -81,6 +132,18 @@ function LessonPlayer() {
                 <p className="mt-2 text-sm text-muted-foreground">
                   Regional note: {current.region_note}
                 </p>
+
+                {current.steps && current.steps.length > 0 ? (
+                  <div className="mt-4 rounded-xl bg-muted/40 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Key Sign Steps</p>
+                    <ol className="mt-2 list-inside list-decimal space-y-1 text-sm text-foreground">
+                      {current.steps.map((s, idx) => (
+                        <li key={idx}>{s}</li>
+                      ))}
+                    </ol>
+                  </div>
+                ) : null}
+
                 <div className="mt-5 flex flex-wrap gap-2">
                   <Button variant="outline" onClick={() => speak(current.gloss)}>
                     <Volume2 aria-hidden="true" />
@@ -96,37 +159,38 @@ function LessonPlayer() {
                     <ArrowLeft aria-hidden="true" />
                     Previous
                   </Button>
-                  <Button
-                    variant="hero"
-                    onClick={() => {
-                      if (step + 1 >= items.length) {
-                        setDone(true);
-                        setStep(items.length);
-                      } else {
-                        setStep((s) => s + 1);
-                      }
-                    }}
-                  >
-                    {step + 1 >= items.length ? "Finish lesson" : "Next sign"}
+                  <Button variant="hero" onClick={handleStepForward} disabled={saving}>
+                    {step + 1 >= items.length ? (saving ? "Saving…" : "Finish lesson") : "Next sign"}
                     <ArrowRight aria-hidden="true" />
                   </Button>
                 </div>
               </>
             ) : (
               <div className="py-6 text-center">
-                <CheckCircle2 className="mx-auto size-12 text-success" aria-hidden="true" />
-                <h2 className="mt-3 text-xl font-semibold text-foreground">
-                  {done ? "Great work — lesson finished" : "No signs in this lesson yet"}
+                <CheckCircle2 className="mx-auto size-14 text-success" aria-hidden="true" />
+                <h2 className="mt-3 text-2xl font-bold text-foreground">
+                  Lesson completed! 🎉
                 </h2>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Try these signs in Practice with AI to check your form in Demo Mode.
+                <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+                  You've mastered all signs in this lesson. Your progress and daily learning streak have been recorded.
                 </p>
-                <div className="mt-5 flex flex-wrap justify-center gap-2">
-                  <Button asChild variant="hero">
-                    <Link to="/practice">Practise these signs</Link>
+                <div className="mt-6 flex flex-wrap justify-center gap-3">
+                  {nextLesson ? (
+                    <Button asChild variant="hero">
+                      <Link to={`/learn/${nextLesson.slug}`}>
+                        Next lesson: {nextLesson.title}
+                        <ArrowRight aria-hidden="true" />
+                      </Link>
+                    </Button>
+                  ) : null}
+                  <Button asChild variant="teal">
+                    <Link to="/practice">
+                      <Sparkles aria-hidden="true" />
+                      Practise with AI
+                    </Link>
                   </Button>
                   <Button asChild variant="outline">
-                    <Link to="/learn">Back to lessons</Link>
+                    <Link to="/learn">Back to all lessons</Link>
                   </Button>
                 </div>
               </div>
@@ -143,9 +207,12 @@ function LessonPlayer() {
               <button
                 key={sign.id}
                 type="button"
-                onClick={() => setStep(index)}
+                onClick={() => {
+                  setDone(false);
+                  setStep(index);
+                }}
                 className={
-                  index === step
+                  index === step && !done
                     ? "min-h-11 w-full rounded-xl border border-primary bg-primary/10 px-4 py-2 text-left text-sm font-semibold text-primary"
                     : "min-h-11 w-full rounded-xl border border-border px-4 py-2 text-left text-sm font-medium text-foreground transition-colors hover:bg-accent"
                 }
