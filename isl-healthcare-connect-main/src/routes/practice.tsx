@@ -1,12 +1,11 @@
 /**
  * ISL Setu — Interactive AI Gesture Practice Workspace
- * Real-time MediaPipe Hand 3D Landmark Recognition, Continuous Auto-Detect,
- * Video Picture-in-Picture Guide, Pose Hold Verification & Smooth Curriculum Auto-Advance.
+ * Real-time MediaPipe Hand Computer Vision Recognition, User-Controlled Progression,
+ * Picture-in-Picture Demonstration Guide & Interactive Curriculum Ribbon.
  */
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
-  AlertCircle,
   ArrowRight,
   Bot,
   CheckCircle2,
@@ -15,13 +14,10 @@ import {
   Cpu,
   Eye,
   EyeOff,
-  FastForward,
   Gauge,
+  Hand,
   HelpCircle,
   Info,
-  Layers,
-  Play,
-  RefreshCw,
   Sparkles,
   Target,
   Trophy,
@@ -55,7 +51,6 @@ import {
   speak,
 } from "@/services/ai.service";
 import { listSigns } from "@/services/content.service";
-import { generateVideoUrlCandidates } from "@/services/video-system";
 
 interface PracticeSearch {
   sign?: string;
@@ -73,7 +68,7 @@ export const Route = createFileRoute("/practice")({
       {
         name: "description",
         content:
-          "Practice Indian Sign Language with real-time MediaPipe computer-vision landmark feedback and auto-advancing lessons.",
+          "Practice Indian Sign Language with real-time MediaPipe computer-vision landmark feedback.",
       },
     ],
   }),
@@ -98,11 +93,9 @@ function PracticePage() {
   const [attempts, setAttempts] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [completedSigns, setCompletedSigns] = useState<Set<string>>(new Set());
-  const [autoDetect, setAutoDetect] = useState(true);
   const [showPipVideo, setShowPipVideo] = useState(true);
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [videoSpeed, setVideoSpeed] = useState(1.0);
-  const [countdown, setCountdown] = useState<number | null>(null);
 
   const [result, setResult] = useState<{
     gloss: string;
@@ -121,8 +114,6 @@ function PracticePage() {
   const target = items[index];
   const nextTarget = items[(index + 1) % (items.length || 1)];
   const accuracy = attempts === 0 ? 0 : Math.round((correct / attempts) * 100);
-  const resolvedTargetVideoUrl =
-    target ? generateVideoUrlCandidates(target.gloss, target.id)[0] ?? target.video_url ?? null : null;
 
   // Sync selected sign from URL search parameters (?sign=FEVER)
   useEffect(() => {
@@ -136,13 +127,12 @@ function PracticePage() {
       if (foundIdx !== -1 && foundIdx !== index) {
         setIndex(foundIdx);
         setResult(null);
-        setCountdown(null);
         hasSpokenForCurrentSign.current = false;
       }
     }
   }, [searchParams.sign, items]);
 
-  // Spacebar keyboard shortcut for hands-free checking
+  // Spacebar and Arrow shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === "Space" && !checking && target) {
@@ -163,38 +153,13 @@ function PracticePage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [checking, target, isLive, mode, index, items]);
 
-  // Auto-advance countdown timer when matched
-  useEffect(() => {
-    if (countdown === null) return;
-    if (countdown <= 0) {
-      setCountdown(null);
-      handleNext();
-      return;
-    }
-    const timer = setTimeout(() => {
-      setCountdown((prev) => (prev !== null ? prev - 1 : null));
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [countdown, index, items]);
-
-  // Continuous auto-detection loop when toggled on and not in countdown
-  useEffect(() => {
-    if (!autoDetect || !isLive || checking || countdown !== null) return;
-    const interval = setInterval(() => {
-      if (isLive && !checking && target && countdown === null) {
-        void check();
-      }
-    }, 2200);
-    return () => clearInterval(interval);
-  }, [autoDetect, isLive, checking, target, index, countdown]);
-
   async function check() {
     if (!target || checking) return;
     setChecking(true);
 
     try {
       setPhase("scanning");
-      await new Promise((r) => setTimeout(r, 150));
+      await new Promise((r) => setTimeout(r, 120));
       setPhase("recognising");
 
       const frame = isLive ? videoRef.current : null;
@@ -215,7 +180,7 @@ function PracticePage() {
           modelVersion: prediction.model_version,
           message:
             prediction.message ||
-            "Hold hand inside sensor frame and keep fingers visible.",
+            "Please position your hand in front of the camera and try again.",
         });
         return;
       }
@@ -241,11 +206,8 @@ function PracticePage() {
           matched: true,
           mode: prediction.mode,
           modelVersion: prediction.model_version,
-          message: `✓ Perfect match! Moving to next sign in 3 seconds...`,
+          message: `✓ Perfect match! Click 'Next Sign' below when you are ready to continue.`,
         });
-
-        // Trigger smooth 3-second auto-advance countdown
-        setCountdown(3);
       } else {
         setResult({
           gloss: prediction.sign,
@@ -253,7 +215,7 @@ function PracticePage() {
           matched: false,
           mode: prediction.mode,
           modelVersion: prediction.model_version,
-          message: `Detected ${prediction.sign}. Match target: ${target.gloss}.`,
+          message: `Detected ${prediction.sign}. Target is ${target.gloss}. Adjust your hand shape.`,
         });
       }
 
@@ -268,12 +230,11 @@ function PracticePage() {
       setChecking(false);
       setTimeout(() => {
         setPhase((curr) => (curr === "scanning" || curr === "recognising" ? "idle" : curr));
-      }, 1200);
+      }, 1000);
     }
   }
 
   const handleNext = () => {
-    setCountdown(null);
     setResult(null);
     hasSpokenForCurrentSign.current = false;
     if (items.length === 0) return;
@@ -285,7 +246,6 @@ function PracticePage() {
   };
 
   const handlePrev = () => {
-    setCountdown(null);
     setResult(null);
     hasSpokenForCurrentSign.current = false;
     if (items.length === 0) return;
@@ -294,7 +254,6 @@ function PracticePage() {
   };
 
   const handleSelectSign = (signIndex: number) => {
-    setCountdown(null);
     setResult(null);
     hasSpokenForCurrentSign.current = false;
     setIndex(signIndex);
@@ -307,7 +266,7 @@ function PracticePage() {
         <PageHeader
           eyebrow="AI Computer Vision"
           title="Practice Signs with Live AI Feedback"
-          description="Show prompted sign to your camera. Real-time MediaPipe Hand 3D landmark analysis checks your hand shape and joint angles."
+          description="Show prompted sign to your camera. Press Space or click 'Check Sign Now' to test your gesture."
         />
 
         <div className="flex items-center gap-2 rounded-2xl border border-border bg-card p-1.5 shadow-soft">
@@ -388,7 +347,7 @@ function PracticePage() {
       {/* Main Practice Workspace */}
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
-          {/* Camera Stage with PiP Reference Video Overlay */}
+          {/* Camera Stage */}
           <div className="relative overflow-hidden rounded-3xl">
             <CameraPreview
               videoRef={videoRef}
@@ -401,12 +360,12 @@ function PracticePage() {
             />
 
             {/* Video Picture-in-Picture Guide Overlay */}
-            {showPipVideo && resolvedTargetVideoUrl && isLive && (
+            {showPipVideo && target && target.video_url && isLive && (
               <div className="absolute right-4 top-4 w-44 overflow-hidden rounded-2xl border-2 border-white/20 bg-black/90 shadow-2xl backdrop-blur-md">
                 <div className="flex items-center justify-between bg-black/70 px-2 py-1 text-[10px] font-bold text-white">
                   <span className="flex items-center gap-1">
                     <span className="size-1.5 rounded-full bg-teal-400" />
-                    Video Guide
+                    Video Demo
                   </span>
                   <button
                     type="button"
@@ -418,8 +377,8 @@ function PracticePage() {
                 </div>
                 <div className="aspect-video w-full bg-black">
                   <video
-                    key={resolvedTargetVideoUrl}
-                    src={resolvedTargetVideoUrl}
+                    key={target.video_url}
+                    src={target.video_url}
                     className="size-full object-contain"
                     autoPlay
                     loop
@@ -427,36 +386,6 @@ function PracticePage() {
                     playsInline
                   />
                 </div>
-              </div>
-            )}
-
-            {/* Auto-Advance Celebration Banner */}
-            {countdown !== null && (
-              <div className="absolute inset-x-4 bottom-4 flex items-center justify-between rounded-2xl border border-emerald-500/40 bg-emerald-950/90 p-4 text-white shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-3 duration-300">
-                <div className="flex items-center gap-3">
-                  <div className="flex size-10 items-center justify-center rounded-xl bg-emerald-500 text-black font-bold">
-                    ✓
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-emerald-300">
-                      {target?.gloss} Verified! (+100 XP)
-                    </h4>
-                    <p className="text-xs text-neutral-300">
-                      Next: <strong className="text-white">{nextTarget?.gloss}</strong> in{" "}
-                      <span className="font-bold text-emerald-400">{countdown}s</span>
-                    </p>
-                  </div>
-                </div>
-
-                <Button
-                  size="sm"
-                  variant="hero"
-                  onClick={handleNext}
-                  className="gap-1.5 font-bold shadow-lg"
-                >
-                  Next Sign Now
-                  <ArrowRight className="size-4" />
-                </Button>
               </div>
             )}
           </div>
@@ -474,14 +403,14 @@ function PracticePage() {
                   className="gap-2.5 px-6 shadow-lg text-sm font-bold tracking-wide"
                 >
                   <Sparkles className="size-4 animate-pulse" />
-                  {checking ? "Analyzing Skeleton…" : "Check Sign Now"}
+                  {checking ? "Analyzing Hand Gesture…" : "Check Sign Now"}
                   <kbd className="hidden sm:inline-block rounded bg-black/30 px-1.5 py-0.5 text-[10px] font-mono uppercase">
                     Space
                   </kbd>
                 </Button>
 
                 {/* PiP Guide Toggle Button */}
-                {resolvedTargetVideoUrl && (
+                {target && target.video_url && (
                   <Button
                     variant="outline"
                     size="lg"
@@ -489,12 +418,12 @@ function PracticePage() {
                     className="gap-2 border-primary/30 text-primary hover:bg-primary/10"
                   >
                     {showPipVideo ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                    {showPipVideo ? "Hide PiP Video" : "Show PiP Video"}
+                    {showPipVideo ? "Hide PiP Demo" : "Show PiP Demo"}
                   </Button>
                 )}
 
-                {/* Video Guide Modal */}
-                {resolvedTargetVideoUrl && (
+                {/* Full Video Modal */}
+                {target && target.video_url && (
                   <Button
                     variant="ghost"
                     size="lg"
@@ -520,44 +449,31 @@ function PracticePage() {
                 )}
               </div>
 
-              {/* Navigation & Auto-Detect Controls */}
-              <div className="flex items-center gap-2">
+              {/* Navigation Controls */}
+              <div className="flex items-center gap-1.5">
                 <Button
-                  variant={autoDetect ? "teal" : "outline"}
-                  size="sm"
-                  onClick={() => setAutoDetect(!autoDetect)}
-                  className="rounded-xl text-xs font-semibold gap-1.5"
-                  title="Automatically checks hand position every 2 seconds"
+                  variant="outline"
+                  size="icon"
+                  onClick={handlePrev}
+                  disabled={items.length <= 1}
+                  className="size-9 rounded-xl"
+                  title="Previous Sign (←)"
                 >
-                  <Zap className={`size-3.5 ${autoDetect ? "fill-current" : ""}`} />
-                  Auto-Detect {autoDetect ? "ON" : "OFF"}
+                  <ChevronLeft className="size-4" />
                 </Button>
-
-                <div className="flex items-center gap-1 border-l border-border pl-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handlePrev}
-                    disabled={items.length <= 1}
-                    className="size-9 rounded-xl"
-                    title="Previous Sign (←)"
-                  >
-                    <ChevronLeft className="size-4" />
-                  </Button>
-                  <span className="px-2 text-xs font-bold text-muted-foreground">
-                    {index + 1} / {items.length}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handleNext}
-                    disabled={items.length <= 1}
-                    className="size-9 rounded-xl"
-                    title="Next Sign (→)"
-                  >
-                    <ChevronRight className="size-4" />
-                  </Button>
-                </div>
+                <span className="px-2 text-xs font-bold text-muted-foreground">
+                  {index + 1} / {items.length}
+                </span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleNext}
+                  disabled={items.length <= 1}
+                  className="size-9 rounded-xl"
+                  title="Next Sign (→)"
+                >
+                  <ChevronRight className="size-4" />
+                </Button>
               </div>
             </div>
           </div>
@@ -674,11 +590,11 @@ function PracticePage() {
                   {result.matched && (
                     <Button
                       variant="hero"
-                      size="sm"
+                      size="default"
                       onClick={handleNext}
-                      className="w-full gap-2 font-bold shadow-md"
+                      className="w-full gap-2 font-bold shadow-md mt-2"
                     >
-                      Continue to Next Sign
+                      Continue to Next Sign: {nextTarget?.gloss}
                       <ArrowRight className="size-4" />
                     </Button>
                   )}
@@ -687,7 +603,7 @@ function PracticePage() {
                 <div className="flex items-start gap-2.5 text-xs text-muted-foreground rounded-2xl bg-muted/30 p-3 border border-border/30">
                   <HelpCircle className="mt-0.5 size-4 shrink-0 text-primary" />
                   <p>
-                    Position hand inside the sensor frame. AI will continuously evaluate and auto-advance when matched!
+                    Position your hand in front of the camera and press <strong>Spacebar</strong> or click <strong>Check Sign Now</strong>.
                   </p>
                 </div>
               )}
@@ -697,7 +613,7 @@ function PracticePage() {
       </div>
 
       {/* Video Demonstration Modal */}
-      {resolvedTargetVideoUrl && target && (
+      {target && target.video_url && (
         <Dialog open={videoModalOpen} onOpenChange={setVideoModalOpen}>
           <DialogContent className="max-w-2xl rounded-3xl p-6">
             <DialogHeader>
@@ -709,8 +625,8 @@ function PracticePage() {
 
             <div className="overflow-hidden rounded-2xl bg-black aspect-video relative">
               <video
-                key={resolvedTargetVideoUrl}
-                src={resolvedTargetVideoUrl}
+                key={target.video_url}
+                src={target.video_url}
                 className="size-full object-contain"
                 controls
                 autoPlay
