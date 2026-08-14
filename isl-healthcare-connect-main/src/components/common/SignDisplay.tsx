@@ -248,20 +248,82 @@ export function SignDisplay({
   // 2. High-Definition Hand Gesture Schematic (Fallback if Video Loading)
   return (
     <div
-      className={`relative w-full overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-card via-card/90 to-primary/5 p-6 shadow-xl ${className}`}
+      className={`relative w-full overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-sky-500/20 via-cyan-500/10 to-emerald-500/10 p-6 shadow-xl ${className}`}
     >
       <div className="flex aspect-video w-full flex-col items-center justify-center text-center">
-        <div className="flex size-20 items-center justify-center rounded-3xl bg-primary/10 text-primary shadow-inner">
-          <Hand className="size-10 stroke-[1.75]" />
+        <div className="relative flex w-full max-w-[680px] items-center justify-center overflow-hidden rounded-[28px] border border-white/10 bg-gradient-to-br from-sky-500 via-cyan-500 to-teal-500 p-4 shadow-2xl shadow-sky-900/30">
+          <svg
+            viewBox="0 0 420 260"
+            className="h-[200px] w-full max-w-[520px] drop-shadow-[0_10px_25px_rgba(15,23,42,0.35)]"
+            role="img"
+            aria-label={`${gloss} sign illustration`}
+          >
+            <defs>
+              <linearGradient id="handGlow" x1="0%" x2="100%" y1="0%" y2="100%">
+                <stop offset="0%" stopColor="#f8fafc" stopOpacity="0.96" />
+                <stop offset="50%" stopColor="#dbeafe" stopOpacity="0.92" />
+                <stop offset="100%" stopColor="#cbd5e1" stopOpacity="0.9" />
+              </linearGradient>
+            </defs>
+
+            <g transform="translate(30 10)">
+              <path
+                d="M85 165 C90 130, 95 104, 118 96 C129 68, 145 42, 170 52 C185 34, 205 32, 223 55 C255 38, 293 34, 325 62 C349 87, 345 122, 330 150 C340 170, 342 194, 328 209 C312 225, 282 218, 254 218 L150 218 C120 218, 95 210, 80 192 C68 178, 72 172, 85 165 Z"
+                fill="url(#handGlow)"
+                opacity="0.96"
+              />
+
+              <path
+                d="M120 170 L120 55"
+                stroke="#0f172a"
+                strokeWidth="8"
+                strokeLinecap="round"
+              />
+              <path
+                d="M160 168 L160 42"
+                stroke="#0f172a"
+                strokeWidth="8"
+                strokeLinecap="round"
+              />
+              <path
+                d="M200 168 L200 36"
+                stroke="#0f172a"
+                strokeWidth="8"
+                strokeLinecap="round"
+              />
+              <path
+                d="M240 170 L240 52"
+                stroke="#0f172a"
+                strokeWidth="8"
+                strokeLinecap="round"
+              />
+              <path
+                d="M280 170 L280 70"
+                stroke="#0f172a"
+                strokeWidth="8"
+                strokeLinecap="round"
+              />
+
+              <circle cx="117" cy="42" r="10" fill="#0f172a" opacity="0.9" />
+              <circle cx="155" cy="26" r="10" fill="#0f172a" opacity="0.9" />
+              <circle cx="198" cy="22" r="10" fill="#0f172a" opacity="0.9" />
+              <circle cx="238" cy="34" r="10" fill="#0f172a" opacity="0.9" />
+              <circle cx="278" cy="58" r="10" fill="#0f172a" opacity="0.9" />
+            </g>
+          </svg>
         </div>
 
-        <h3 className="mt-4 font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-          {gloss}
-        </h3>
-        <p className="mt-1 max-w-md text-sm text-muted-foreground">{meaning}</p>
+        <div className="mt-5 w-full max-w-[560px] rounded-2xl bg-slate-950/20 p-4 backdrop-blur-sm">
+          <h3 className="font-display text-2xl font-black tracking-tight text-foreground sm:text-4xl">
+            {gloss}
+          </h3>
+          <p className="mt-1 text-sm text-slate-800 dark:text-slate-200">{meaning}</p>
+        </div>
 
         {regionNote && (
-          <p className="mt-2 text-xs font-medium text-teal">Regional Note: {regionNote}</p>
+          <p className="mt-3 text-xs font-medium text-sky-900 dark:text-sky-200">
+            Regional Note: {regionNote}
+          </p>
         )}
 
         <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
