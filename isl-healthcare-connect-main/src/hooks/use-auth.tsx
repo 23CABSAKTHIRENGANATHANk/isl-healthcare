@@ -73,14 +73,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             created_at: new Date().toISOString(),
           };
           setProfile(fallbackUser);
-
-          // Attempt creation if table is available
-          await dbFrom("profiles").upsert({
-            id: userId,
-            full_name: fallbackName,
-            email: userEmail || "",
-            role: fallbackRole,
-          } as never);
         }
       } catch (err) {
         console.warn("[Auth] Failed to load profile:", err);
