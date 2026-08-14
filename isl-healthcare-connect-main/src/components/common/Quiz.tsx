@@ -38,7 +38,7 @@ export function Quiz({
   });
   const [score, setScore] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
-  const autoAdvanceTimer = useRef<NodeJS.Timeout>();
+  const autoAdvanceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   if (!questions || questions.length === 0) {
     return (
@@ -245,7 +245,7 @@ export function Quiz({
               if (isCorrectAnswer) {
                 buttonClasses +=
                   " bg-green-100/50 dark:bg-green-900/30 border-green-300 dark:border-green-700 text-green-900 dark:text-green-100";
-              } else if (isSelected && !isCorrect) {
+              } else if (isSelected && !state.isCorrect) {
                 buttonClasses +=
                   " bg-red-100/50 dark:bg-red-900/30 border-red-300 dark:border-red-700 text-red-900 dark:text-red-100";
               } else {
@@ -269,7 +269,7 @@ export function Quiz({
                     className={`flex-shrink-0 h-5 w-5 rounded-full border-2 flex items-center justify-center ${
                       state.isAnswered && isCorrectAnswer
                         ? "border-green-600 bg-green-600"
-                        : state.isAnswered && isSelected && !isCorrect
+                        : state.isAnswered && isSelected && !state.isCorrect
                           ? "border-red-600 bg-red-600"
                           : "border-muted-foreground"
                     }`}
@@ -277,7 +277,7 @@ export function Quiz({
                     {state.isAnswered && isCorrectAnswer && (
                       <CheckCircle2 className="h-3 w-3 text-white" />
                     )}
-                    {state.isAnswered && isSelected && !isCorrect && (
+                    {state.isAnswered && isSelected && !state.isCorrect && (
                       <XCircle className="h-3 w-3 text-white" />
                     )}
                   </div>
