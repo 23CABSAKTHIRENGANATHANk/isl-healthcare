@@ -26,13 +26,13 @@ const gradientOverlays: Record<Lesson["thumbnail_tone"], string> = {
 /** Map lesson slug → a representative sign video for the thumbnail */
 const LESSON_PREVIEW_VIDEOS: Record<string, string> = {
   "clinical-triage": "/videos/signs/Fever.mp4",
-  "clinical-acute": "/videos/signs/Injury.mp4",
+  "clinical-acute": "/videos/signs/Break.mp4",
   "greetings-intake": "/videos/signs/Hello.mp4",
-  "bedside-cues": "/videos/signs/Clean.mp4",
+  "bedside-cues": "/videos/signs/Come.mp4",
   "diet-nutrition": "/videos/signs/Tea.mp4",
   "diet-vegetables": "/videos/signs/Vegetables.mp4",
-  "pediatric-care": "/videos/signs/Bear.mp4",
-  "pediatric-animals": "/videos/signs/Lion.mp4",
+  "pediatric-care": "/videos/signs/Hug.mp4",
+  "pediatric-animals": "/videos/signs/Deer.mp4",
   "admin-intake": "/videos/signs/Budget.mp4",
   "ward-logistics": "/videos/signs/Key.mp4",
   "patient-intake": "/videos/signs/Hello.mp4",

@@ -21,17 +21,29 @@ function buildCandidateUrls(gloss: string, videoUrl?: string | null): string[] {
   if (videoUrl) urls.push(videoUrl);
 
   const clean = gloss.trim();
-  // Title-case each word (handles "Good morning" → "Good morning" as the file is stored)
   const titleCased = clean
     .split(" ")
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
     .join(" ");
+  const sentenceCased = clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
   const upperCase = clean.toUpperCase();
   const lowerCase = clean.toLowerCase();
 
-  const candidates = [clean, titleCased, upperCase, lowerCase];
+  const candidates = [
+    clean,
+    titleCased,
+    sentenceCased,
+    upperCase,
+    lowerCase,
+    "What is your Name",
+    "Good morning",
+    "Good afternoon",
+    "Thank you",
+  ];
   candidates.forEach((name) => {
     urls.push(`/videos/signs/${name}.mp4`);
+    urls.push(`/videos/dataset-videos/${name}.mp4`);
+    urls.push(`/dataset-videos/${name}.mp4`);
   });
   return Array.from(new Set(urls));
 }

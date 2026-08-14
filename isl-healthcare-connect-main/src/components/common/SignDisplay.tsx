@@ -28,19 +28,6 @@ interface SignDisplayProps {
   className?: string;
 }
 
-const SIGN_FALLBACK_MAP: Record<string, string> = {
-  MEDICINE: "/videos/signs/Medicine.mp4",
-  BLOOD: "/videos/signs/Blood.mp4",
-  EMERGENCY: "/videos/signs/Emergency.mp4",
-  HELP: "/videos/signs/Help.mp4",
-  HOSPITAL: "/videos/signs/Hospital.mp4",
-  PAIN: "/videos/signs/Pain.mp4",
-  DOCTOR: "/videos/signs/Doctor.mp4",
-  NURSE: "/videos/signs/Nurse.mp4",
-  YES: "/videos/signs/Yes.mp4",
-  NO: "/videos/signs/No.mp4",
-};
-
 export function SignDisplay({
   gloss,
   meaning,
@@ -63,28 +50,31 @@ export function SignDisplay({
     if (videoUrl) urls.push(videoUrl);
 
     const clean = gloss.trim();
-    const upper = clean.toUpperCase();
-    if (SIGN_FALLBACK_MAP[upper]) {
-      urls.push(SIGN_FALLBACK_MAP[upper]);
-    }
-
     const titleCased = clean
       .split(" ")
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
       .join(" ");
+    const sentenceCased = clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
     const upperCase = clean.toUpperCase();
     const lowerCase = clean.toLowerCase();
 
-    const names = [clean, titleCased, upperCase, lowerCase];
+    const names = [
+      clean,
+      titleCased,
+      sentenceCased,
+      upperCase,
+      lowerCase,
+      "What is your Name",
+      "Good morning",
+      "Good afternoon",
+      "Thank you",
+    ];
+
     names.forEach((name) => {
       urls.push(`/videos/signs/${name}.mp4`);
       urls.push(`/videos/dataset-videos/${name}.mp4`);
       urls.push(`/dataset-videos/${name}.mp4`);
     });
-
-    // Final safety fallback to guarantee a valid video is always shown
-    urls.push("/videos/signs/Fever.mp4");
-    urls.push("/videos/signs/Hello.mp4");
 
     return Array.from(new Set(urls));
   }, [gloss, videoUrl]);
@@ -176,7 +166,7 @@ export function SignDisplay({
               {gloss}
             </span>
             <span className="rounded-md bg-white/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-300 backdrop-blur-md">
-              HD ISL Video
+              HD ISL Video Demo
             </span>
           </div>
 

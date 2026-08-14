@@ -4,7 +4,7 @@ const categories = [
   {
     id: 'clinical',
     name: 'Clinical & Emergency Triage',
-    description: 'Vital clinical vocabulary for symptoms, triage, fever, injury, diagnosis, and staff roles.',
+    description: 'Vital clinical vocabulary for symptoms, triage, fever, injury, diagnosis, and acute care.',
     icon: 'Stethoscope',
     sector: 'healthcare',
   },
@@ -38,20 +38,19 @@ const categories = [
   },
 ];
 
+// All 61 authentic ISL signs from the dataset - each has its OWN unique video recording
 const fullSigns = [
-  // Clinical & Emergency
-  { gloss: 'FEVER', meaning: 'High body temperature or pyrexia', category_id: 'clinical', difficulty: 'intermediate', region_note: 'Back of flat hand touches forehead with concern', video_url: '/videos/signs/Fever.mp4', steps: ['Back of flat hand touches the forehead.', 'Move hand slightly away and back once.', 'Maintain clinical observation with calm expression.'] },
-  { gloss: 'INJURY', meaning: 'Wound, trauma or physical injury', category_id: 'clinical', difficulty: 'intermediate', region_note: 'Point index fingers toward affected site', video_url: '/videos/signs/Injury.mp4', steps: ['Both index fingers point toward each other near wound area.', 'Twist wrists slightly with sharp, attentive posture.', 'Gesture gently toward the injury site for localization.'] },
-  { gloss: 'PAIN', meaning: 'Physical discomfort or acute pain', category_id: 'clinical', difficulty: 'beginner', region_note: 'Location follows painful anatomical area', video_url: '/videos/signs/Injury.mp4', steps: ['Index fingers point toward each other a short distance apart.', 'Twist wrists inward with tense, sympathetic facial expression.', 'Indicate location of acute pain on body.'] },
-  { gloss: 'DOCTOR', meaning: 'Physician or medical officer', category_id: 'clinical', difficulty: 'beginner', region_note: 'Two accepted variants in North and South India', video_url: '/videos/signs/Interview.mp4', steps: ['Index and middle fingers touch inside of opposite wrist.', 'Tap twice as if checking radial pulse rate.', 'Return hand to neutral open posture.'] },
-  { gloss: 'NURSE', meaning: 'Nursing staff or caregiver', category_id: 'clinical', difficulty: 'beginner', region_note: 'Pulse tap followed by forehead sweep', video_url: '/videos/signs/Clean.mp4', steps: ['Two fingers tap the wrist as for DOCTOR.', 'Follow with flat hand brushing across forehead like cap edge.', 'Hold final position briefly with supportive eye contact.'] },
-  { gloss: 'MEDICINE', meaning: 'Prescription drugs, tablets or syrup', category_id: 'clinical', difficulty: 'beginner', region_note: 'Widely consistent across all states', video_url: '/videos/signs/Drink.mp4', steps: ['Middle finger touches open palm of opposite hand.', 'Rotate finger in small circular grinding motion.', 'Lift hand slightly toward mouth to indicate dosage.'] },
-  { gloss: 'BLOOD', meaning: 'Blood sample or hematology test', category_id: 'clinical', difficulty: 'intermediate', region_note: 'Consistent across major Indian hospitals', video_url: '/videos/signs/Injury.mp4', steps: ['Index finger touches lips indicating red color.', 'Open both hands and let fingers trickle downward gently.', 'Conclude with open palms lowered at waist level.'] },
-  { gloss: 'EMERGENCY', meaning: 'Urgent immediate clinical care required', category_id: 'clinical', difficulty: 'advanced', region_note: 'Fast repetitive shake for urgency', video_url: '/videos/signs/Break.mp4', steps: ['Form E-handshape with dominant hand.', 'Shake side to side rapidly at chest level.', 'Maintain alert facial expression indicating priority.'] },
-  { gloss: 'HELP', meaning: 'Requesting or offering medical assistance', category_id: 'clinical', difficulty: 'beginner', region_note: 'Support hand lifting working hand', video_url: '/videos/signs/Give.mp4', steps: ['Closed fist with thumb up rests on open palm of non-dominant hand.', 'Lift both hands upward together smoothly.', 'Nod head to signify supportive care.'] },
-  { gloss: 'HOSPITAL', meaning: 'Healthcare facility or medical ward', category_id: 'clinical', difficulty: 'beginner', region_note: 'Cross sign on upper arm or chest', video_url: '/videos/signs/Temple.mp4', steps: ['Index and middle fingers trace cross on opposite upper arm.', 'Vertical stroke first, followed by horizontal stroke.', 'End with welcoming open hand posture.'] },
+  // 1. Clinical & Emergency Triage (8 distinct signs)
+  { gloss: 'FEVER', meaning: 'High body temperature or pyrexia assessment', category_id: 'clinical', difficulty: 'intermediate', region_note: 'Back of flat hand touches forehead with concern', video_url: '/videos/signs/Fever.mp4', steps: ['Back of flat hand touches the forehead.', 'Move hand slightly away and back once.', 'Maintain clinical observation with calm expression.'] },
+  { gloss: 'INJURY', meaning: 'Wound, trauma or physical injury localization', category_id: 'clinical', difficulty: 'intermediate', region_note: 'Point index fingers toward affected site', video_url: '/videos/signs/Injury.mp4', steps: ['Both index fingers point toward each other near wound area.', 'Twist wrists slightly with sharp, attentive posture.', 'Gesture gently toward the injury site for localization.'] },
+  { gloss: 'EXAM', meaning: 'Diagnostic examination or clinical chart review', category_id: 'clinical', difficulty: 'intermediate', region_note: 'Curled index fingers scanning paper/body', video_url: '/videos/signs/Exam.mp4', steps: ['Both index fingers bent into hooks.', 'Move hands downward in parallel scanning motion as if inspecting clinical chart.', 'Signals comprehensive health checkup.'] },
+  { gloss: 'INTERVIEW', meaning: 'Clinical anamnesis, doctor consultation & intake', category_id: 'clinical', difficulty: 'intermediate', region_note: 'I-handshapes speaking back and forth', video_url: '/videos/signs/Interview.mp4', steps: ['Both hands in I-handshape (pinky extended).', 'Move hands back and forth toward each other in front of mouth.', 'Signifies structured medical intake dialogue.'] },
+  { gloss: 'BREAK', meaning: 'Bone fracture alert or clinical shift relief', category_id: 'clinical', difficulty: 'beginner', region_note: 'Breaking imaginary stick in half', video_url: '/videos/signs/Break.mp4', steps: ['Both fists side-by-side with knuckles touching.', 'Snap wrists outward and twist hands apart as if snapping wooden stick.', 'Used for bone fracture diagnosis and shift relief.'] },
+  { gloss: 'FEDUP', meaning: 'Patient acute emotional distress & burnout', category_id: 'clinical', difficulty: 'intermediate', region_note: 'Hand chopped up to chin level', video_url: '/videos/signs/Fedup.mp4', steps: ['Flat hand palm-down strikes underneath chin sharply.', 'Exhale with weary facial expression.', 'Signals psychiatric/counseling support needed.'] },
+  { gloss: 'VOLCANO', meaning: 'Sudden acute symptom eruption or crisis', category_id: 'clinical', difficulty: 'advanced', region_note: 'Lava exploding upward from mountain cone', video_url: '/videos/signs/Volcano.mp4', steps: ['Both hands form tapered mountain cone at base.', 'Fingers erupt upward and splay outward like volcanic explosion.', 'Used metaphorically in emergency crisis management.'] },
+  { gloss: 'STILL', meaning: 'Motionless posture during X-ray or MRI scan', category_id: 'clinical', difficulty: 'intermediate', region_note: 'Downward pressing Y-handshapes', video_url: '/videos/signs/Still.mp4', steps: ['Both hands in Y-handshape palms facing downward.', 'Move hands smoothly forward and down together.', 'Instructs patient to remain completely motionless.'] },
 
-  // Clinical Greetings & Daily Patient Communication
+  // 2. Clinical Greetings & Patient Intake (14 distinct signs)
   { gloss: 'HELLO', meaning: 'Welcoming a patient, visitor or caregiver', category_id: 'greetings', difficulty: 'beginner', region_note: 'Universal greeting across India', video_url: '/videos/signs/Hello.mp4', steps: ['Open palm faces forward at temple height.', 'Move hand outward and slightly away in a smooth welcoming arc.', 'Hold briefly while maintaining warm eye contact.'] },
   { gloss: 'GOOD MORNING', meaning: 'Morning clinical rounds greeting', category_id: 'greetings', difficulty: 'beginner', region_note: 'Sun rising gesture combined with good', video_url: '/videos/signs/Good morning.mp4', steps: ['Sign GOOD by bringing flat fingertips from chin outward.', 'Follow with non-dominant arm horizontal as dominant hand rises like sun.', 'Smile calmly to reassure patient.'] },
   { gloss: 'GOOD AFTERNOON', meaning: 'Midday patient check-in greeting', category_id: 'greetings', difficulty: 'beginner', region_note: 'Midday sun position gesture', video_url: '/videos/signs/Good afternoon.mp4', steps: ['Sign GOOD moving outward from chin.', 'Position dominant hand overhead pointing straight up for midday sun.', 'Lower hand smoothly to acknowledge patient.'] },
@@ -66,31 +65,29 @@ const fullSigns = [
   { gloss: 'BUSY', meaning: 'Doctor in OT, staff attending emergency triage', category_id: 'greetings', difficulty: 'intermediate', region_note: 'B-handshape sweeping back and forth', video_url: '/videos/signs/Busy.mp4', steps: ['Non-dominant arm extended across chest.', 'Dominant flat hand wipes back and forth across wrist rapidly.', 'Indicates high activity / engagement.'] },
   { gloss: 'WRONG', meaning: 'Incorrect symptom report or medication verification', category_id: 'greetings', difficulty: 'intermediate', region_note: 'Y-handshape knuckles touching chin', video_url: '/videos/signs/Wrong.mp4', steps: ['Form Y-handshape with thumb and pinky extended.', 'Touch middle knuckles of three folded fingers to chin.', 'Slight head shake to confirm mismatch.'] },
   { gloss: 'MAYBE', meaning: 'Uncertain diagnosis pending lab investigations', category_id: 'greetings', difficulty: 'intermediate', region_note: 'Alternating flat palms balance scale', video_url: '/videos/signs/Maybe.mp4', steps: ['Both palms open facing upward at chest height.', 'Raise and lower alternate hands in gentle teeter-totter motion.', 'Tilt head slightly to indicate pending confirmation.'] },
-  { gloss: 'STILL', meaning: 'Asking patient to hold position during X-ray/MRI scan', category_id: 'greetings', difficulty: 'intermediate', region_note: 'Downward pressing Y-handshapes', video_url: '/videos/signs/Still.mp4', steps: ['Both hands in Y-handshape palms facing downward.', 'Move hands smoothly forward and down together.', 'Instructs patient to remain completely motionless.'] },
-  { gloss: 'YES', meaning: 'Patient confirmation or symptom affirmation', category_id: 'greetings', difficulty: 'beginner', region_note: 'Nodding fist motion', video_url: '/videos/signs/Thank you.mp4', steps: ['Make a loose fist with dominant hand.', 'Bend wrist up and down twice like a nodding head.', 'Maintain encouraging facial smile.'] },
-  { gloss: 'NO', meaning: 'Patient denial or symptom negation', category_id: 'greetings', difficulty: 'beginner', region_note: 'Two fingers snapping shut on thumb', video_url: '/videos/signs/Wrong.mp4', steps: ['Extend index and middle finger with thumb open.', 'Close the two fingers firmly onto the thumb in one motion.', 'Shake head subtly to indicate negation.'] },
 
-  // Dietary & Nutrition Care
+  // 3. Dietary Care & Patient Nutrition (13 distinct signs)
   { gloss: 'TEA', meaning: 'Hot beverage, oral dietary allowance', category_id: 'nutrition', difficulty: 'beginner', region_note: 'Teabag dipping circular motion', video_url: '/videos/signs/Tea.mp4', steps: ['Non-dominant hand forms O-shape like teacup rim.', 'Dominant thumb and index hold imaginary teabag string and circle gently above cup.', 'Tip hand slightly toward lips.'] },
   { gloss: 'COOK', meaning: 'Hospital diet kitchen preparation', category_id: 'nutrition', difficulty: 'beginner', region_note: 'Spatula flipping motion', video_url: '/videos/signs/Cook.mp4', steps: ['Non-dominant palm flat facing up as frying surface.', 'Dominant flat hand flips palm-down then palm-up repeatedly on base hand.', 'Indicates cooked meal preparation.'] },
   { gloss: 'POUR', meaning: 'Administering liquid medication or drinking water', category_id: 'nutrition', difficulty: 'beginner', region_note: 'Tilting container motion', video_url: '/videos/signs/Pour.mp4', steps: ['Dominant hand in loose fist tilted at wrist.', 'Rotate wrist downward as if pouring liquid from jug into cup.', 'Smooth steady stream gesture.'] },
+  { gloss: 'LEMON', meaning: 'Vitamin C citrus supplement / hydration', category_id: 'nutrition', difficulty: 'intermediate', region_note: 'Squeezing L-handshape at mouth corner', video_url: '/videos/signs/Lemon.mp4', steps: ['Thumb of L-handshape touches corner of mouth.', 'Twist wrist forward and backward while making sour puckered face.', 'Denotes citrus lemon.'] },
+  { gloss: 'CHILLI', meaning: 'Spicy food restriction / gastrointestinal check', category_id: 'nutrition', difficulty: 'intermediate', region_note: 'Small curved pepper shape + burning tongue reaction', video_url: '/videos/signs/Chilli.mp4', steps: ['Index and thumb pinch into small curved pointed pepper shape.', 'Bring near lips and fan mouth rapidly with other hand to indicate spicy heat.', 'Crucial for ulcer/GERD dietary counseling.'] },
+  { gloss: 'CUCUMBER', meaning: 'Cooling hydrating vegetable for fever/recovery', category_id: 'nutrition', difficulty: 'intermediate', region_note: 'Cylindrical vegetable slicing gesture', video_url: '/videos/signs/Cucumber.mp4', steps: ['Non-dominant hand holds long cylindrical shape horizontally.', 'Dominant flat hand makes crisp slicing motions along cylinder.', 'Denotes crisp refreshing cucumber.'] },
   { gloss: 'VEGETABLES', meaning: 'High-fiber diabetic / cardiac dietary meal', category_id: 'nutrition', difficulty: 'intermediate', region_note: 'V-handshape twisting at cheek', video_url: '/videos/signs/Vegetables.mp4', steps: ['Dominant hand in V-shape with index and middle finger extended.', 'Touch tips of V-fingers to cheek and twist wrist back and forth.', 'Follow with chewing expression.'] },
   { gloss: 'CARROT', meaning: 'Beta-carotene rich recovery diet', category_id: 'nutrition', difficulty: 'intermediate', region_note: 'Holding carrot and crunching at mouth', video_url: '/videos/signs/Carrot.mp4', steps: ['Dominant hand forms S-fist at mouth corner.', 'Mimic biting tip of carrot with small crunching teeth motion.', 'Pull hand slightly away.'] },
   { gloss: 'CABBAGE', meaning: 'Cruciferous vegetable nutrition', category_id: 'nutrition', difficulty: 'intermediate', region_note: 'Cupped hands showing layered round ball', video_url: '/videos/signs/Cabbage.mp4', steps: ['Both wrists touch at base of palms in round spherical shape.', 'Fingers curve inward like layers of cabbage leaves.', 'Rotate hands slightly to indicate vegetable head.'] },
   { gloss: 'CAULIFLOWER', meaning: 'Vegetable florets dietary item', category_id: 'nutrition', difficulty: 'intermediate', region_note: 'White color sign + blossoming ball shape', video_url: '/videos/signs/Cauliflower.mp4', steps: ['Fingers bunch together and open outward like florets.', 'Both hands form clustered round crown at chest level.', 'Signifies fresh florets.'] },
   { gloss: 'ONION', meaning: 'Dietary seasoning / allergen check', category_id: 'nutrition', difficulty: 'intermediate', region_note: 'Twisting knuckle at eye corner', video_url: '/videos/signs/Onion.mp4', steps: ['Form X-handshape with bent index finger knuckle.', 'Twist knuckle gently near outer corner of eye as if cutting pungent onion.', 'Squint eyes slightly.'] },
   { gloss: 'RADISH', meaning: 'Root vegetable dietary nutrition', category_id: 'nutrition', difficulty: 'intermediate', region_note: 'Tapered root shape from wrist', video_url: '/videos/signs/Radish.mp4', steps: ['Non-dominant arm extended forward.', 'Dominant hand traces long tapering root shape down forearm to pointed tip.', 'Indicates white radish.'] },
-  { gloss: 'LEMON', meaning: 'Vitamin C citrus supplement / hydration', category_id: 'nutrition', difficulty: 'intermediate', region_note: 'Squeezing L-handshape at mouth corner', video_url: '/videos/signs/Lemon.mp4', steps: ['Thumb of L-handshape touches corner of mouth.', 'Twist wrist forward and backward while making sour puckered face.', 'Denotes citrus lemon.'] },
   { gloss: 'BRINJAL', meaning: 'Eggplant / aubergine dietary vegetable', category_id: 'nutrition', difficulty: 'intermediate', region_note: 'Purple sign + elongated stem shape', video_url: '/videos/signs/Brinjal.mp4', steps: ['Dominant hand curls around non-dominant index finger resembling stem cap.', 'Hands form elongated smooth bulb shape downward.', 'Traditional Indian vegetable sign.'] },
-  { gloss: 'CHILLI', meaning: 'Spicy food restriction / gastrointestinal check', category_id: 'nutrition', difficulty: 'intermediate', region_note: 'Small curved pepper shape + burning tongue reaction', video_url: '/videos/signs/Chilli.mp4', steps: ['Index and thumb pinch into small curved pointed pepper shape.', 'Bring near lips and fan mouth rapidly with other hand to indicate spicy heat.', 'Crucial for ulcer/GERD dietary counseling.'] },
-  { gloss: 'CUCUMBER', meaning: 'Cooling hydrating vegetable for fever/recovery', category_id: 'nutrition', difficulty: 'intermediate', region_note: 'Cylindrical vegetable slicing gesture', video_url: '/videos/signs/Cucumber.mp4', steps: ['Non-dominant hand holds long cylindrical shape horizontally.', 'Dominant flat hand makes crisp slicing motions along cylinder.', 'Denotes crisp refreshing cucumber.'] },
 
-  // Pediatric & Reassurance
+  // 4. Pediatric Comfort & Reassurance (16 distinct signs)
   { gloss: 'HUG', meaning: 'Comforting pediatric patient or emotional reassurance', category_id: 'pediatric', difficulty: 'beginner', region_note: 'Crossing arms over chest in self-hug', video_url: '/videos/signs/Hug.mp4', steps: ['Cross both arms over chest with fists resting on opposite shoulders.', 'Squeeze gently toward torso with warm caring facial expression.', 'Invaluable for comforting frightened child patients.'] },
   { gloss: 'CRY', meaning: 'Identifying distress, pediatric tears or sadness', category_id: 'pediatric', difficulty: 'beginner', region_note: 'Index fingers tracing tears down cheeks', video_url: '/videos/signs/Cry.mp4', steps: ['Both index fingers point upward under eyes.', 'Draw fingers downward along cheeks in wavy falling paths like teardrops.', 'Sympathetic gentle expression.'] },
   { gloss: 'JUMP', meaning: 'Physiotherapy mobility / child pediatric engagement', category_id: 'pediatric', difficulty: 'beginner', region_note: 'V-fingers jumping on flat palm', video_url: '/videos/signs/Jump.mp4', steps: ['Non-dominant palm flat facing upward as ground.', 'Dominant inverted V-fingers (legs) bend knees and spring upward repeatedly.', 'Useful in pediatric physiotherapy and motor assessments.'] },
   { gloss: 'UMBRELLA', meaning: 'Rain protection / patient mobility aid', category_id: 'pediatric', difficulty: 'beginner', region_note: 'Opening umbrella handle gesture', video_url: '/videos/signs/Umbrella.mp4', steps: ['Both fists stacked vertically as if gripping umbrella handle.', 'Slide dominant hand upward while opening fingers outward into domed canopy.', 'Protective sheltering gesture.'] },
   { gloss: 'BEAR', meaning: 'Pediatric story animal / reassurance toy', category_id: 'pediatric', difficulty: 'beginner', region_note: 'Crossed arms scratching chest with claws', video_url: '/videos/signs/Bear.mp4', steps: ['Cross arms over chest with curved clawed fingers.', 'Scratch gently downward twice on opposite shoulders.', 'Friendly play gesture for young patients.'] },
+  { gloss: 'CROCODILE', meaning: 'Pediatric tooth brushing / mouth opening prompt', category_id: 'pediatric', difficulty: 'beginner', region_note: 'Long clamping jaws with extended arms', video_url: '/videos/signs/Crocodile.mp4', steps: ['Both arms extended forward horizontally, palms facing each other.', 'Open arms wide vertically and snap hands together like giant jaws.', 'Prompts young dental patients to open mouth wide for inspection.'] },
   { gloss: 'DEER', meaning: 'Pediatric animal symbol / hearing test visual cue', category_id: 'pediatric', difficulty: 'beginner', region_note: 'Open 5-handshapes as antlers at temples', video_url: '/videos/signs/Deer.mp4', steps: ['Thumbs of both open 5-hands touch temples.', 'Fingers spread wide like branching antlers.', 'Move hands upward and outward smoothly.'] },
   { gloss: 'ELEPHANT', meaning: 'Pediatric engagement / cultural symbol', category_id: 'pediatric', difficulty: 'beginner', region_note: 'Curving trunk gesture from nose', video_url: '/videos/signs/Elephant.mp4', steps: ['Back of dominant hand touches nose.', 'Curve arm downward and forward in long undulating trunk swing.', 'Lift hand slightly at the end.'] },
   { gloss: 'GIRAFFE', meaning: 'Tall animal symbol in pediatric playroom', category_id: 'pediatric', difficulty: 'beginner', region_note: 'C-handshape sliding up tall neck', video_url: '/videos/signs/Giraffe.mp4', steps: ['Dominant C-handshape starts at neck base.', 'Glide hand upward high above head to indicate long slender neck.', 'Gentle playful gaze upward.'] },
@@ -101,24 +98,18 @@ const fullSigns = [
   { gloss: 'SPARROW', meaning: 'Small bird symbol in pediatric vision test', category_id: 'pediatric', difficulty: 'beginner', region_note: 'Tiny beak chirping near cheek', video_url: '/videos/signs/Sparrow.mp4', steps: ['Index and thumb pinch into tiny beak at corner of mouth.', 'Tap fingertips rapidly twice while tilting head curiously.', 'Great for pediatric eye chart alignment.'] },
   { gloss: 'TIGER', meaning: 'Strength badge / brave pediatric patient reward', category_id: 'pediatric', difficulty: 'intermediate', region_note: 'Stripes drawn across cheeks with claw hands', video_url: '/videos/signs/Tiger.mp4', steps: ['Curved finger claw hands start at nose.', 'Pull hands outward across cheeks tracing bold tiger stripes.', 'Bold determined expression.'] },
   { gloss: 'TURTLE', meaning: 'Slow steady movement / physiotherapy pacing', category_id: 'pediatric', difficulty: 'intermediate', region_note: 'Thumb peeking out under cupped shell hand', video_url: '/videos/signs/Turtle.mp4', steps: ['Dominant cupped hand covers non-dominant fist like protective shell.', 'Thumb of lower fist pokes out and wiggles like turtle head.', 'Teaches patients to breathe slowly and steadily.'] },
-  { gloss: 'CROCODILE', meaning: 'Pediatric tooth brushing / mouth opening prompt', category_id: 'pediatric', difficulty: 'beginner', region_note: 'Long clamping jaws with extended arms', video_url: '/videos/signs/Crocodile.mp4', steps: ['Both arms extended forward horizontally, palms facing each other.', 'Open arms wide vertically and snap hands together like giant jaws.', 'Prompts young dental patients to open mouth wide for inspection.'] },
 
-  // Hospital Administration & Intake
+  // 5. Hospital Administration & Consent (10 distinct signs)
   { gloss: 'BUDGET', meaning: 'Hospital billing, medical insurance & estimation', category_id: 'administration', difficulty: 'intermediate', region_note: 'Counting currency into palm', video_url: '/videos/signs/Budget.mp4', steps: ['Non-dominant palm open facing upward.', 'Dominant thumb and index rub together like banknotes over palm.', 'Signals financial counseling and treatment package estimates.'] },
-  { gloss: 'INTERVIEW', meaning: 'Clinical anamnesis, nurse intake assessment', category_id: 'administration', difficulty: 'intermediate', region_note: 'I-handshapes speaking back and forth', video_url: '/videos/signs/Interview.mp4', steps: ['Both hands in I-handshape (pinky extended).', 'Move hands back and forth toward each other in front of mouth.', 'Signifies structured medical intake dialogue.'] },
-  { gloss: 'EXAM', meaning: 'Diagnostic examination or clinical test', category_id: 'administration', difficulty: 'intermediate', region_note: 'Curled index fingers scanning paper/body', video_url: '/videos/signs/Exam.mp4', steps: ['Both index fingers bent into hooks.', 'Move hands downward in parallel scanning motion as if inspecting clinical chart.', 'Signals comprehensive health checkup.'] },
   { gloss: 'MATHS', meaning: 'Dosage calculation, BMI and medication metrics', category_id: 'administration', difficulty: 'intermediate', region_note: 'Crossing M-handshapes', video_url: '/videos/signs/Maths.mp4', steps: ['Both hands in M-handshape (three fingers over thumb).', 'Brush wrists across each other in intersecting cross motions.', 'Used in pharmacy dosage verification.'] },
   { gloss: 'WRITER', meaning: 'Medical scribe, transcriptionist or report drafting', category_id: 'administration', difficulty: 'beginner', region_note: 'Pen writing on palm + person marker', video_url: '/videos/signs/Writer.mp4', steps: ['Dominant hand in pinched pen grip scribbles across non-dominant palm.', 'Follow with flat hands moving downward along sides for PERSON marker.', 'Identifies documentation desk staff.'] },
   { gloss: 'WIFE', meaning: 'Spouse, next-of-kin emergency contact', category_id: 'administration', difficulty: 'beginner', region_note: 'Female chin stroke + clasping hands', video_url: '/videos/signs/Wife.mp4', steps: ['Thumb brushes along jawline indicating female.', 'Clasp both hands together at chest level in marriage bond.', 'Crucial for ICU consent and next-of-kin records.'] },
   { gloss: 'UNCLE', meaning: 'Extended family attendant / guardian', category_id: 'administration', difficulty: 'beginner', region_note: 'U-handshape shaking near temple', video_url: '/videos/signs/Uncle.mp4', steps: ['Form U-handshape with index and middle finger held together.', 'Twist hand twice near temple on male side of face.', 'Used in hospital visitor passes.'] },
+  { gloss: 'MAN', meaning: 'Male patient, attendant or male ward', category_id: 'administration', difficulty: 'beginner', region_note: 'Moustache stroking gesture at upper lip', video_url: '/videos/signs/Man.mp4', steps: ['Index and thumb stroke outward across upper lip as if shaping moustache.', 'Nod head calmly.', 'Used in hospital bed assignment and census.'] },
   { gloss: 'KEY', meaning: 'Medicine cabinet key, locker or ward access', category_id: 'administration', difficulty: 'beginner', region_note: 'Key turning in palm lock', video_url: '/videos/signs/Key.mp4', steps: ['Bent index finger knuckle presses into open palm of other hand.', 'Twist knuckle clockwise as if turning key in physical lock.', 'Ward security and narcotics locker sign.'] },
   { gloss: 'KNIFE', meaning: 'Surgical scalpel, sharp instruments safety', category_id: 'administration', difficulty: 'beginner', region_note: 'Index finger whittling opposite index finger', video_url: '/videos/signs/Knife.mp4', steps: ['Non-dominant index finger extended horizontally.', 'Dominant index finger slices downward along non-dominant finger twice.', 'Signifies sharps disposal protocol / OT surgical cut.'] },
-  { gloss: 'BREAK', meaning: 'Staff duty break / fracture alert', category_id: 'administration', difficulty: 'beginner', region_note: 'Breaking imaginary stick in half', video_url: '/videos/signs/Break.mp4', steps: ['Both fists side-by-side with knuckles touching.', 'Snap wrists outward and twist hands apart as if snapping wooden stick.', 'Used for bone fracture diagnosis and shift relief.'] },
-  { gloss: 'FEDUP', meaning: 'Patient emotional fatigue, burnout counseling', category_id: 'administration', difficulty: 'intermediate', region_note: 'Hand chopped up to chin level', video_url: '/videos/signs/Fedup.mp4', steps: ['Flat hand palm-down strikes underneath chin sharply.', 'Exhale with weary facial expression.', 'Signals psychiatric/counseling support needed.'] },
   { gloss: 'KARNATAKA', meaning: 'State healthcare referral / regional language hub', category_id: 'administration', difficulty: 'intermediate', region_note: 'K-handshape arc gesture', video_url: '/videos/signs/Karnataka.mp4', steps: ['Form K-handshape with index, middle and thumb.', 'Move hand smoothly in gentle horizontal arc across chest.', 'Identifies regional healthcare jurisdiction.'] },
-  { gloss: 'TEMPLE', meaning: 'Hospital prayer room / meditation sanctuary', category_id: 'administration', difficulty: 'beginner', region_note: 'T-handshape tapping temple building base', video_url: '/videos/signs/Temple.mp4', steps: ['Non-dominant flat palm facing down.', 'Dominant T-handshape rests wrist on non-dominant hand and lifts slightly.', 'Directions to hospital spiritual care / chapel.'] },
-  { gloss: 'VOLCANO', meaning: 'Sudden acute symptom eruption / emotional outburst', category_id: 'administration', difficulty: 'advanced', region_note: 'Lava exploding upward from mountain cone', video_url: '/videos/signs/Volcano.mp4', steps: ['Both hands form tapered mountain cone at base.', 'Fingers erupt upward and splay outward like volcanic explosion.', 'Used metaphorically in emergency crisis management.'] },
-  { gloss: 'MAN', meaning: 'Male patient, attendant or male ward', category_id: 'administration', difficulty: 'beginner', region_note: 'Moustache stroking gesture at upper lip', video_url: '/videos/signs/Man.mp4', steps: ['Index and thumb stroke outward across upper lip as if shaping moustache.', 'Nod head calmly.', 'Used in hospital bed assignment and census.'] }
+  { gloss: 'TEMPLE', meaning: 'Hospital prayer room / meditation sanctuary', category_id: 'administration', difficulty: 'beginner', region_note: 'T-handshape tapping temple building base', video_url: '/videos/signs/Temple.mp4', steps: ['Non-dominant flat palm facing down.', 'Dominant T-handshape rests wrist on non-dominant hand and lifts slightly.', 'Directions to hospital spiritual care / chapel.'] }
 ];
 
 const mappedSigns = fullSigns.map(s => ({
@@ -139,16 +130,15 @@ const lessons = [
     slug: 'clinical-triage',
     code: 'CLN-101',
     title: 'Emergency Triage & Vital Symptoms',
-    summary: 'Master critical clinical signs for fever, trauma injury, acute pain, physician call and nurse alert.',
+    summary: 'Master critical clinical signs for fever, trauma injury localization, diagnostic examinations, and doctor consultation.',
     category_id: 'clinical',
     duration_minutes: 15,
     difficulty: 'beginner',
-    sign_ids: ['fever', 'injury', 'pain', 'doctor', 'nurse'],
+    sign_ids: ['fever', 'injury', 'exam', 'interview'],
     thumbnail_tone: 'primary',
     captions: [
-      { at: 0, text: 'Clinical triage requires rapid assessment of body temperature, acute pain and injury sites.' },
-      { at: 5, text: 'Signal DOCTOR or NURSE immediately when trauma or emergency care is detected.' },
-      { at: 10, text: 'Observe patient facial expressions closely to confirm anatomical location of pain.' },
+      { at: 0, text: 'Clinical triage requires rapid assessment of body temperature, acute injury sites and clinical exam.' },
+      { at: 5, text: 'Signal INTERVIEW and EXAM when beginning formal medical intake.' },
     ],
     quiz: [
       {
@@ -163,19 +153,6 @@ const lessons = [
         ],
         answer: 'Back of flat hand touching the forehead with concerned expression',
         hint: 'Think of how you manually feel for a fever on someone.'
-      },
-      {
-        id: 'q-cln-2',
-        prompt: 'How is DOCTOR represented in Indian Sign Language clinical context?',
-        kind: 'multiple_choice',
-        options: [
-          'Brushing knuckles against the chin',
-          'Two-finger pulse check tap on the inside of the opposite wrist',
-          'Waving open palm over the shoulder',
-          'Crossed arms over the chest'
-        ],
-        answer: 'Two-finger pulse check tap on the inside of the opposite wrist',
-        hint: 'Think of checking a radial pulse on the wrist.'
       }
     ]
   },
@@ -183,30 +160,29 @@ const lessons = [
     id: 'lesson-clinical-acute',
     slug: 'clinical-acute',
     code: 'CLN-102',
-    title: 'Hospitalization & Acute Care Response',
-    summary: 'Essential signs for medication dispensing, hematology blood draws, urgent emergency response, and hospital wards.',
+    title: 'Acute Trauma & Scan Protocols',
+    summary: 'Essential signs for fracture alerts, patient emotional fatigue counseling, acute flareups, and holding still during MRI/CT scans.',
     category_id: 'clinical',
     duration_minutes: 12,
     difficulty: 'intermediate',
-    sign_ids: ['medicine', 'blood', 'emergency', 'help', 'hospital'],
+    sign_ids: ['break', 'fedup', 'volcano', 'still'],
     thumbnail_tone: 'primary',
     captions: [
-      { at: 0, text: 'Acute care communication ensures prompt delivery of medications and urgent clinical help.' },
-      { at: 5, text: 'Use EMERGENCY with an alert posture to mobilize rapid response teams.' },
+      { at: 0, text: 'Use BREAK for suspected fractures and STILL when preparing patients for radiologic scans.' },
     ],
     quiz: [
       {
-        id: 'q-cln-3',
-        prompt: 'Which sign indicates urgent emergency assistance needed in the ward?',
+        id: 'q-cln-2',
+        prompt: 'Which sign instructs a patient to remain completely motionless during a scan?',
         kind: 'multiple_choice',
         options: [
-          'EMERGENCY: rapid shaking of E-handshape at chest level',
-          'Pinching fingertips together at chin',
-          'Touching back of hand to forehead',
-          'Tracing cross on the upper arm'
+          'STILL: downward pressing Y-handshapes moved smoothly forward',
+          'Waving hand inward',
+          'Tapping wrist twice',
+          'Rubbing knuckles under chin'
         ],
-        answer: 'EMERGENCY: rapid shaking of E-handshape at chest level',
-        hint: 'An urgent, rapid vibration gesture.'
+        answer: 'STILL: downward pressing Y-handshapes moved smoothly forward',
+        hint: 'A steady downward motion signifying holding steady.'
       }
     ]
   },
@@ -221,7 +197,7 @@ const lessons = [
     category_id: 'greetings',
     duration_minutes: 12,
     difficulty: 'beginner',
-    sign_ids: ['hello', 'good morning', 'good afternoon', 'thank you', 'what is your name', 'yes', 'no'],
+    sign_ids: ['hello', 'good morning', 'good afternoon', 'thank you', 'what is your name'],
     thumbnail_tone: 'teal',
     captions: [
       { at: 0, text: 'Clear and respectful greetings build immediate trust with Deaf patients entering clinical areas.' },
@@ -248,29 +224,28 @@ const lessons = [
     slug: 'bedside-cues',
     code: 'GRT-102',
     title: 'Bedside Instructions & Examination Guidance',
-    summary: 'Guide patients during examinations: calling into room, hydration, wound cleaning, curtains, and holding still.',
+    summary: 'Guide patients during examinations: calling into room, handing reports, hydration, hygiene cleaning, and device switches.',
     category_id: 'greetings',
     duration_minutes: 14,
     difficulty: 'intermediate',
-    sign_ids: ['come', 'give', 'drink', 'clean', 'close', 'switch', 'busy', 'wrong', 'maybe', 'still'],
+    sign_ids: ['come', 'give', 'drink', 'clean', 'close', 'switch', 'busy', 'wrong', 'maybe'],
     thumbnail_tone: 'teal',
     captions: [
       { at: 0, text: 'Bedside instructions guide patient movement, hygiene, and positioning during diagnostics.' },
-      { at: 5, text: 'Sign STILL firmly when instructing patients during X-ray or MRI acquisition.' },
     ],
     quiz: [
       {
         id: 'q-grt-2',
-        prompt: 'Which sign instructs a patient to remain completely motionless during a scan?',
+        prompt: 'Which sign is used to invite a patient into the consultation chamber?',
         kind: 'multiple_choice',
         options: [
-          'STILL: downward pressing Y-handshapes moved smoothly forward',
-          'Waving hand inward',
-          'Tapping wrist twice',
-          'Rubbing knuckles under chin'
+          'COME: open hand extended outward, curling fingers inward twice',
+          'Pinching fingertips together at chin',
+          'Tracing cross on the upper arm',
+          'Snapping fists together'
         ],
-        answer: 'STILL: downward pressing Y-handshapes moved smoothly forward',
-        hint: 'A steady downward motion signifying holding steady.'
+        answer: 'COME: open hand extended outward, curling fingers inward twice',
+        hint: 'An inviting inward wave motion.'
       }
     ]
   },
@@ -281,7 +256,7 @@ const lessons = [
     slug: 'diet-nutrition',
     code: 'NUT-101',
     title: 'Dietary Counseling & Hospital Nutrition',
-    summary: 'Instruct patients on therapeutic diets, diabetic food choices, hydration, citrus vitamins, and allergen restrictions.',
+    summary: 'Instruct patients on therapeutic diets, hospital tea, kitchen meal preparation, pouring fluids, and spicy restrictions.',
     category_id: 'nutrition',
     duration_minutes: 14,
     difficulty: 'intermediate',
@@ -289,7 +264,6 @@ const lessons = [
     thumbnail_tone: 'gold',
     captions: [
       { at: 0, text: 'Dietary guidance is critical for managing postoperative recovery, diabetes, and hypertension.' },
-      { at: 5, text: 'Identify allergen warnings or spicy food restrictions using CHILLI with clear caution gestures.' },
     ],
     quiz: [
       {
@@ -344,15 +318,14 @@ const lessons = [
     slug: 'pediatric-care',
     code: 'PED-101',
     title: 'Pediatric Comfort & Anxiety Reduction',
-    summary: 'Calm frightened children, ease procedure anxiety, identify tears, and reward bravery during clinical treatments.',
+    summary: 'Calm frightened children, ease procedure anxiety, identify distress tears, mobility jumping, and teddy bear comfort.',
     category_id: 'pediatric',
     duration_minutes: 16,
     difficulty: 'beginner',
-    sign_ids: ['hug', 'cry', 'jump', 'umbrella', 'bear', 'lion', 'crocodile'],
+    sign_ids: ['hug', 'cry', 'jump', 'umbrella', 'bear', 'crocodile'],
     thumbnail_tone: 'gold',
     captions: [
       { at: 0, text: 'Pediatric encounters require engaging visual signs to distract young patients during examinations.' },
-      { at: 6, text: 'Use HUG and play animal signs to establish reassurance before starting IV cannulation.' },
     ],
     quiz: [
       {
@@ -375,14 +348,14 @@ const lessons = [
     slug: 'pediatric-animals',
     code: 'PED-102',
     title: 'Play Therapy & Pediatric Visual Distraction',
-    summary: 'Interactive animal signs used in pediatric play therapy, eye chart checks, and motor mobility assessments.',
+    summary: 'Interactive animal signs used in pediatric play therapy, eye chart checks, bravery praise, and breathing pacing.',
     category_id: 'pediatric',
     duration_minutes: 15,
     difficulty: 'beginner',
-    sign_ids: ['deer', 'elephant', 'giraffe', 'monkey', 'peacock', 'pigeon', 'sparrow', 'tiger', 'turtle'],
+    sign_ids: ['deer', 'elephant', 'giraffe', 'lion', 'monkey', 'peacock', 'pigeon', 'sparrow', 'tiger', 'turtle'],
     thumbnail_tone: 'gold',
     captions: [
-      { at: 0, text: 'Play therapy signs provide playful visual distractions during pediatric blood draws and scans.' },
+      { at: 0, text: 'Play therapy signs provide playful visual distractions during pediatric procedures.' },
     ],
     quiz: [
       {
@@ -407,15 +380,14 @@ const lessons = [
     slug: 'admin-intake',
     code: 'ADM-101',
     title: 'Hospital Billing, Insurance & Patient Consent',
-    summary: 'Coordinate admission billing, diagnostic exams, next-of-kin documentation, dosage calculations, and intake anamnesis.',
+    summary: 'Coordinate admission billing, dosage calculations, next-of-kin documentation (wife, uncle), and ward attendants.',
     category_id: 'administration',
     duration_minutes: 15,
     difficulty: 'intermediate',
-    sign_ids: ['budget', 'interview', 'exam', 'maths', 'writer', 'wife', 'uncle'],
+    sign_ids: ['budget', 'maths', 'writer', 'wife', 'uncle', 'man'],
     thumbnail_tone: 'success',
     captions: [
       { at: 0, text: 'Hospital administrative transparency ensures patients and families understand treatment plans.' },
-      { at: 5, text: 'Document emergency contacts and next-of-kin using WIFE, UNCLE or family guardian signs.' },
     ],
     quiz: [
       {
@@ -438,11 +410,11 @@ const lessons = [
     slug: 'ward-logistics',
     code: 'ADM-102',
     title: 'Ward Logistics, Safety Protocols & Navigation',
-    summary: 'Facility navigation, narcotics locker keys, sharps disposal safety, duty shift relief, and hospital sanctuary care.',
+    summary: 'Medicine cabinet keys, surgical sharps safety, regional healthcare jurisdiction, and hospital sanctuary care.',
     category_id: 'administration',
     duration_minutes: 14,
     difficulty: 'intermediate',
-    sign_ids: ['key', 'knife', 'break', 'fedup', 'karnataka', 'temple', 'volcano', 'man'],
+    sign_ids: ['key', 'knife', 'karnataka', 'temple'],
     thumbnail_tone: 'success',
     captions: [
       { at: 0, text: 'Hospital facility navigation and safety signs ensure smooth operation across clinical wards.' },
@@ -566,7 +538,7 @@ export const activity: ActivityItem[] = [
     id: "act-1",
     kind: "lesson",
     title: "Completed Emergency Triage",
-    detail: "Scored 100% on the quiz and practiced 10 triage signs.",
+    detail: "Scored 100% on the quiz and practiced clinical triage signs.",
     at: "2 hours ago",
   },
   {
@@ -600,16 +572,16 @@ export const bronzeAssessment: Assessment = {
     },
     {
       id: "q-assess-2",
-      prompt: "How is DOCTOR represented in Indian Sign Language?",
+      prompt: "Which gesture is used to call a patient into the clinic?",
       kind: "multiple_choice",
       options: [
-        "Two-finger radial pulse check on opposite wrist",
+        "COME: curling open fingers inward toward torso",
         "Holding imaginary stethoscope",
         "Sweeping hand across chin",
         "Crossed arms over chest"
       ],
-      answer: "Two-finger radial pulse check on opposite wrist",
-      hint: "Checking wrist pulse."
+      answer: "COME: curling open fingers inward toward torso",
+      hint: "An inviting wave."
     }
   ],
 };
@@ -719,4 +691,4 @@ export const hospitalAnalytics: HospitalAnalytics = {
 `;
 
 fs.writeFileSync('src/services/mock/data.ts', mockDataContent, 'utf8');
-console.log('Successfully generated src/services/mock/data.ts with all 71 signs, 10 lessons, quizzes, and exports!');
+console.log('Successfully generated src/services/mock/data.ts with all 61 unique dataset signs!');
