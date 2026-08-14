@@ -331,21 +331,7 @@ export async function predictSign(
     };
   } catch (error) {
     clearTimeout(timeoutId);
-    console.error('[AI Service] Backend offline:', error);
-
-    // Graceful client-side fallback if backend is offline
-    if (targetSign) {
-      const fallbackConfidence = 0.76 + Math.random() * 0.14; // 0.76-0.90 for realistic scores
-      return {
-        success: true,
-        sign: targetSign,
-        confidence: fallbackConfidence,
-        phrase: CONTROLLED_PHRASES[targetSign] || `${targetSign}.`,
-        mode: 'ai',
-        model_version: 'client_mediapipe_fallback',
-        message: '✓ Hand gesture recognised (on-device MediaPipe detection).',
-      };
-    }
+    console.error('[AI Service] Backend request error:', error);
 
     return {
       success: false,
@@ -353,7 +339,7 @@ export async function predictSign(
       confidence: 0,
       mode: "ai",
       model_version: "offline",
-      message: "AI recognition server is offline. Please check connection.",
+      message: "Could not connect to AI recognition engine. Ensure hand is visible.",
     };
   }
 }

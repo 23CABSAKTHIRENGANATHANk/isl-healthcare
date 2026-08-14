@@ -97,7 +97,7 @@ function PracticePage() {
   const [attempts, setAttempts] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [completedSigns, setCompletedSigns] = useState<Set<string>>(new Set());
-  const [autoDetect, setAutoDetect] = useState(true);
+  const [autoDetect, setAutoDetect] = useState(false);
   const [showPipVideo, setShowPipVideo] = useState(true);
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [videoSpeed, setVideoSpeed] = useState(1.0);
