@@ -55,6 +55,7 @@ import {
   speak,
 } from "@/services/ai.service";
 import { listSigns } from "@/services/content.service";
+import { generateVideoUrlCandidates } from "@/services/video-system";
 
 interface PracticeSearch {
   sign?: string;
@@ -97,7 +98,7 @@ function PracticePage() {
   const [attempts, setAttempts] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [completedSigns, setCompletedSigns] = useState<Set<string>>(new Set());
-  const [autoDetect, setAutoDetect] = useState(false);
+  const [autoDetect, setAutoDetect] = useState(true);
   const [showPipVideo, setShowPipVideo] = useState(true);
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [videoSpeed, setVideoSpeed] = useState(1.0);
@@ -120,6 +121,8 @@ function PracticePage() {
   const target = items[index];
   const nextTarget = items[(index + 1) % (items.length || 1)];
   const accuracy = attempts === 0 ? 0 : Math.round((correct / attempts) * 100);
+  const resolvedTargetVideoUrl =
+    target ? generateVideoUrlCandidates(target.gloss, target.id)[0] ?? target.video_url ?? null : null;
 
   // Sync selected sign from URL search parameters (?sign=FEVER)
   useEffect(() => {
@@ -398,7 +401,7 @@ function PracticePage() {
             />
 
             {/* Video Picture-in-Picture Guide Overlay */}
-            {showPipVideo && target && target.video_url && isLive && (
+            {showPipVideo && resolvedTargetVideoUrl && isLive && (
               <div className="absolute right-4 top-4 w-44 overflow-hidden rounded-2xl border-2 border-white/20 bg-black/90 shadow-2xl backdrop-blur-md">
                 <div className="flex items-center justify-between bg-black/70 px-2 py-1 text-[10px] font-bold text-white">
                   <span className="flex items-center gap-1">
@@ -415,8 +418,8 @@ function PracticePage() {
                 </div>
                 <div className="aspect-video w-full bg-black">
                   <video
-                    key={target.video_url}
-                    src={target.video_url}
+                    key={resolvedTargetVideoUrl}
+                    src={resolvedTargetVideoUrl}
                     className="size-full object-contain"
                     autoPlay
                     loop
@@ -478,7 +481,7 @@ function PracticePage() {
                 </Button>
 
                 {/* PiP Guide Toggle Button */}
-                {target && target.video_url && (
+                {resolvedTargetVideoUrl && (
                   <Button
                     variant="outline"
                     size="lg"
@@ -491,7 +494,7 @@ function PracticePage() {
                 )}
 
                 {/* Video Guide Modal */}
-                {target && target.video_url && (
+                {resolvedTargetVideoUrl && (
                   <Button
                     variant="ghost"
                     size="lg"
@@ -694,7 +697,7 @@ function PracticePage() {
       </div>
 
       {/* Video Demonstration Modal */}
-      {target && target.video_url && (
+      {resolvedTargetVideoUrl && target && (
         <Dialog open={videoModalOpen} onOpenChange={setVideoModalOpen}>
           <DialogContent className="max-w-2xl rounded-3xl p-6">
             <DialogHeader>
@@ -706,8 +709,8 @@ function PracticePage() {
 
             <div className="overflow-hidden rounded-2xl bg-black aspect-video relative">
               <video
-                key={target.video_url}
-                src={target.video_url}
+                key={resolvedTargetVideoUrl}
+                src={resolvedTargetVideoUrl}
                 className="size-full object-contain"
                 controls
                 autoPlay

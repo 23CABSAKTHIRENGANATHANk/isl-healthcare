@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Loader2, LogIn, ShieldCheck } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { Logo } from "@/components/brand/Logo";
@@ -9,8 +9,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
+import { isSupabaseConfigured } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirect: typeof search.redirect === "string" ? search.redirect : "/dashboard",
+  }),
   head: () => ({
     meta: [
       { title: "Log in — ISL Setu" },
@@ -27,25 +31,52 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
-  const { signIn } = useAuth();
+  const { signIn, user } = useAuth();
   const navigate = useNavigate();
+  const redirectTarget = Route.useSearch().redirect || "/dashboard";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  useEffect(() => {
+    if (user) {
+      void navigate({ to: redirectTarget as string });
+      return;
+    }
+
+    if (!isSupabaseConfigured) {
+      const autoLogin = async () => {
+        setBusy(true);
+        setError(null);
+        const { error: signInError } = await signIn("demo@islsetu.local", "demo1234");
+        setBusy(false);
+
+        if (signInError) {
+          setError(signInError);
+          return;
+        }
+
+        toast.success("Demo access enabled");
+        void navigate({ to: redirectTarget as string });
+      };
+
+      void autoLogin();
+    }
+  }, [user, signIn, navigate, redirectTarget]);
+
   const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setBusy(true);
     setError(null);
-    const { error: signInError } = await signIn(email, password);
+    const { error: signInError } = await signIn(email || "demo@islsetu.local", password || "demo1234");
     setBusy(false);
     if (signInError) {
       setError(signInError);
       return;
     }
     toast.success("Welcome back to ISL Setu");
-    void navigate({ to: "/dashboard" });
+    void navigate({ to: redirectTarget as string });
   };
 
   return (
