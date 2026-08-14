@@ -153,6 +153,7 @@ function LessonPlayer() {
                   gloss={current.gloss}
                   meaning={current.meaning}
                   videoUrl={current.video_url}
+                  signId={current.id}
                   steps={current.steps}
                   regionNote={current.region_note}
                 />

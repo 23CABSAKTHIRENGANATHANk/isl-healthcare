@@ -2,6 +2,13 @@
  * Sign Display Component — ISL Setu
  * Displays real ISL video demonstration with slow-motion speed controls (0.5x, 0.75x, 1x, 1.25x)
  * and rich interactive hand gesture guidance.
+ * 
+ * Features:
+ * - Automatic video URL resolution from mapping system
+ * - Multiple fallback candidates for video sources
+ * - Speed control for learning (0.5x, 0.75x, 1x, 1.25x)
+ * - Fullscreen support
+ * - Audio pronunciation on demand
  */
 import {
   AlertCircle,
@@ -17,11 +24,13 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { speak } from "@/services/ai.service";
+import { generateVideoUrlCandidates } from "@/services/video-system";
 
 interface SignDisplayProps {
   gloss: string;
   meaning: string;
   videoUrl?: string | null;
+  signId?: string; // For video mapping lookup
   demoMode?: boolean;
   steps?: string[];
   regionNote?: string;
@@ -32,6 +41,7 @@ export function SignDisplay({
   gloss,
   meaning,
   videoUrl,
+  signId,
   demoMode = false,
   steps = [],
   regionNote,
@@ -44,40 +54,11 @@ export function SignDisplay({
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Generate prioritized candidate URLs based on gloss name
+  // Generate prioritized candidate URLs using enhanced video system
   const candidateUrls = useMemo(() => {
-    const urls: string[] = [];
-    if (videoUrl) urls.push(videoUrl);
-
-    const clean = gloss.trim();
-    const titleCased = clean
-      .split(" ")
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-      .join(" ");
-    const sentenceCased = clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
-    const upperCase = clean.toUpperCase();
-    const lowerCase = clean.toLowerCase();
-
-    const names = [
-      clean,
-      titleCased,
-      sentenceCased,
-      upperCase,
-      lowerCase,
-      "What is your Name",
-      "Good morning",
-      "Good afternoon",
-      "Thank you",
-    ];
-
-    names.forEach((name) => {
-      urls.push(`/videos/signs/${name}.mp4`);
-      urls.push(`/videos/dataset-videos/${name}.mp4`);
-      urls.push(`/dataset-videos/${name}.mp4`);
-    });
-
-    return Array.from(new Set(urls));
-  }, [gloss, videoUrl]);
+    // Use the enhanced video system that includes mapping fallbacks
+    return generateVideoUrlCandidates(gloss, signId || videoUrl || undefined);
+  }, [gloss, signId, videoUrl]);
 
   const currentUrl = candidateUrls[candidateIdx] || candidateUrls[0];
 

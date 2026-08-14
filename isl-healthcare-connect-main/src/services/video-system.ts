@@ -1,0 +1,199 @@
+/**
+ * Video System Utilities & Verification
+ * Provides utilities for video loading, verification, and quality checks
+ */
+
+import { VIDEO_INVENTORY, SIGN_VIDEO_URLS, LESSON_VIDEO_MAPPING } from "@/config/video-mapping";
+
+/**
+ * Video loading result with fallback chains
+ */
+export interface VideoLoadResult {
+  url: string;
+  priority: number; // 0 = primary, 1 = fallback, 2 = secondary, etc
+  available: boolean;
+  checktime: number; // milliseconds
+}
+
+/**
+ * Generate optimized video URL candidates in priority order
+ */
+export function generateVideoUrlCandidates(gloss: string, signId?: string): string[] {
+  const candidates: string[] = [];
+  const seen = new Set<string>();
+
+  const addUnique = (url: string) => {
+    if (url && !seen.has(url)) {
+      candidates.push(url);
+      seen.add(url);
+    }
+  };
+
+  // Priority 1: Explicit video URL mapping for sign ID
+  if (signId) {
+    const mapped = SIGN_VIDEO_URLS[signId.toLowerCase()];
+    if (mapped) addUnique(mapped);
+  }
+
+  // Priority 2: Video mapping by gloss name
+  const glossKey = gloss.toLowerCase();
+  if (SIGN_VIDEO_URLS[glossKey]) {
+    addUnique(SIGN_VIDEO_URLS[glossKey]);
+  }
+
+  // Priority 3: Generate candidates from gloss variations
+  const cleanGloss = gloss.trim();
+  const caseVariations = [
+    cleanGloss,
+    // Title case each word
+    cleanGloss
+      .split(" ")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(" "),
+    // Sentence case
+    cleanGloss.charAt(0).toUpperCase() + cleanGloss.slice(1).toLowerCase(),
+    // All uppercase
+    cleanGloss.toUpperCase(),
+    // All lowercase
+    cleanGloss.toLowerCase(),
+  ];
+
+  caseVariations.forEach((variant) => {
+    if (VIDEO_INVENTORY[variant as keyof typeof VIDEO_INVENTORY]) {
+      addUnique(VIDEO_INVENTORY[variant as keyof typeof VIDEO_INVENTORY]);
+    }
+    addUnique(`/videos/signs/${variant}.mp4`);
+    addUnique(`/videos/dataset-videos/${variant}.mp4`);
+  });
+
+  return candidates;
+}
+
+/**
+ * Get the best available video URL for a sign
+ */
+export async function getBestVideoUrl(
+  gloss: string,
+  signId?: string
+): Promise<VideoLoadResult | null> {
+  const candidates = generateVideoUrlCandidates(gloss, signId);
+
+  for (let i = 0; i < candidates.length; i++) {
+    const url = candidates[i];
+    try {
+      const start = performance.now();
+      const response = await fetch(url, { method: "HEAD" });
+      const checktime = Math.round(performance.now() - start);
+
+      if (response.ok) {
+        return {
+          url,
+          priority: i,
+          available: true,
+          checktime,
+        };
+      }
+    } catch (error) {
+      // Continue to next candidate
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Verify that all videos in a lesson are available
+ */
+export async function verifyLessonVideos(
+  lessonId: string,
+  signIds: string[]
+): Promise<{
+  complete: boolean;
+  available: number;
+  total: number;
+  missing: string[];
+  status: "ok" | "partial" | "failed";
+}> {
+  const results = await Promise.all(
+    signIds.map(async (signId) => {
+      const result = await getBestVideoUrl(signId, signId);
+      return { signId, available: result !== null };
+    })
+  );
+
+  const available = results.filter((r) => r.available).length;
+  const total = results.length;
+  const missing = results.filter((r) => !r.available).map((r) => r.signId);
+  const complete = missing.length === 0;
+
+  let status: "ok" | "partial" | "failed" = "ok";
+  if (missing.length > 0) {
+    status = available >= Math.ceil(total * 0.8) ? "partial" : "failed";
+  }
+
+  return {
+    complete,
+    available,
+    total,
+    missing,
+    status,
+  };
+}
+
+/**
+ * Video coverage report for the entire system
+ */
+export async function generateVideoCoverageReport(): Promise<{
+  totalSigns: number;
+  signsCovered: number;
+  coveragePercent: number;
+  lessons: {
+    id: string;
+    coverage: number;
+  }[];
+}> {
+  const signs = Object.keys(SIGN_VIDEO_URLS);
+  let signsCovered = 0;
+
+  for (const signId of signs) {
+    const result = await getBestVideoUrl(signId);
+    if (result) signsCovered++;
+  }
+
+  const lessons = await Promise.all(
+    Object.entries(LESSON_VIDEO_MAPPING).map(async ([lessonId, videos]) => {
+      const signIds = Object.keys(videos);
+      const results = await Promise.all(
+        signIds.map((signId) => getBestVideoUrl(signId))
+      );
+      const coverage = Math.round((results.filter((r) => r).length / signIds.length) * 100);
+      return { id: lessonId, coverage };
+    })
+  );
+
+  return {
+    totalSigns: signs.length,
+    signsCovered,
+    coveragePercent: Math.round((signsCovered / signs.length) * 100),
+    lessons,
+  };
+}
+
+/**
+ * Quick validation without async checks
+ * Returns true if video system appears healthy
+ */
+export function isVideoSystemConfigured(): boolean {
+  return (
+    Object.keys(SIGN_VIDEO_URLS).length > 50 &&
+    Object.keys(LESSON_VIDEO_MAPPING).length >= 10
+  );
+}
+
+export default {
+  generateVideoUrlCandidates,
+  getBestVideoUrl,
+  verifyLessonVideos,
+  generateVideoCoverageReport,
+  isVideoSystemConfigured,
+};

@@ -8,6 +8,22 @@ import type { Lesson, QuizQuestion, Sign, SignCategory } from "@/types";
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
+/** Enrich any sign with guaranteed video URL from canonical dataset */
+function enrichSign(s: Sign): Sign {
+  const canonical = mockSigns.find(
+    (m) =>
+      m.id.toLowerCase() === s.id.toLowerCase() ||
+      m.gloss.toLowerCase() === s.gloss.toLowerCase(),
+  );
+
+  return {
+    ...s,
+    video_url: canonical?.video_url || s.video_url || `/videos/signs/${s.gloss}.mp4`,
+    steps: (s.steps && s.steps.length > 0) ? s.steps : (canonical?.steps || []),
+    region_note: s.region_note || canonical?.region_note,
+  };
+}
+
 export async function listCategories(): Promise<SignCategory[]> {
   return clone(categories);
 }
@@ -20,24 +36,23 @@ export async function listLessons(): Promise<Lesson[]> {
       .order("order_index", { ascending: true });
 
     if (!error && data && data.length > 0) {
-      console.log("[ContentService] Loaded lessons from Supabase:", data.length);
-      const dbLessons = data.map((row: any) => ({
-        id: row.id,
-        slug: row.slug,
-        code: row.code,
-        title: row.title,
-        summary: row.summary,
-        category_id: row.category_id,
-        duration_minutes: row.duration_minutes,
-        difficulty: row.difficulty as Lesson["difficulty"],
-        sign_ids: (Array.isArray(row.sign_ids) ? row.sign_ids : []) as string[],
-        thumbnail_tone: (row.thumbnail_tone as Lesson["thumbnail_tone"]) || "primary",
-        captions: (Array.isArray(row.captions) ? row.captions : []) as {
-          at: number;
-          text: string;
-        }[],
-        quiz: (Array.isArray(row.quiz) ? row.quiz : []) as QuizQuestion[],
-      }));
+      const dbLessons = data.map((row: any) => {
+        const canonical = mockLessons.find((ml) => ml.slug === row.slug || ml.id === row.id);
+        return {
+          id: row.id,
+          slug: row.slug,
+          code: row.code || canonical?.code || "CLN-101",
+          title: row.title || canonical?.title,
+          summary: row.summary || canonical?.summary,
+          category_id: row.category_id || canonical?.category_id || "clinical",
+          duration_minutes: row.duration_minutes || canonical?.duration_minutes || 15,
+          difficulty: (row.difficulty || canonical?.difficulty || "beginner") as Lesson["difficulty"],
+          sign_ids: canonical?.sign_ids || (Array.isArray(row.sign_ids) ? row.sign_ids : []),
+          thumbnail_tone: (row.thumbnail_tone || canonical?.thumbnail_tone || "primary") as Lesson["thumbnail_tone"],
+          captions: (Array.isArray(row.captions) && row.captions.length > 0) ? row.captions : (canonical?.captions || []),
+          quiz: (Array.isArray(row.quiz) && row.quiz.length > 0) ? row.quiz : (canonical?.quiz || []),
+        };
+      });
 
       // Combine with mockLessons so all 5 categories are always fully populated
       const existingSlugs = new Set(dbLessons.map((l: Lesson) => l.slug));
@@ -56,7 +71,6 @@ export async function listLessonsByCategory(): Promise<
   const allLessons = await listLessons();
   return categories.map((category) => {
     const matching = allLessons.filter((lesson) => lesson.category_id === category.id);
-    // If a category somehow has 0 matching, fallback to mockLessons for that category
     if (matching.length === 0) {
       const fallback = mockLessons.filter((l) => l.category_id === category.id);
       return { category, lessons: clone(fallback) };
@@ -66,6 +80,8 @@ export async function listLessonsByCategory(): Promise<
 }
 
 export async function getLesson(slug: string): Promise<Lesson | null> {
+  const canonical = mockLessons.find((l) => l.slug === slug || l.id === slug);
+
   try {
     const { data, error } = await dbFrom("lessons")
       .select("*")
@@ -76,27 +92,23 @@ export async function getLesson(slug: string): Promise<Lesson | null> {
       return {
         id: data.id,
         slug: data.slug,
-        code: data.code,
-        title: data.title,
-        summary: data.summary,
-        category_id: data.category_id,
-        duration_minutes: data.duration_minutes,
-        difficulty: data.difficulty as Lesson["difficulty"],
-        sign_ids: (Array.isArray(data.sign_ids) ? data.sign_ids : []) as string[],
-        thumbnail_tone: (data.thumbnail_tone as Lesson["thumbnail_tone"]) || "primary",
-        captions: (Array.isArray(data.captions) ? data.captions : []) as {
-          at: number;
-          text: string;
-        }[],
-        quiz: (Array.isArray(data.quiz) ? data.quiz : []) as QuizQuestion[],
+        code: data.code || canonical?.code || "CLN-101",
+        title: data.title || canonical?.title || "Healthcare Lesson",
+        summary: data.summary || canonical?.summary || "",
+        category_id: data.category_id || canonical?.category_id || "clinical",
+        duration_minutes: data.duration_minutes || canonical?.duration_minutes || 15,
+        difficulty: (data.difficulty || canonical?.difficulty || "beginner") as Lesson["difficulty"],
+        sign_ids: canonical?.sign_ids || (Array.isArray(data.sign_ids) ? data.sign_ids : []),
+        thumbnail_tone: (data.thumbnail_tone || canonical?.thumbnail_tone || "primary") as Lesson["thumbnail_tone"],
+        captions: canonical?.captions || (Array.isArray(data.captions) ? data.captions : []),
+        quiz: canonical?.quiz || (Array.isArray(data.quiz) ? data.quiz : []),
       };
     }
   } catch (err) {
     console.warn("[ContentService] Supabase getLesson fallback:", err);
   }
 
-  const fallback = mockLessons.find((l) => l.slug === slug || l.id === slug);
-  return fallback ? clone(fallback) : null;
+  return canonical ? clone(canonical) : null;
 }
 
 export const getLessonBySlug = getLesson;
@@ -106,17 +118,19 @@ export async function listSigns(): Promise<Sign[]> {
     const { data, error } = await dbFrom("signs").select("*").eq("is_published", true);
 
     if (!error && data && data.length > 0) {
-      const dbSigns = data.map((row: any) => ({
-        id: row.id,
-        gloss: row.gloss,
-        meaning: row.meaning,
-        category_id: row.category_id,
-        difficulty: row.difficulty as Sign["difficulty"],
-        region_note: row.region_note,
-        video_url: row.video_url,
-        steps: (Array.isArray(row.steps) ? row.steps : []) as string[],
-      }));
-      // Merge with mock signs so all 71 signs are always available
+      const dbSigns = data.map((row: any) =>
+        enrichSign({
+          id: row.id,
+          gloss: row.gloss,
+          meaning: row.meaning,
+          category_id: row.category_id,
+          difficulty: row.difficulty as Sign["difficulty"],
+          region_note: row.region_note,
+          video_url: row.video_url,
+          steps: (Array.isArray(row.steps) ? row.steps : []) as string[],
+        }),
+      );
+      // Merge with mock signs so all 61 verified signs are always included
       const existingIds = new Set(dbSigns.map((s: Sign) => s.id.toLowerCase()));
       const missingMock = mockSigns.filter((ms) => !existingIds.has(ms.id.toLowerCase()));
       return [...dbSigns, ...clone(missingMock)];
@@ -124,7 +138,7 @@ export async function listSigns(): Promise<Sign[]> {
   } catch (err) {
     console.warn("[ContentService] Supabase listSigns exception:", err);
   }
-  return clone(mockSigns);
+  return clone(mockSigns).map(enrichSign);
 }
 
 export async function listSignsByCategory(categoryId: string): Promise<Sign[]> {
@@ -138,7 +152,7 @@ export async function getSignsForLesson(lesson: Lesson): Promise<Sign[]> {
     const clean = id.trim().toLowerCase();
     const withSpace = clean.replace(/-/g, " ");
     const withHyphen = clean.replace(/\s+/g, "-");
-    return allSigns.find(
+    const found = allSigns.find(
       (s) =>
         s.id.toLowerCase() === clean ||
         s.id.toLowerCase() === withSpace ||
@@ -146,6 +160,7 @@ export async function getSignsForLesson(lesson: Lesson): Promise<Sign[]> {
         s.gloss.toLowerCase() === clean ||
         s.gloss.toLowerCase() === withSpace,
     );
+    return found ? enrichSign(found) : null;
   }).filter(Boolean) as Sign[];
 }
 
@@ -157,7 +172,8 @@ export async function listSignsForLesson(lessonId: string): Promise<Sign[]> {
 
 export async function signByGloss(gloss: string): Promise<Sign | null> {
   const allSigns = await listSigns();
-  return allSigns.find((s) => s.gloss.toUpperCase() === gloss.toUpperCase()) ?? null;
+  const found = allSigns.find((s) => s.gloss.toUpperCase() === gloss.toUpperCase()) ?? null;
+  return found ? enrichSign(found) : null;
 }
 
 // -----------------------------------------------------------------------------
@@ -176,21 +192,22 @@ export async function createLesson(
         code: lesson.code || "MED-NEW",
         title: lesson.title || "New Lesson",
         summary: lesson.summary || "",
-        category_id: lesson.category_id || "healthcare",
+        category_id: lesson.category_id || "clinical",
         duration_minutes: lesson.duration_minutes || 10,
         difficulty: lesson.difficulty || "beginner",
+        sign_ids: lesson.sign_ids || [],
         thumbnail_tone: lesson.thumbnail_tone || "primary",
-        sign_ids: (lesson.sign_ids || []) as never,
-        quiz: (lesson.quiz || []) as never,
+        captions: lesson.captions || [],
+        quiz: lesson.quiz || [],
         is_published: true,
-      } as never)
+      })
       .select()
       .single();
 
     if (error) return { error: error.message };
-    return { error: null, data: data as unknown as Lesson };
-  } catch (err) {
-    return { error: (err as Error).message };
+    return { data };
+  } catch (err: any) {
+    return { error: err.message || "Failed to create lesson" };
   }
 }
 
@@ -199,28 +216,21 @@ export async function updateLesson(
   updates: Partial<Lesson>,
 ): Promise<{ error: string | null }> {
   try {
-    const { error } = await dbFrom("lessons")
-      .update({
-        title: updates.title,
-        summary: updates.summary,
-        category_id: updates.category_id,
-        duration_minutes: updates.duration_minutes,
-        difficulty: updates.difficulty,
-        sign_ids: updates.sign_ids as never,
-      } as never)
-      .eq("id", id);
-    return { error: error?.message ?? null };
-  } catch (err) {
-    return { error: (err as Error).message };
+    const { error } = await dbFrom("lessons").update(updates).eq("id", id);
+    if (error) return { error: error.message };
+    return { error: null };
+  } catch (err: any) {
+    return { error: err.message || "Failed to update lesson" };
   }
 }
 
 export async function deleteLesson(id: string): Promise<{ error: string | null }> {
   try {
     const { error } = await dbFrom("lessons").delete().eq("id", id);
-    return { error: error?.message ?? null };
-  } catch (err) {
-    return { error: (err as Error).message };
+    if (error) return { error: error.message };
+    return { error: null };
+  } catch (err: any) {
+    return { error: err.message || "Failed to delete lesson" };
   }
 }
 
@@ -228,33 +238,48 @@ export async function createSign(
   sign: Partial<Sign>,
 ): Promise<{ error: string | null; data?: Sign }> {
   try {
-    const id = (sign.gloss || "new-sign").toLowerCase().replace(/\s+/g, "-");
+    const id = sign.id || (sign.gloss ? sign.gloss.toLowerCase().replace(/\s+/g, "-") : `sign-${Date.now()}`);
     const { data, error } = await dbFrom("signs")
       .insert({
         id,
-        gloss: (sign.gloss || "NEW SIGN").toUpperCase(),
+        gloss: sign.gloss || "NEW SIGN",
         meaning: sign.meaning || "",
-        category_id: sign.category_id || "healthcare",
+        category_id: sign.category_id || "clinical",
         difficulty: sign.difficulty || "beginner",
-        region_note: sign.region_note || "Consistent across regions",
-        steps: (sign.steps || []) as never,
+        region_note: sign.region_note || null,
+        video_url: sign.video_url || null,
+        steps: sign.steps || [],
         is_published: true,
-      } as never)
+      })
       .select()
       .single();
 
     if (error) return { error: error.message };
-    return { error: null, data: data as unknown as Sign };
-  } catch (err) {
-    return { error: (err as Error).message };
+    return { data };
+  } catch (err: any) {
+    return { error: err.message || "Failed to create sign" };
+  }
+}
+
+export async function updateSign(
+  id: string,
+  updates: Partial<Sign>,
+): Promise<{ error: string | null }> {
+  try {
+    const { error } = await dbFrom("signs").update(updates).eq("id", id);
+    if (error) return { error: error.message };
+    return { error: null };
+  } catch (err: any) {
+    return { error: err.message || "Failed to update sign" };
   }
 }
 
 export async function deleteSign(id: string): Promise<{ error: string | null }> {
   try {
     const { error } = await dbFrom("signs").delete().eq("id", id);
-    return { error: error?.message ?? null };
-  } catch (err) {
-    return { error: (err as Error).message };
+    if (error) return { error: error.message };
+    return { error: null };
+  } catch (err: any) {
+    return { error: err.message || "Failed to delete sign" };
   }
 }
