@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import tsConfigPaths from "vite-tsconfig-paths";
@@ -18,6 +18,7 @@ export default defineConfig({
     },
   },
   build: {
+    outDir: "dist",
     rollupOptions: {
       output: {
         manualChunks: (id: string): string | undefined => {
@@ -34,10 +35,12 @@ export default defineConfig({
   },
   plugins: [
     tsConfigPaths(),
-    tanstackStart({
-      server: { entry: "server" },
+    tanstackRouter({
+      routesDirectory: "./src/routes",
+      generatedRouteTree: "./src/routeTree.gen.ts",
     }),
     viteReact(),
     tailwindcss(),
   ],
 });
+
