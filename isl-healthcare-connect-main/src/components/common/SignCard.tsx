@@ -106,20 +106,20 @@ export function SignCard({ sign }: { sign: Sign }) {
       <Card className="group relative flex h-full flex-col overflow-hidden rounded-2xl border-border/70 bg-card/80 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:border-primary/40 hover:shadow-lift">
         {/* Video thumbnail strip at top of card */}
         {hasVideoHint && !videoFailed && (
-          <div className="relative overflow-hidden bg-black" style={{ height: 96 }}>
+          <div className="relative aspect-video w-full overflow-hidden bg-neutral-950">
             <video
               src={currentVideoUrl}
-              className="h-full w-full object-cover opacity-80 transition-opacity group-hover:opacity-100"
+              className="h-full w-full object-cover opacity-75 transition-opacity duration-200 group-hover:opacity-95"
               muted
               loop
               autoPlay
               playsInline
               onError={handleVideoError}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent" />
-            <span className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
-              <Video className="size-3" />
-              HD
+            <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent" />
+            <span className="absolute right-2.5 top-2.5 flex items-center gap-1 rounded-md bg-black/75 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-sm">
+              <Video className="size-3 text-emerald-400" />
+              HD Video
             </span>
           </div>
         )}
