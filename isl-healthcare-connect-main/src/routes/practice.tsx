@@ -186,9 +186,11 @@ function PracticePage() {
       }
 
       setPhase("detected");
-      const matched =
-        prediction.sign.toUpperCase() === target.gloss.toUpperCase() &&
-        prediction.confidence >= 0.7;
+      const matched = isTargetMatch(
+        prediction.sign,
+        target.gloss,
+        prediction.confidence,
+      );
 
       if (matched) {
         setCorrect((v) => v + 1);

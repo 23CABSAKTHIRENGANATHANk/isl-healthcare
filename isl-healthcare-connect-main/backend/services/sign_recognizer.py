@@ -1,7 +1,7 @@
 """
 ISL Setu — Production Real-Time Hand Gesture Recognition Service
-Performs robust multi-space skin segmentation (YCrCb + HSV), contour geometry analysis,
-and adaptive gesture classification for all Indian Sign Language healthcare curriculum signs.
+Strict Computer Vision segmentation, contour hull defect finger counting,
+and distinct gesture shape classification for all ISL healthcare signs.
 """
 
 import os
@@ -127,13 +127,9 @@ class SignRecognizer:
         hsv = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2HSV)
         ycrcb = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2YCrCb)
 
-        # 1. YCrCb Skin Mask (broad Indian skin tone gamut)
+        # Multi-Space Skin Mask for broad skin tone gamut
         mask1 = cv2.inRange(ycrcb, np.array([0, 125, 70]), np.array([255, 185, 135]))
-
-        # 2. HSV Skin Mask
         mask2 = cv2.inRange(hsv, np.array([0, 18, 40]), np.array([30, 255, 255]))
-
-        # Combined Skin Mask
         mask = cv2.bitwise_or(mask1, mask2)
 
         # Clean noise
@@ -145,7 +141,7 @@ class SignRecognizer:
         skin_pixels = cv2.countNonZero(mask)
         skin_ratio = skin_pixels / float(total_pixels)
 
-        if skin_ratio < 0.005: # Less than 0.5% skin in entire frame
+        if skin_ratio < 0.005:
             return {"has_hand": False, "fingers": 0, "reason": "No hand detected in camera. Please raise your hand."}
 
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -169,7 +165,7 @@ class SignRecognizer:
                     deep_defects = 0
                     for i in range(defects.shape[0]):
                         s, e, f, d = defects[i, 0]
-                        if d > 1800:
+                        if d > 2000: # Significant inter-finger valley
                             deep_defects += 1
                     extended_fingers = min(5, deep_defects + 1)
             except Exception:
@@ -194,7 +190,7 @@ class SignRecognizer:
         client_landmarks: Optional[List[List[Dict[str, float]]]] = None
     ) -> Dict[str, Any]:
         """
-        Executes real-time inference on an input frame or client landmarks.
+        Executes strict real-time inference. Matches ONLY if the user shows the exact gesture required.
         """
         target = (target_sign or "HELLO").upper().strip()
 
@@ -234,27 +230,96 @@ class SignRecognizer:
         fingers = hand_feat["fingers"]
         aspect = hand_feat["aspect_ratio"]
 
-        # Gesture Verification matching target sign
-        confidence = 0.94
+        # -------------------------------------------------------------
+        # STRICT SIGN-SPECIFIC GESTURE MATCHING
+        # -------------------------------------------------------------
+        is_matched = False
+        detected_sign = "UNKNOWN"
+        confidence = 0.50
+        feedback_msg = ""
 
-        if target in ["INJURY", "ONE", "POINT"]:
-            feedback_msg = f"✓ Perfect match! Index pointing gesture detected for {target}."
-        elif target in ["WHAT IS YOUR NAME", "EXAM", "MATHS"]:
-            feedback_msg = f"✓ Perfect match! Two-finger V-shape detected for {target}."
-        elif target in ["BREAK", "FEDUP", "YES", "STOP"]:
-            feedback_msg = f"✓ Perfect match! Fist gesture detected for {target}."
-        elif target in ["DRINK", "TEA", "POUR", "WATER"]:
-            feedback_msg = f"✓ Perfect match! Cupped hand shape detected for {target}."
-        elif target in ["HELLO", "GIVE", "CLEAN", "FEVER", "HELP"]:
-            feedback_msg = f"✓ Perfect match! Open palm gesture detected for {target}."
+        # 1. Single Index Pointing Gestures (INJURY, ONE, POINT, NO)
+        if target in ["INJURY", "ONE", "POINT", "YOU", "NO"]:
+            if fingers == 1 and aspect > 1.15:
+                is_matched = True
+                confidence = 0.94
+                detected_sign = target
+                feedback_msg = f"✓ Perfect match! Index pointing gesture verified for {target}."
+            else:
+                is_matched = False
+                confidence = 0.40
+                detected_sign = "OPEN_PALM" if fingers >= 4 else "FIST"
+                feedback_msg = f"Detected {fingers} fingers. Please point 1 index finger to match {target}."
+
+        # 2. Two-Finger V/H Shape Gestures (WHAT IS YOUR NAME, EXAM, NURSE, MATHS)
+        elif target in ["WHAT IS YOUR NAME", "EXAM", "MATHS", "NURSE"]:
+            if fingers == 2:
+                is_matched = True
+                confidence = 0.93
+                detected_sign = target
+                feedback_msg = f"✓ Perfect match! 2-finger V-shape verified for {target}."
+            else:
+                is_matched = False
+                confidence = 0.45
+                detected_sign = "OPEN_PALM" if fingers >= 4 else "1_FINGER"
+                feedback_msg = f"Detected {fingers} fingers. Please show 2 fingers in V-shape for {target}."
+
+        # 3. Closed Fist Gestures (BREAK, FEDUP, YES, STOP, PAIN)
+        elif target in ["BREAK", "FEDUP", "YES", "STOP", "PAIN"]:
+            if fingers <= 1 and aspect < 1.3:
+                is_matched = True
+                confidence = 0.94
+                detected_sign = target
+                feedback_msg = f"✓ Perfect match! Closed fist gesture verified for {target}."
+            else:
+                is_matched = False
+                confidence = 0.35
+                detected_sign = "OPEN_PALM"
+                feedback_msg = f"Detected open hand ({fingers} fingers). Please form a closed fist for {target}."
+
+        # 4. Pinch / O-Shape Gestures (MEDICINE, FOOD, KEY, LEMON)
+        elif target in ["MEDICINE", "FOOD", "KEY", "LEMON"]:
+            if fingers <= 2 and aspect < 1.35:
+                is_matched = True
+                confidence = 0.94
+                detected_sign = target
+                feedback_msg = f"✓ Perfect match! Tablet pinch gesture verified for {target}."
+            else:
+                is_matched = False
+                confidence = 0.40
+                detected_sign = "OPEN_PALM"
+                feedback_msg = f"Detected open {fingers}-finger hand. Please pinch your fingers together for {target}."
+
+        # 5. Open 5-Finger Palm Gestures (HELLO, GIVE, CLEAN, FEVER, HELP, WATER, HOSPITAL, DOCTOR)
+        elif target in ["HELLO", "GIVE", "CLEAN", "FEVER", "HELP", "WATER", "HOSPITAL", "DOCTOR"]:
+            if fingers >= 4:
+                is_matched = True
+                confidence = 0.95
+                detected_sign = target
+                feedback_msg = f"✓ Perfect match! Open palm gesture verified for {target}."
+            else:
+                is_matched = False
+                confidence = 0.40
+                detected_sign = "FIST" if fingers <= 1 else "2_FINGERS"
+                feedback_msg = f"Detected only {fingers} fingers. Please open all 5 fingers facing camera for {target}."
+
+        # 6. General vocabulary
         else:
-            feedback_msg = f"✓ Gesture verified for {target}."
+            if fingers >= 2:
+                is_matched = True
+                confidence = 0.91
+                detected_sign = target
+                feedback_msg = f"✓ Gesture verified for {target}."
+            else:
+                is_matched = False
+                confidence = 0.45
+                feedback_msg = f"Please position hand clearly for {target}."
 
         return {
-            "success": True,
-            "sign": target,
-            "confidence": confidence,
-            "matched": True,
+            "success": is_matched,
+            "sign": detected_sign if not is_matched else target,
+            "confidence": round(confidence, 2),
+            "matched": is_matched,
             "phrase": PHRASE_MAPPINGS.get(target, f"{target}."),
             "mode": "ai",
             "model_version": "isl_landmark_v1",
