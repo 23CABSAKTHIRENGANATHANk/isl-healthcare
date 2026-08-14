@@ -63,7 +63,7 @@ export const signs: Sign[] = [
     "category_id": "clinical",
     "difficulty": "intermediate",
     "region_note": "Back of flat hand touches forehead with concern",
-    "video_url": "/videos/signs/Fever.mp4",
+    "video_url": "/dataset-videos/Fever.mp4",
     "steps": [
       "Back of flat hand touches the forehead.",
       "Move hand slightly away and back once.",
@@ -77,7 +77,7 @@ export const signs: Sign[] = [
     "category_id": "clinical",
     "difficulty": "intermediate",
     "region_note": "Point index fingers toward affected site",
-    "video_url": "/videos/signs/Injury.mp4",
+    "video_url": "/dataset-videos/Injury.mp4",
     "steps": [
       "Both index fingers point toward each other near wound area.",
       "Twist wrists slightly with sharp, attentive posture.",
@@ -91,7 +91,7 @@ export const signs: Sign[] = [
     "category_id": "clinical",
     "difficulty": "beginner",
     "region_note": "Location follows painful anatomical area",
-    "video_url": null,
+    "video_url": "/dataset-videos/Drink.mp4",
     "steps": [
       "Index fingers point toward each other a short distance apart.",
       "Twist wrists inward with tense, sympathetic facial expression.",
@@ -203,7 +203,7 @@ export const signs: Sign[] = [
     "category_id": "greetings",
     "difficulty": "beginner",
     "region_note": "Universal greeting across India",
-    "video_url": "/videos/signs/Hello.mp4",
+    "video_url": "/dataset-videos/Hello.mp4",
     "steps": [
       "Open palm faces forward at temple height.",
       "Move hand outward and slightly away in a smooth welcoming arc.",
@@ -217,7 +217,7 @@ export const signs: Sign[] = [
     "category_id": "greetings",
     "difficulty": "beginner",
     "region_note": "Sun rising gesture combined with good",
-    "video_url": "/videos/signs/Good morning.mp4",
+    "video_url": "/dataset-videos/Good morning.mp4",
     "steps": [
       "Sign GOOD by bringing flat fingertips from chin outward.",
       "Follow with non-dominant arm horizontal as dominant hand rises like sun.",
@@ -231,7 +231,7 @@ export const signs: Sign[] = [
     "category_id": "greetings",
     "difficulty": "beginner",
     "region_note": "Midday sun position gesture",
-    "video_url": "/videos/signs/Good afternoon.mp4",
+    "video_url": "/dataset-videos/Good afternoon.mp4",
     "steps": [
       "Sign GOOD moving outward from chin.",
       "Position dominant hand overhead pointing straight up for midday sun.",
@@ -245,7 +245,7 @@ export const signs: Sign[] = [
     "category_id": "greetings",
     "difficulty": "beginner",
     "region_note": "Fingertips from chin outward",
-    "video_url": "/videos/signs/Thank you.mp4",
+    "video_url": "/dataset-videos/Thank you.mp4",
     "steps": [
       "Flat hand fingertips touch chin, palm facing inward.",
       "Extend hand forward and downward toward patient.",
@@ -259,7 +259,7 @@ export const signs: Sign[] = [
     "category_id": "greetings",
     "difficulty": "beginner",
     "region_note": "Two-finger name tap with question expression",
-    "video_url": "/videos/signs/What is your Name.mp4",
+    "video_url": "/dataset-videos/What is your Name.mp4",
     "steps": [
       "H-handshapes (index + middle fingers) tap together horizontally.",
       "Follow with open palms facing upward tilted side to side.",
@@ -273,7 +273,7 @@ export const signs: Sign[] = [
     "category_id": "greetings",
     "difficulty": "beginner",
     "region_note": "Inward wave motion",
-    "video_url": "/videos/signs/Come.mp4",
+    "video_url": "/dataset-videos/Come.mp4",
     "steps": [
       "Open hand extended outward at chest height, palm facing inward.",
       "Curl fingers inward smoothly twice toward torso.",
@@ -287,7 +287,7 @@ export const signs: Sign[] = [
     "category_id": "greetings",
     "difficulty": "beginner",
     "region_note": "Forward delivery movement",
-    "video_url": "/videos/signs/Give.mp4",
+    "video_url": "/dataset-videos/Give.mp4",
     "steps": [
       "Both hands in loose cupped shapes at waist height.",
       "Extend hands forward smoothly toward recipient.",
@@ -301,7 +301,7 @@ export const signs: Sign[] = [
     "category_id": "greetings",
     "difficulty": "beginner",
     "region_note": "C-handshape tipping toward mouth",
-    "video_url": "/videos/signs/Drink.mp4",
+    "video_url": "/dataset-videos/Drink.mp4",
     "steps": [
       "Form C-handshape resembling drinking cup.",
       "Tip thumb side toward mouth smoothly as if sipping.",
@@ -315,7 +315,7 @@ export const signs: Sign[] = [
     "category_id": "greetings",
     "difficulty": "beginner",
     "region_note": "Palm sweeping motion across base hand",
-    "video_url": "/videos/signs/Clean.mp4",
+    "video_url": "/dataset-videos/Clean.mp4",
     "steps": [
       "Non-dominant palm flat facing upward.",
       "Dominant flat palm brushes smoothly across non-dominant palm from heel to fingertips.",
@@ -329,7 +329,7 @@ export const signs: Sign[] = [
     "category_id": "greetings",
     "difficulty": "beginner",
     "region_note": "Palms coming together",
-    "video_url": "/videos/signs/Close.mp4",
+    "video_url": "/dataset-videos/Close.mp4",
     "steps": [
       "Both palms open facing each other shoulder-width apart.",
       "Bring index finger edges together briskly to close the space.",
@@ -343,7 +343,7 @@ export const signs: Sign[] = [
     "category_id": "greetings",
     "difficulty": "beginner",
     "region_note": "Thumb flicking upward/downward",
-    "video_url": "/videos/signs/Switch.mp4",
+    "video_url": "/dataset-videos/Switch.mp4",
     "steps": [
       "Form loose fist with thumb resting on side of index finger.",
       "Flick thumb upward and downward as if toggling electrical switch.",
@@ -357,7 +357,7 @@ export const signs: Sign[] = [
     "category_id": "greetings",
     "difficulty": "intermediate",
     "region_note": "B-handshape sweeping back and forth",
-    "video_url": "/videos/signs/Busy.mp4",
+    "video_url": "/dataset-videos/Busy.mp4",
     "steps": [
       "Non-dominant arm extended across chest.",
       "Dominant flat hand wipes back and forth across wrist rapidly.",
@@ -371,7 +371,7 @@ export const signs: Sign[] = [
     "category_id": "greetings",
     "difficulty": "intermediate",
     "region_note": "Y-handshape knuckles touching chin",
-    "video_url": "/videos/signs/Wrong.mp4",
+    "video_url": "/dataset-videos/Wrong.mp4",
     "steps": [
       "Form Y-handshape with thumb and pinky extended.",
       "Touch middle knuckles of three folded fingers to chin.",
@@ -385,7 +385,7 @@ export const signs: Sign[] = [
     "category_id": "greetings",
     "difficulty": "intermediate",
     "region_note": "Alternating flat palms balance scale",
-    "video_url": "/videos/signs/Maybe.mp4",
+    "video_url": "/dataset-videos/Maybe.mp4",
     "steps": [
       "Both palms open facing upward at chest height.",
       "Raise and lower alternate hands in gentle teeter-totter motion.",
@@ -399,7 +399,7 @@ export const signs: Sign[] = [
     "category_id": "greetings",
     "difficulty": "intermediate",
     "region_note": "Downward pressing Y-handshapes",
-    "video_url": "/videos/signs/Still.mp4",
+    "video_url": "/dataset-videos/Still.mp4",
     "steps": [
       "Both hands in Y-handshape palms facing downward.",
       "Move hands smoothly forward and down together.",
@@ -441,7 +441,7 @@ export const signs: Sign[] = [
     "category_id": "nutrition",
     "difficulty": "beginner",
     "region_note": "Teabag dipping circular motion",
-    "video_url": "/videos/signs/Tea.mp4",
+    "video_url": "/dataset-videos/Tea.mp4",
     "steps": [
       "Non-dominant hand forms O-shape like teacup rim.",
       "Dominant thumb and index hold imaginary teabag string and circle gently above cup.",
@@ -455,7 +455,7 @@ export const signs: Sign[] = [
     "category_id": "nutrition",
     "difficulty": "beginner",
     "region_note": "Spatula flipping motion",
-    "video_url": "/videos/signs/Cook.mp4",
+    "video_url": "/dataset-videos/Cook.mp4",
     "steps": [
       "Non-dominant palm flat facing up as frying surface.",
       "Dominant flat hand flips palm-down then palm-up repeatedly on base hand.",
@@ -469,7 +469,7 @@ export const signs: Sign[] = [
     "category_id": "nutrition",
     "difficulty": "beginner",
     "region_note": "Tilting container motion",
-    "video_url": "/videos/signs/Pour.mp4",
+    "video_url": "/dataset-videos/Pour.mp4",
     "steps": [
       "Dominant hand in loose fist tilted at wrist.",
       "Rotate wrist downward as if pouring liquid from jug into cup.",
@@ -483,7 +483,7 @@ export const signs: Sign[] = [
     "category_id": "nutrition",
     "difficulty": "intermediate",
     "region_note": "V-handshape twisting at cheek",
-    "video_url": "/videos/signs/Vegetables.mp4",
+    "video_url": "/dataset-videos/Vegetables.mp4",
     "steps": [
       "Dominant hand in V-shape with index and middle finger extended.",
       "Touch tips of V-fingers to cheek and twist wrist back and forth.",
@@ -497,7 +497,7 @@ export const signs: Sign[] = [
     "category_id": "nutrition",
     "difficulty": "intermediate",
     "region_note": "Holding carrot and crunching at mouth",
-    "video_url": "/videos/signs/Carrot.mp4",
+    "video_url": "/dataset-videos/Carrot.mp4",
     "steps": [
       "Dominant hand forms S-fist at mouth corner.",
       "Mimic biting tip of carrot with small crunching teeth motion.",
@@ -511,7 +511,7 @@ export const signs: Sign[] = [
     "category_id": "nutrition",
     "difficulty": "intermediate",
     "region_note": "Cupped hands showing layered round ball",
-    "video_url": "/videos/signs/Cabbage.mp4",
+    "video_url": "/dataset-videos/Cabbage.mp4",
     "steps": [
       "Both wrists touch at base of palms in round spherical shape.",
       "Fingers curve inward like layers of cabbage leaves.",
@@ -525,7 +525,7 @@ export const signs: Sign[] = [
     "category_id": "nutrition",
     "difficulty": "intermediate",
     "region_note": "White color sign + blossoming ball shape",
-    "video_url": "/videos/signs/Cauliflower.mp4",
+    "video_url": "/dataset-videos/Cauliflower.mp4",
     "steps": [
       "Fingers bunch together and open outward like florets.",
       "Both hands form clustered round crown at chest level.",
@@ -539,7 +539,7 @@ export const signs: Sign[] = [
     "category_id": "nutrition",
     "difficulty": "intermediate",
     "region_note": "Twisting knuckle at eye corner",
-    "video_url": "/videos/signs/Onion.mp4",
+    "video_url": "/dataset-videos/Onion.mp4",
     "steps": [
       "Form X-handshape with bent index finger knuckle.",
       "Twist knuckle gently near outer corner of eye as if cutting pungent onion.",
@@ -553,7 +553,7 @@ export const signs: Sign[] = [
     "category_id": "nutrition",
     "difficulty": "intermediate",
     "region_note": "Tapered root shape from wrist",
-    "video_url": "/videos/signs/Radish.mp4",
+    "video_url": "/dataset-videos/Radish.mp4",
     "steps": [
       "Non-dominant arm extended forward.",
       "Dominant hand traces long tapering root shape down forearm to pointed tip.",
@@ -567,7 +567,7 @@ export const signs: Sign[] = [
     "category_id": "nutrition",
     "difficulty": "intermediate",
     "region_note": "Squeezing L-handshape at mouth corner",
-    "video_url": "/videos/signs/Lemon.mp4",
+    "video_url": "/dataset-videos/Lemon.mp4",
     "steps": [
       "Thumb of L-handshape touches corner of mouth.",
       "Twist wrist forward and backward while making sour puckered face.",
@@ -581,7 +581,7 @@ export const signs: Sign[] = [
     "category_id": "nutrition",
     "difficulty": "intermediate",
     "region_note": "Purple sign + elongated stem shape",
-    "video_url": "/videos/signs/Brinjal.mp4",
+    "video_url": "/dataset-videos/Brinjal.mp4",
     "steps": [
       "Dominant hand curls around non-dominant index finger resembling stem cap.",
       "Hands form elongated smooth bulb shape downward.",
@@ -595,7 +595,7 @@ export const signs: Sign[] = [
     "category_id": "nutrition",
     "difficulty": "intermediate",
     "region_note": "Small curved pepper shape + burning tongue reaction",
-    "video_url": "/videos/signs/Chilli.mp4",
+    "video_url": "/dataset-videos/Chilli.mp4",
     "steps": [
       "Index and thumb pinch into small curved pointed pepper shape.",
       "Bring near lips and fan mouth rapidly with other hand to indicate spicy heat.",
@@ -609,7 +609,7 @@ export const signs: Sign[] = [
     "category_id": "nutrition",
     "difficulty": "intermediate",
     "region_note": "Cylindrical vegetable slicing gesture",
-    "video_url": "/videos/signs/Cucumber.mp4",
+    "video_url": "/dataset-videos/Cucumber.mp4",
     "steps": [
       "Non-dominant hand holds long cylindrical shape horizontally.",
       "Dominant flat hand makes crisp slicing motions along cylinder.",
@@ -623,7 +623,7 @@ export const signs: Sign[] = [
     "category_id": "pediatric",
     "difficulty": "beginner",
     "region_note": "Crossing arms over chest in self-hug",
-    "video_url": "/videos/signs/Hug.mp4",
+    "video_url": "/dataset-videos/Hug.mp4",
     "steps": [
       "Cross both arms over chest with fists resting on opposite shoulders.",
       "Squeeze gently toward torso with warm caring facial expression.",
@@ -637,7 +637,7 @@ export const signs: Sign[] = [
     "category_id": "pediatric",
     "difficulty": "beginner",
     "region_note": "Index fingers tracing tears down cheeks",
-    "video_url": "/videos/signs/Cry.mp4",
+    "video_url": "/dataset-videos/Cry.mp4",
     "steps": [
       "Both index fingers point upward under eyes.",
       "Draw fingers downward along cheeks in wavy falling paths like teardrops.",
@@ -651,7 +651,7 @@ export const signs: Sign[] = [
     "category_id": "pediatric",
     "difficulty": "beginner",
     "region_note": "V-fingers jumping on flat palm",
-    "video_url": "/videos/signs/Jump.mp4",
+    "video_url": "/dataset-videos/Jump.mp4",
     "steps": [
       "Non-dominant palm flat facing upward as ground.",
       "Dominant inverted V-fingers (legs) bend knees and spring upward repeatedly.",
@@ -665,7 +665,7 @@ export const signs: Sign[] = [
     "category_id": "pediatric",
     "difficulty": "beginner",
     "region_note": "Opening umbrella handle gesture",
-    "video_url": "/videos/signs/Umbrella.mp4",
+    "video_url": "/dataset-videos/Umbrella.mp4",
     "steps": [
       "Both fists stacked vertically as if gripping umbrella handle.",
       "Slide dominant hand upward while opening fingers outward into domed canopy.",
@@ -679,7 +679,7 @@ export const signs: Sign[] = [
     "category_id": "pediatric",
     "difficulty": "beginner",
     "region_note": "Crossed arms scratching chest with claws",
-    "video_url": "/videos/signs/Bear.mp4",
+    "video_url": "/dataset-videos/Bear.mp4",
     "steps": [
       "Cross arms over chest with curved clawed fingers.",
       "Scratch gently downward twice on opposite shoulders.",
@@ -693,7 +693,7 @@ export const signs: Sign[] = [
     "category_id": "pediatric",
     "difficulty": "beginner",
     "region_note": "Open 5-handshapes as antlers at temples",
-    "video_url": "/videos/signs/Deer.mp4",
+    "video_url": "/dataset-videos/Deer.mp4",
     "steps": [
       "Thumbs of both open 5-hands touch temples.",
       "Fingers spread wide like branching antlers.",
@@ -707,7 +707,7 @@ export const signs: Sign[] = [
     "category_id": "pediatric",
     "difficulty": "beginner",
     "region_note": "Curving trunk gesture from nose",
-    "video_url": "/videos/signs/Elephant.mp4",
+    "video_url": "/dataset-videos/Elephant.mp4",
     "steps": [
       "Back of dominant hand touches nose.",
       "Curve arm downward and forward in long undulating trunk swing.",
@@ -721,7 +721,7 @@ export const signs: Sign[] = [
     "category_id": "pediatric",
     "difficulty": "beginner",
     "region_note": "C-handshape sliding up tall neck",
-    "video_url": "/videos/signs/Giraffe.mp4",
+    "video_url": "/dataset-videos/Giraffe.mp4",
     "steps": [
       "Dominant C-handshape starts at neck base.",
       "Glide hand upward high above head to indicate long slender neck.",
@@ -735,7 +735,7 @@ export const signs: Sign[] = [
     "category_id": "pediatric",
     "difficulty": "beginner",
     "region_note": "Clawed hands pulling back mane",
-    "video_url": "/videos/signs/Lion.mp4",
+    "video_url": "/dataset-videos/Lion.mp4",
     "steps": [
       "Curved claw hands start near ears.",
       "Comb fingers backward through imaginary lion mane with strong confident posture.",
@@ -749,7 +749,7 @@ export const signs: Sign[] = [
     "category_id": "pediatric",
     "difficulty": "beginner",
     "region_note": "Scratching armpits playfully",
-    "video_url": "/videos/signs/Monkey.mp4",
+    "video_url": "/dataset-videos/Monkey.mp4",
     "steps": [
       "Both curved claw hands scratch upward along ribcage and armpits.",
       "Lighthearted playful expression to ease pediatric anxiety.",
@@ -763,7 +763,7 @@ export const signs: Sign[] = [
     "category_id": "pediatric",
     "difficulty": "intermediate",
     "region_note": "Fanning tail feathers gesture",
-    "video_url": "/videos/signs/Peacock.mp4",
+    "video_url": "/dataset-videos/Peacock.mp4",
     "steps": [
       "Wrist of open fan hand touches tailbone or lower back.",
       "Spread all fingers wide and shimmer fingers like iridescent feathers.",
@@ -777,7 +777,7 @@ export const signs: Sign[] = [
     "category_id": "pediatric",
     "difficulty": "beginner",
     "region_note": "Beak pecking motion + fluttering wings",
-    "video_url": "/videos/signs/Pigeon.mp4",
+    "video_url": "/dataset-videos/Pigeon.mp4",
     "steps": [
       "Thumb and index tap together at chin like pecking beak.",
       "Cross thumbs and flutter open fingers like soft wings.",
@@ -791,7 +791,7 @@ export const signs: Sign[] = [
     "category_id": "pediatric",
     "difficulty": "beginner",
     "region_note": "Tiny beak chirping near cheek",
-    "video_url": "/videos/signs/Sparrow.mp4",
+    "video_url": "/dataset-videos/Sparrow.mp4",
     "steps": [
       "Index and thumb pinch into tiny beak at corner of mouth.",
       "Tap fingertips rapidly twice while tilting head curiously.",
@@ -805,7 +805,7 @@ export const signs: Sign[] = [
     "category_id": "pediatric",
     "difficulty": "intermediate",
     "region_note": "Stripes drawn across cheeks with claw hands",
-    "video_url": "/videos/signs/Tiger.mp4",
+    "video_url": "/dataset-videos/Tiger.mp4",
     "steps": [
       "Curved finger claw hands start at nose.",
       "Pull hands outward across cheeks tracing bold tiger stripes.",
@@ -819,7 +819,7 @@ export const signs: Sign[] = [
     "category_id": "pediatric",
     "difficulty": "intermediate",
     "region_note": "Thumb peeking out under cupped shell hand",
-    "video_url": "/videos/signs/Turtle.mp4",
+    "video_url": "/dataset-videos/Turtle.mp4",
     "steps": [
       "Dominant cupped hand covers non-dominant fist like protective shell.",
       "Thumb of lower fist pokes out and wiggles like turtle head.",
@@ -833,7 +833,7 @@ export const signs: Sign[] = [
     "category_id": "pediatric",
     "difficulty": "beginner",
     "region_note": "Long clamping jaws with extended arms",
-    "video_url": "/videos/signs/Crocodile.mp4",
+    "video_url": "/dataset-videos/Crocodile.mp4",
     "steps": [
       "Both arms extended forward horizontally, palms facing each other.",
       "Open arms wide vertically and snap hands together like giant jaws.",
@@ -847,7 +847,7 @@ export const signs: Sign[] = [
     "category_id": "administration",
     "difficulty": "intermediate",
     "region_note": "Counting currency into palm",
-    "video_url": "/videos/signs/Budget.mp4",
+    "video_url": "/dataset-videos/Budget.mp4",
     "steps": [
       "Non-dominant palm open facing upward.",
       "Dominant thumb and index rub together like banknotes over palm.",
@@ -861,7 +861,7 @@ export const signs: Sign[] = [
     "category_id": "administration",
     "difficulty": "intermediate",
     "region_note": "I-handshapes speaking back and forth",
-    "video_url": "/videos/signs/Interview.mp4",
+    "video_url": "/dataset-videos/Interview.mp4",
     "steps": [
       "Both hands in I-handshape (pinky extended).",
       "Move hands back and forth toward each other in front of mouth.",
@@ -875,7 +875,7 @@ export const signs: Sign[] = [
     "category_id": "administration",
     "difficulty": "intermediate",
     "region_note": "Curled index fingers scanning paper/body",
-    "video_url": "/videos/signs/Exam.mp4",
+    "video_url": "/dataset-videos/Exam.mp4",
     "steps": [
       "Both index fingers bent into hooks.",
       "Move hands downward in parallel scanning motion as if inspecting clinical chart.",
@@ -889,7 +889,7 @@ export const signs: Sign[] = [
     "category_id": "administration",
     "difficulty": "intermediate",
     "region_note": "Crossing M-handshapes",
-    "video_url": "/videos/signs/Maths.mp4",
+    "video_url": "/dataset-videos/Maths.mp4",
     "steps": [
       "Both hands in M-handshape (three fingers over thumb).",
       "Brush wrists across each other in intersecting cross motions.",
@@ -903,7 +903,7 @@ export const signs: Sign[] = [
     "category_id": "administration",
     "difficulty": "beginner",
     "region_note": "Pen writing on palm + person marker",
-    "video_url": "/videos/signs/Writer.mp4",
+    "video_url": "/dataset-videos/Writer.mp4",
     "steps": [
       "Dominant hand in pinched pen grip scribbles across non-dominant palm.",
       "Follow with flat hands moving downward along sides for PERSON marker.",
@@ -917,7 +917,7 @@ export const signs: Sign[] = [
     "category_id": "administration",
     "difficulty": "beginner",
     "region_note": "Female chin stroke + clasping hands",
-    "video_url": "/videos/signs/Wife.mp4",
+    "video_url": "/dataset-videos/Wife.mp4",
     "steps": [
       "Thumb brushes along jawline indicating female.",
       "Clasp both hands together at chest level in marriage bond.",
@@ -931,7 +931,7 @@ export const signs: Sign[] = [
     "category_id": "administration",
     "difficulty": "beginner",
     "region_note": "U-handshape shaking near temple",
-    "video_url": "/videos/signs/Uncle.mp4",
+    "video_url": "/dataset-videos/Uncle.mp4",
     "steps": [
       "Form U-handshape with index and middle finger held together.",
       "Twist hand twice near temple on male side of face.",
@@ -945,7 +945,7 @@ export const signs: Sign[] = [
     "category_id": "administration",
     "difficulty": "beginner",
     "region_note": "Key turning in palm lock",
-    "video_url": "/videos/signs/Key.mp4",
+    "video_url": "/dataset-videos/Key.mp4",
     "steps": [
       "Bent index finger knuckle presses into open palm of other hand.",
       "Twist knuckle clockwise as if turning key in physical lock.",
@@ -959,7 +959,7 @@ export const signs: Sign[] = [
     "category_id": "administration",
     "difficulty": "beginner",
     "region_note": "Index finger whittling opposite index finger",
-    "video_url": "/videos/signs/Knife.mp4",
+    "video_url": "/dataset-videos/Knife.mp4",
     "steps": [
       "Non-dominant index finger extended horizontally.",
       "Dominant index finger slices downward along non-dominant finger twice.",
@@ -973,7 +973,7 @@ export const signs: Sign[] = [
     "category_id": "administration",
     "difficulty": "beginner",
     "region_note": "Breaking imaginary stick in half",
-    "video_url": "/videos/signs/Break.mp4",
+    "video_url": "/dataset-videos/Break.mp4",
     "steps": [
       "Both fists side-by-side with knuckles touching.",
       "Snap wrists outward and twist hands apart as if snapping wooden stick.",
@@ -987,7 +987,7 @@ export const signs: Sign[] = [
     "category_id": "administration",
     "difficulty": "intermediate",
     "region_note": "Hand chopped up to chin level",
-    "video_url": "/videos/signs/Fedup.mp4",
+    "video_url": "/dataset-videos/Fedup.mp4",
     "steps": [
       "Flat hand palm-down strikes underneath chin sharply.",
       "Exhale with weary facial expression.",
@@ -1001,7 +1001,7 @@ export const signs: Sign[] = [
     "category_id": "administration",
     "difficulty": "intermediate",
     "region_note": "K-handshape arc gesture",
-    "video_url": "/videos/signs/Karnataka.mp4",
+    "video_url": "/dataset-videos/Karnataka.mp4",
     "steps": [
       "Form K-handshape with index, middle and thumb.",
       "Move hand smoothly in gentle horizontal arc across chest.",
@@ -1015,7 +1015,7 @@ export const signs: Sign[] = [
     "category_id": "administration",
     "difficulty": "beginner",
     "region_note": "T-handshape tapping temple building base",
-    "video_url": "/videos/signs/Temple.mp4",
+    "video_url": "/dataset-videos/Temple.mp4",
     "steps": [
       "Non-dominant flat palm facing down.",
       "Dominant T-handshape rests wrist on non-dominant hand and lifts slightly.",
@@ -1029,7 +1029,7 @@ export const signs: Sign[] = [
     "category_id": "administration",
     "difficulty": "advanced",
     "region_note": "Lava exploding upward from mountain cone",
-    "video_url": "/videos/signs/Volcano.mp4",
+    "video_url": "/dataset-videos/Volcano.mp4",
     "steps": [
       "Both hands form tapered mountain cone at base.",
       "Fingers erupt upward and splay outward like volcanic explosion.",
@@ -1043,7 +1043,7 @@ export const signs: Sign[] = [
     "category_id": "administration",
     "difficulty": "beginner",
     "region_note": "Moustache stroking gesture at upper lip",
-    "video_url": "/videos/signs/Man.mp4",
+    "video_url": "/dataset-videos/Man.mp4",
     "steps": [
       "Index and thumb stroke outward across upper lip as if shaping moustache.",
       "Nod head calmly.",

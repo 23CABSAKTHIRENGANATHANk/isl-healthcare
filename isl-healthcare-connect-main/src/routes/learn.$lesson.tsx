@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, CheckCircle2, Repeat, Sparkles, Volume2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Repeat, Sparkles, Volume2, Lightbulb } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -8,10 +8,12 @@ import { PageShell } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/common/PageHeader";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
 import { SignCard } from "@/components/common/SignCard";
-import { SignDisplay } from "@/components/common/SignDisplay";
+import { VideoPlayer } from "@/components/common/VideoPlayer";
+import { Quiz } from "@/components/common/Quiz";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import { getLessonBySlug, listSignsForLesson } from "@/services/content.service";
 import { getRecommendedLessons, updateLessonProgress } from "@/services/progress.service";
 import { speak } from "@/services/ai.service";
@@ -61,8 +63,10 @@ function LessonPlayer() {
   });
 
   const [step, setStep] = useState(0);
+  const [showQuiz, setShowQuiz] = useState(false);
   const [done, setDone] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [quizScore, setQuizScore] = useState<{ score: number; total: number } | null>(null);
 
   const items = signs.data ?? [];
   const current = items[step];
@@ -89,6 +93,8 @@ function LessonPlayer() {
   };
 
   const handleStepForward = () => {
+    setShowQuiz(false);
+    setQuizScore(null);
     if (step + 1 >= items.length) {
       void handleFinishLesson();
     } else {
@@ -102,6 +108,10 @@ function LessonPlayer() {
         lastPosition: nextStep,
       });
     }
+  };
+
+  const handleQuizComplete = (score: number, total: number) => {
+    setQuizScore({ score, total });
   };
 
   const nextLesson = (recommendedQuery.data ?? []).find((l) => l.id !== lesson.id);
@@ -134,93 +144,144 @@ function LessonPlayer() {
           <CardHeader>
             <CardTitle className="text-lg">{current ? current.gloss : "Lesson complete"}</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-6">
             {current && !done ? (
               <>
-                <SignDisplay
-                  gloss={current.gloss}
-                  meaning={current.meaning}
-                  videoUrl={current.video_url}
-                  demoMode={!current.video_url}
-                />
-                <p className="mt-5 text-sm leading-relaxed text-foreground">{current.meaning}</p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Regional note: {current.region_note}
-                </p>
+                {/* Video Player */}
+                <div>
+                  <VideoPlayer
+                    src={current.video_url}
+                    title={current.gloss}
+                    controls={true}
+                    captions={lesson.captions}
+                  />
+                </div>
 
-                {current.steps && current.steps.length > 0 ? (
-                  <div className="mt-4 rounded-xl bg-muted/40 p-4">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      Key Sign Steps
+                {/* Sign Info */}
+                <div className="space-y-3">
+                  <div>
+                    <h3 className="text-base font-semibold text-foreground">{current.gloss}</h3>
+                    <p className="text-sm text-muted-foreground mt-1">{current.meaning}</p>
+                  </div>
+
+                  {current.region_note && (
+                    <div className="flex items-start gap-2 rounded-lg bg-blue-50 dark:bg-blue-950/30 p-3 border border-blue-200 dark:border-blue-800">
+                      <Lightbulb className="h-4 w-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                      <p className="text-xs text-blue-800 dark:text-blue-200">
+                        <strong>Regional Note:</strong> {current.region_note}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Sign Steps */}
+                {current.steps && current.steps.length > 0 && (
+                  <div className="rounded-xl bg-muted/40 p-4 border border-muted">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                      How to perform this sign
                     </p>
-                    <ol className="mt-2 list-inside list-decimal space-y-1 text-sm text-foreground">
-                      {current.steps.map((s, idx) => (
-                        <li key={idx}>{s}</li>
+                    <ol className="space-y-2">
+                      {current.steps.map((step_text, idx) => (
+                        <li key={idx} className="flex gap-3 text-sm">
+                          <span className="flex-shrink-0 flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-xs font-semibold">
+                            {idx + 1}
+                          </span>
+                          <span className="text-foreground leading-relaxed pt-0.5">{step_text}</span>
+                        </li>
                       ))}
                     </ol>
                   </div>
-                ) : null}
+                )}
 
-                <div className="mt-5 flex flex-wrap items-center gap-2">
+                {/* Action Buttons */}
+                <div className="flex flex-wrap items-center gap-2 pt-2">
                   <Button asChild variant="teal" className="gap-1.5 shadow-sm">
                     <Link to="/practice" search={{ sign: current.id } as never}>
-                      <Sparkles className="size-4" />
-                      Practice this sign →
+                      <Sparkles className="h-4 w-4" />
+                      Practice this sign
                     </Link>
                   </Button>
-                  <Button variant="outline" onClick={() => speak(current.gloss)}>
-                    <Volume2 aria-hidden="true" />
+                  <Button variant="outline" onClick={() => speak(current.gloss)} size="sm">
+                    <Volume2 className="h-4 w-4" />
                     Hear the word
                   </Button>
-                  <Button variant="outline" onClick={() => setStep(step)}>
-                    <Repeat aria-hidden="true" />
-                    Replay
-                  </Button>
                 </div>
-                <div className="mt-6 flex justify-between gap-3">
+
+                {/* Quiz Section */}
+                {lesson.quiz && lesson.quiz.length > 0 && (
+                  <div className="space-y-3 pt-4 border-t">
+                    {!showQuiz ? (
+                      <Button
+                        onClick={() => setShowQuiz(true)}
+                        variant="outline"
+                        className="w-full justify-center"
+                      >
+                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                        Test your understanding
+                      </Button>
+                    ) : (
+                      <Quiz
+                        questions={lesson.quiz}
+                        title="Quick Check"
+                        onComplete={handleQuizComplete}
+                      />
+                    )}
+                  </div>
+                )}
+
+                {/* Navigation Buttons */}
+                <div className="flex justify-between gap-3 pt-4 border-t">
                   <Button
                     variant="ghost"
                     disabled={step === 0}
-                    onClick={() => setStep((s) => Math.max(0, s - 1))}
+                    onClick={() => {
+                      setShowQuiz(false);
+                      setStep((s) => Math.max(0, s - 1));
+                    }}
                   >
-                    <ArrowLeft aria-hidden="true" />
-                    Previous
+                    <ArrowLeft className="h-4 w-4" />
+                    Previous sign
                   </Button>
-                  <Button variant="hero" onClick={handleStepForward} disabled={saving}>
+                  <Button
+                    variant="hero"
+                    onClick={handleStepForward}
+                    disabled={saving || (showQuiz && !quizScore)}
+                    className="flex-1"
+                  >
                     {step + 1 >= items.length
                       ? saving
                         ? "Saving…"
                         : "Finish lesson"
                       : "Next sign"}
-                    <ArrowRight aria-hidden="true" />
+                    <ArrowRight className="h-4 w-4" />
                   </Button>
                 </div>
               </>
             ) : (
-              <div className="py-6 text-center">
-                <CheckCircle2 className="mx-auto size-14 text-success" aria-hidden="true" />
-                <h2 className="mt-3 text-2xl font-bold text-foreground">Lesson completed! 🎉</h2>
-                <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-                  You've mastered all signs in this lesson. Your progress and daily learning streak
-                  have been recorded.
+              <div className="py-12 text-center">
+                <CheckCircle2 className="mx-auto h-16 w-16 text-success mb-4" aria-hidden="true" />
+                <h2 className="text-3xl font-bold text-foreground">Lesson completed! 🎉</h2>
+                <p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground">
+                  You've learned all {items.length} signs in this lesson. Your progress and daily
+                  learning streak have been recorded.
                 </p>
-                <div className="mt-6 flex flex-wrap justify-center gap-3">
+                <div className="mt-8 flex flex-wrap justify-center gap-3">
                   {nextLesson ? (
                     <Button asChild variant="hero">
                       <Link to="/learn/$lesson" params={{ lesson: nextLesson.slug }}>
-                        Next lesson: {nextLesson.title}
-                        <ArrowRight aria-hidden="true" />
+                        Next: {nextLesson.title}
+                        <ArrowRight className="h-4 w-4" />
                       </Link>
                     </Button>
                   ) : null}
                   <Button asChild variant="teal">
                     <Link to="/practice">
-                      <Sparkles aria-hidden="true" />
-                      Practise with AI
+                      <Sparkles className="h-4 w-4" />
+                      Practice with AI
                     </Link>
                   </Button>
                   <Button asChild variant="outline">
-                    <Link to="/learn">Back to all lessons</Link>
+                    <Link to="/learn">Back to lessons</Link>
                   </Button>
                 </div>
               </div>
