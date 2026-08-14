@@ -28,17 +28,25 @@ import { logPracticeAttempt, predictSign, speak } from "@/services/ai.service";
 import { listSigns } from "@/services/content.service";
 import { useCamera } from "@/hooks/use-camera";
 import type { RecognitionPhase } from "@/components/common/CameraPreview";
+import { useEffect } from "react";
+
+interface PracticeSearch {
+  sign?: string;
+}
 
 export const Route = createFileRoute("/practice")({
+  validateSearch: (search: Record<string, unknown>): PracticeSearch => ({
+    sign: typeof search.sign === "string" ? search.sign : undefined,
+  }),
   head: () => ({
     meta: [
-      { title: "Practice ISL signs with AI feedback" },
+      { title: "Practice ISL signs with AI feedback — ISL Setu" },
       {
         name: "description",
         content:
           "Practise healthcare ISL signs with real-time MediaPipe hand tracking and AI model feedback.",
       },
-      { property: "og:title", content: "Practice ISL signs with AI feedback" },
+      { property: "og:title", content: "Practice ISL signs with AI feedback — ISL Setu" },
       {
         property: "og:description",
         content: "Camera-based ISL practice with instant confidence scoring.",
@@ -57,8 +65,23 @@ function PracticePageWrapper() {
 }
 
 function PracticePage() {
+  const search = Route.useSearch();
   const signs = useQuery({ queryKey: ["signs"], queryFn: listSigns });
   const [index, setIndex] = useState(0);
+
+  // Automatically preselect target sign if passed via search param (?sign=help / ?sign=FEVER)
+  useEffect(() => {
+    if (search.sign && signs.data && signs.data.length > 0) {
+      const targetQuery = search.sign.toLowerCase().trim();
+      const foundIdx = signs.data.findIndex(
+        (s) => s.id.toLowerCase() === targetQuery || s.gloss.toLowerCase() === targetQuery,
+      );
+      if (foundIdx !== -1) {
+        setIndex(foundIdx);
+      }
+    }
+  }, [search.sign, signs.data]);
+
   const [attempts, setAttempts] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [mode, setMode] = useState<"ai" | "demo">("ai");

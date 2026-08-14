@@ -161,7 +161,13 @@ function LessonPlayer() {
                   </div>
                 ) : null}
 
-                <div className="mt-5 flex flex-wrap gap-2">
+                <div className="mt-5 flex flex-wrap items-center gap-2">
+                  <Button asChild variant="teal" className="gap-1.5 shadow-sm">
+                    <Link to="/practice" search={{ sign: current.id } as never}>
+                      <Sparkles className="size-4" />
+                      Practice this sign →
+                    </Link>
+                  </Button>
                   <Button variant="outline" onClick={() => speak(current.gloss)}>
                     <Volume2 aria-hidden="true" />
                     Hear the word
