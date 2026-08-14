@@ -250,7 +250,12 @@ class SignRecognizer:
 
         # 3. Model Forward Pass
         if hasattr(self, "W1") and hasattr(self, "W2"):
-            z1 = np.dot(feat_vector, self.W1) + self.b1
+            in_dim = self.W1.shape[0]
+            if feat_vector.shape[1] >= in_dim:
+                input_vec = feat_vector[:, :in_dim]
+            else:
+                input_vec = np.pad(feat_vector, ((0, 0), (0, in_dim - feat_vector.shape[1])))
+            z1 = np.dot(input_vec, self.W1) + self.b1
             a1 = np.maximum(0, z1)
             z2 = np.dot(a1, self.W2) + self.b2
             exp_z = np.exp(z2 - np.max(z2, axis=1, keepdims=True))
