@@ -20,11 +20,25 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { HEALTHCARE_ROLES } from "@/types";
 import type { Assessment, Certificate, Hospital, Lesson, Sign, StaffMember } from "@/types";
-import { createLesson, createSign, deleteLesson, deleteSign, updateLesson } from "@/services/content.service";
+import {
+  createLesson,
+  createSign,
+  deleteLesson,
+  deleteSign,
+  updateLesson,
+} from "@/services/content.service";
 import { addStaffMember } from "@/services/hospital.service";
 
 function roleLabel(role: StaffMember["role"]) {
@@ -80,11 +94,18 @@ export function UsersSection({ staff }: { staff: StaffMember[] }) {
             <form onSubmit={handleInvite} className="space-y-4">
               <DialogHeader>
                 <DialogTitle>Register staff member</DialogTitle>
-                <DialogDescription>Add a healthcare provider to the facility training roster.</DialogDescription>
+                <DialogDescription>
+                  Add a healthcare provider to the facility training roster.
+                </DialogDescription>
               </DialogHeader>
               <div className="space-y-2">
                 <Label htmlFor="staff-name">Full name</Label>
-                <Input id="staff-name" value={name} onChange={(e) => setName(e.target.value)} required />
+                <Input
+                  id="staff-name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="staff-role">Role</Label>
@@ -103,7 +124,12 @@ export function UsersSection({ staff }: { staff: StaffMember[] }) {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="staff-dept">Department</Label>
-                <Input id="staff-dept" value={dept} onChange={(e) => setDept(e.target.value)} required />
+                <Input
+                  id="staff-dept"
+                  value={dept}
+                  onChange={(e) => setDept(e.target.value)}
+                  required
+                />
               </div>
               <DialogFooter>
                 <Button type="submit" variant="hero">
@@ -116,10 +142,16 @@ export function UsersSection({ staff }: { staff: StaffMember[] }) {
       </CardHeader>
       <CardContent>
         {staff.length === 0 ? (
-          <EmptyState icon={ShieldX} title="No users found" description="There are no staff records yet." />
+          <EmptyState
+            icon={ShieldX}
+            title="No users found"
+            description="There are no staff records yet."
+          />
         ) : (
           <Table>
-            <TableCaption className="text-left">All registered staff across the platform.</TableCaption>
+            <TableCaption className="text-left">
+              All registered staff across the platform.
+            </TableCaption>
             <TableHeader>
               <TableRow>
                 <TableHead scope="col">Name</TableHead>
@@ -141,7 +173,9 @@ export function UsersSection({ staff }: { staff: StaffMember[] }) {
                       size="sm"
                       variant="ghost"
                       onClick={() =>
-                        toast(`Staff record: ${member.full_name}`, { description: `Department: ${member.department}` })
+                        toast(`Staff record: ${member.full_name}`, {
+                          description: `Department: ${member.department}`,
+                        })
                       }
                     >
                       Manage
@@ -158,7 +192,14 @@ export function UsersSection({ staff }: { staff: StaffMember[] }) {
 }
 
 export function HospitalsSection({ hospital }: { hospital: Hospital | undefined }) {
-  if (!hospital) return <EmptyState icon={ShieldX} title="No hospital data" description="Facility record unavailable." />;
+  if (!hospital)
+    return (
+      <EmptyState
+        icon={ShieldX}
+        title="No hospital data"
+        description="Facility record unavailable."
+      />
+    );
   return (
     <Card className="rounded-2xl border-border/70 shadow-soft">
       <CardHeader>
@@ -169,13 +210,21 @@ export function HospitalsSection({ hospital }: { hospital: Hospital | undefined 
       </CardHeader>
       <CardContent className="flex flex-wrap items-center gap-4">
         <StatusBadge
-          status={hospital.readiness === "isl_ready" ? "completed" : hospital.readiness === "in_progress" ? "in_progress" : "not_started"}
+          status={
+            hospital.readiness === "isl_ready"
+              ? "completed"
+              : hospital.readiness === "in_progress"
+                ? "in_progress"
+                : "not_started"
+          }
           label={`ISL-Ready — ${hospital.readiness.replace("_", " ")}`}
         />
         <Badge variant="outline">
           {hospital.departments_covered} of {hospital.departments_total} departments covered
         </Badge>
-        <Badge variant="outline">Last training {new Date(hospital.last_training_at).toLocaleDateString()}</Badge>
+        <Badge variant="outline">
+          Last training {new Date(hospital.last_training_at).toLocaleDateString()}
+        </Badge>
       </CardContent>
     </Card>
   );
@@ -216,7 +265,11 @@ export function LessonsSection({ lessons }: { lessons: Lesson[] }) {
       </CardHeader>
       <CardContent>
         {lessons.length === 0 ? (
-          <EmptyState icon={ShieldX} title="No lessons" description="No lessons have been created yet." />
+          <EmptyState
+            icon={ShieldX}
+            title="No lessons"
+            description="No lessons have been created yet."
+          />
         ) : (
           <Table>
             <TableCaption className="text-left">All published lessons.</TableCaption>
@@ -235,7 +288,9 @@ export function LessonsSection({ lessons }: { lessons: Lesson[] }) {
                   <TableCell>
                     <DifficultyBadge difficulty={lesson.difficulty} />
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{lesson.duration_minutes} min</TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {lesson.duration_minutes} min
+                  </TableCell>
                   <TableCell className="flex gap-2">
                     <Button
                       size="sm"
@@ -302,11 +357,18 @@ function LessonFormDialog({ lesson, onClose }: { lesson: Lesson | null; onClose:
       <form onSubmit={handleSubmit} className="space-y-4">
         <DialogHeader>
           <DialogTitle>{lesson ? "Edit lesson" : "Add lesson"}</DialogTitle>
-          <DialogDescription>Add or update a healthcare sign language lesson module.</DialogDescription>
+          <DialogDescription>
+            Add or update a healthcare sign language lesson module.
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-2">
           <Label htmlFor="lesson-title">Title</Label>
-          <Input id="lesson-title" value={title} onChange={(e) => setTitle(e.target.value)} required />
+          <Input
+            id="lesson-title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="lesson-category">Category</Label>
@@ -324,7 +386,13 @@ function LessonFormDialog({ lesson, onClose }: { lesson: Lesson | null; onClose:
         </div>
         <div className="space-y-2">
           <Label htmlFor="lesson-summary">Summary</Label>
-          <Textarea id="lesson-summary" value={summary} onChange={(e) => setSummary(e.target.value)} rows={3} required />
+          <Textarea
+            id="lesson-summary"
+            value={summary}
+            onChange={(e) => setSummary(e.target.value)}
+            rows={3}
+            required
+          />
         </div>
         <DialogFooter>
           <Button type="submit" variant="hero">
@@ -379,15 +447,29 @@ export function SignsSection({ signs }: { signs: Sign[] }) {
               <form onSubmit={handleAddSign} className="space-y-4">
                 <DialogHeader>
                   <DialogTitle>Add sign</DialogTitle>
-                  <DialogDescription>Add a new Indian Sign Language gloss to the dictionary.</DialogDescription>
+                  <DialogDescription>
+                    Add a new Indian Sign Language gloss to the dictionary.
+                  </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-2">
                   <Label htmlFor="sign-gloss">Gloss (Uppercase word)</Label>
-                  <Input id="sign-gloss" value={gloss} onChange={(e) => setGloss(e.target.value)} placeholder="e.g. INJECTION" required />
+                  <Input
+                    id="sign-gloss"
+                    value={gloss}
+                    onChange={(e) => setGloss(e.target.value)}
+                    placeholder="e.g. INJECTION"
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="sign-meaning">Meaning / Usage</Label>
-                  <Input id="sign-meaning" value={meaning} onChange={(e) => setMeaning(e.target.value)} placeholder="e.g. Administering medicine via syringe" required />
+                  <Input
+                    id="sign-meaning"
+                    value={meaning}
+                    onChange={(e) => setMeaning(e.target.value)}
+                    placeholder="e.g. Administering medicine via syringe"
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="sign-category">Category</Label>
@@ -414,7 +496,11 @@ export function SignsSection({ signs }: { signs: Sign[] }) {
         </div>
       </div>
       {signs.length === 0 ? (
-        <EmptyState icon={ShieldX} title="No signs found" description="No signs have been catalogued yet." />
+        <EmptyState
+          icon={ShieldX}
+          title="No signs found"
+          description="No signs have been catalogued yet."
+        />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {signs.map((sign) => (
@@ -431,14 +517,19 @@ export function AssessmentsSection({ assessment }: { assessment?: Assessment | n
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="text-lg font-semibold text-foreground">Assessments</h3>
-        <Button variant="hero" onClick={() => toast.info("Bronze assessment is active with 8 verified questions")}>
+        <Button
+          variant="hero"
+          onClick={() => toast.info("Bronze assessment is active with 8 verified questions")}
+        >
           <Plus aria-hidden="true" /> Add question
         </Button>
       </div>
       {!assessment ? (
         <Card className="rounded-2xl border-border/70 shadow-soft p-6">
           <p className="font-semibold text-foreground">Bronze Healthcare ISL Assessment</p>
-          <p className="text-sm text-muted-foreground mt-1">Timed 15-minute assessment covering greetings, pain evaluation, and doctor navigation.</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Timed 15-minute assessment covering greetings, pain evaluation, and doctor navigation.
+          </p>
           <div className="mt-4 flex gap-2">
             <Badge variant="outline">Pass mark: 75%</Badge>
             <Badge variant="outline">Tier: Bronze</Badge>
@@ -481,7 +572,9 @@ export function SettingsSection() {
     <Card className="rounded-2xl border-border/70 shadow-soft">
       <CardHeader>
         <CardTitle>Platform settings</CardTitle>
-        <p className="text-sm text-muted-foreground">Configure hospital directory integration and accessibility defaults.</p>
+        <p className="text-sm text-muted-foreground">
+          Configure hospital directory integration and accessibility defaults.
+        </p>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">

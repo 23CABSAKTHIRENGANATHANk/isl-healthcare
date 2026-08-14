@@ -26,7 +26,6 @@ export function LessonCard({ lesson, percent = 0 }: { lesson: Lesson; percent?: 
       transition={{ duration: 0.2 }}
       className="h-full"
     >
-
       <Card className="flex h-full flex-col overflow-hidden rounded-2xl border-border/70 shadow-soft transition-shadow hover:shadow-lift">
         <div
           className={cn(
@@ -55,7 +54,11 @@ export function LessonCard({ lesson, percent = 0 }: { lesson: Lesson; percent?: 
                 <span>Progress</span>
                 <span>{percent}%</span>
               </div>
-              <Progress value={percent} className="h-2" aria-label={`${lesson.title} progress: ${percent}%`} />
+              <Progress
+                value={percent}
+                className="h-2"
+                aria-label={`${lesson.title} progress: ${percent}%`}
+              />
             </div>
             <Button asChild className="w-full" variant={started ? "default" : "outline"}>
               <Link to="/learn/$lesson" params={{ lesson: lesson.slug }}>

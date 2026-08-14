@@ -90,7 +90,10 @@ export function RoadmapTimeline() {
         {phases.map((item, index) => {
           const isRight = index % 2 === 1;
           return (
-            <li key={item.phase} className="relative md:grid md:grid-cols-2 md:items-center md:gap-10">
+            <li
+              key={item.phase}
+              className="relative md:grid md:grid-cols-2 md:items-center md:gap-10"
+            >
               <motion.div
                 className={cn(
                   "absolute left-5 top-1 z-10 grid size-10 -translate-x-1/2 place-items-center rounded-full border-2 border-background bg-primary text-primary-foreground shadow-soft md:left-1/2",

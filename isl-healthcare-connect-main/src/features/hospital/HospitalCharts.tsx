@@ -1,7 +1,12 @@
 import { Bar, BarChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
 import type { HospitalAnalytics } from "@/types";
 
 const certConfig = {
@@ -42,7 +47,12 @@ export function HospitalCharts({ analytics }: { analytics: HospitalAnalytics }) 
               <XAxis dataKey="month" tickLine={false} axisLine={false} />
               <YAxis tickLine={false} axisLine={false} allowDecimals={false} />
               <ChartTooltip content={<ChartTooltipContent />} />
-              <Bar dataKey="bronze" stackId="cert" fill="var(--color-bronze)" radius={[0, 0, 4, 4]} />
+              <Bar
+                dataKey="bronze"
+                stackId="cert"
+                fill="var(--color-bronze)"
+                radius={[0, 0, 4, 4]}
+              />
               <Bar dataKey="silver" stackId="cert" fill="var(--color-silver)" />
               <Bar dataKey="gold" stackId="cert" fill="var(--color-gold)" radius={[4, 4, 0, 0]} />
             </BarChart>

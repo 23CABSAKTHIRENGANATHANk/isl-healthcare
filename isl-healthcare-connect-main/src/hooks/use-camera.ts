@@ -1,12 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export type CameraStatus =
-  | "idle"
-  | "requesting"
-  | "ready"
-  | "denied"
-  | "unavailable"
-  | "error";
+export type CameraStatus = "idle" | "requesting" | "ready" | "denied" | "unavailable" | "error";
 
 /**
  * Camera access for practice surfaces.
@@ -50,7 +44,9 @@ export function useCamera() {
       const name = error instanceof DOMException ? error.name : "";
       if (name === "NotAllowedError" || name === "SecurityError") {
         setStatus("denied");
-        setMessage("Camera permission was blocked. Allow camera access in your browser settings to practise.");
+        setMessage(
+          "Camera permission was blocked. Allow camera access in your browser settings to practise.",
+        );
       } else if (name === "NotFoundError" || name === "DevicesNotFoundError") {
         setStatus("unavailable");
         setMessage("We couldn't find a camera on this device. You can still use Demo Mode.");

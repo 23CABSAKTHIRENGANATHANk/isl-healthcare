@@ -15,7 +15,12 @@ import { ReadyCard } from "@/features/hospital/ReadyCard";
 import { ReportDialog } from "@/features/hospital/ReportDialog";
 import { HospitalCharts } from "@/features/hospital/HospitalCharts";
 import { StaffTable } from "@/features/hospital/StaffTable";
-import { certifiedCounts, getHospital, getHospitalAnalytics, listStaff } from "@/services/hospital.service";
+import {
+  certifiedCounts,
+  getHospital,
+  getHospitalAnalytics,
+  listStaff,
+} from "@/services/hospital.service";
 
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
 
@@ -25,12 +30,14 @@ export const Route = createFileRoute("/hospital")({
       { title: "Hospital ISL Accessibility Dashboard | ISL Setu" },
       {
         name: "description",
-        content: "Track staff Indian Sign Language certification, coverage and training progress across your facility.",
+        content:
+          "Track staff Indian Sign Language certification, coverage and training progress across your facility.",
       },
       { property: "og:title", content: "Hospital ISL Accessibility Dashboard | ISL Setu" },
       {
         property: "og:description",
-        content: "Track staff Indian Sign Language certification, coverage and training progress across your facility.",
+        content:
+          "Track staff Indian Sign Language certification, coverage and training progress across your facility.",
       },
     ],
   }),
@@ -58,9 +65,12 @@ const readinessLabel: Record<string, string> = {
 };
 
 function HospitalPage() {
-  const hospitalQuery = useQuery({ queryKey: ["hospital"], queryFn: getHospital });
-  const staffQuery = useQuery({ queryKey: ["hospital-staff"], queryFn: listStaff });
-  const analyticsQuery = useQuery({ queryKey: ["hospital-analytics"], queryFn: getHospitalAnalytics });
+  const hospitalQuery = useQuery({ queryKey: ["hospital"], queryFn: () => getHospital() });
+  const staffQuery = useQuery({ queryKey: ["hospital-staff"], queryFn: () => listStaff() });
+  const analyticsQuery = useQuery({
+    queryKey: ["hospital-analytics"],
+    queryFn: () => getHospitalAnalytics(),
+  });
 
   const staff = staffQuery.data ?? [];
   const counts = certifiedCounts(staff);
@@ -80,7 +90,10 @@ function HospitalPage() {
         actions={
           <>
             {hospital ? (
-              <StatusBadge status={readinessStatus[hospital.readiness]} label={readinessLabel[hospital.readiness]} />
+              <StatusBadge
+                status={readinessStatus[hospital.readiness]}
+                label={readinessLabel[hospital.readiness]}
+              />
             ) : null}
           </>
         }
@@ -99,7 +112,11 @@ function HospitalPage() {
         </Reveal>
       )}
 
-      {hospital ? <Reveal><ReadyCard hospital={hospital} certifiedTotal={counts.total} /></Reveal> : null}
+      {hospital ? (
+        <Reveal>
+          <ReadyCard hospital={hospital} certifiedTotal={counts.total} />
+        </Reveal>
+      ) : null}
 
       <Reveal>
         <section className="space-y-4">
@@ -117,7 +134,11 @@ function HospitalPage() {
       <Reveal>
         <section className="space-y-4">
           <h2 className="text-xl font-bold text-foreground">Facility analytics</h2>
-          {analyticsQuery.data ? <HospitalCharts analytics={analyticsQuery.data} /> : <StatGridSkeleton count={3} />}
+          {analyticsQuery.data ? (
+            <HospitalCharts analytics={analyticsQuery.data} />
+          ) : (
+            <StatGridSkeleton count={3} />
+          )}
         </section>
       </Reveal>
     </PageShell>

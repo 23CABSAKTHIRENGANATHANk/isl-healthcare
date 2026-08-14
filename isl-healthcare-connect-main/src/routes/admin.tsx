@@ -24,12 +24,14 @@ export const Route = createFileRoute("/admin")({
       { title: "Admin & Trainer Portal | ISL Setu" },
       {
         name: "description",
-        content: "Manage ISL healthcare lessons, signs, assessment questions, staff rosters and platform settings.",
+        content:
+          "Manage ISL healthcare lessons, signs, assessment questions, staff rosters and platform settings.",
       },
       { property: "og:title", content: "Admin & Trainer Portal | ISL Setu" },
       {
         property: "og:description",
-        content: "Admin portal for healthcare sign language curriculum and staff readiness management.",
+        content:
+          "Admin portal for healthcare sign language curriculum and staff readiness management.",
       },
     ],
   }),

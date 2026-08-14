@@ -18,8 +18,8 @@ export function ReadyCard({
           ISL-Ready Facility Status
         </div>
         <p className="mt-2 max-w-2xl text-sm text-primary-foreground/90">
-          This badge reflects an ISL Setu platform status based on staff training progress. It is not
-          a government or official accreditation.
+          This badge reflects an ISL Setu platform status based on staff training progress. It is
+          not a government or official accreditation.
         </p>
       </div>
       <CardContent className="grid gap-6 p-6 sm:grid-cols-2 lg:grid-cols-4">

@@ -23,5 +23,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
 }
 
 export function PageShell({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn("mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12", className)}>{children}</div>;
+  return (
+    <div className={cn("mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12", className)}>{children}</div>
+  );
 }

@@ -24,8 +24,16 @@ export interface PredictionResult {
 }
 
 export const CONTROLLED_HEALTHCARE_VOCABULARY = [
-  "FEVER", "PAIN", "WATER", "HELLO", "THANK YOU",
-  "GOOD MORNING", "MEDICINE", "FOOD", "STOP", "COME"
+  "FEVER",
+  "PAIN",
+  "WATER",
+  "HELLO",
+  "THANK YOU",
+  "GOOD MORNING",
+  "MEDICINE",
+  "FOOD",
+  "STOP",
+  "COME",
 ] as const;
 
 export const CONTROLLED_PHRASES: Record<string, string> = {
@@ -77,7 +85,7 @@ function extractBase64FromInput(input: SignImageInput): string | null {
  */
 export async function predictSign(
   imageInput: SignImageInput,
-  options: PredictOptions = {}
+  options: PredictOptions = {},
 ): Promise<PredictionResult> {
   const mode = options.mode || "ai";
   const targetSign = options.targetSign?.toUpperCase();

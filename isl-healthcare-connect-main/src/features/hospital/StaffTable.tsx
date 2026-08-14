@@ -14,7 +14,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { HEALTHCARE_ROLES, type StaffMember } from "@/types";
 
 const statusMap: Record<StaffMember["status"], StatusKind> = {
@@ -59,7 +67,10 @@ export function StaffTable({ staff, isLoading }: { staff: StaffMember[]; isLoadi
     <div className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+            aria-hidden="true"
+          />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -115,7 +126,8 @@ export function StaffTable({ staff, isLoading }: { staff: StaffMember[]; isLoadi
                   <TableCell>
                     {member.certification ? (
                       <Badge variant="outline" className={tierClasses[member.certification]}>
-                        {member.certification.charAt(0).toUpperCase() + member.certification.slice(1)}
+                        {member.certification.charAt(0).toUpperCase() +
+                          member.certification.slice(1)}
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="text-muted-foreground">
@@ -130,11 +142,16 @@ export function StaffTable({ staff, isLoading }: { staff: StaffMember[]; isLoadi
                         className="h-2 w-24"
                         aria-label={`${member.full_name} progress: ${member.progress_percent}%`}
                       />
-                      <span className="text-xs text-muted-foreground">{member.progress_percent}%</span>
+                      <span className="text-xs text-muted-foreground">
+                        {member.progress_percent}%
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <StatusBadge status={statusMap[member.status]} label={member.status === "training" ? "Training" : undefined} />
+                    <StatusBadge
+                      status={statusMap[member.status]}
+                      label={member.status === "training" ? "Training" : undefined}
+                    />
                   </TableCell>
                 </TableRow>
               ))}

@@ -1,0 +1,11 @@
+[build]
+providers = ["python"]
+
+[build.nixpkgs]
+python = "3.11"
+
+[[build.packages]]
+name = "python311"
+
+[[build.packages]]
+name = "python311Packages.pip"

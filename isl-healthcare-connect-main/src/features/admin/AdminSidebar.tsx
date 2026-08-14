@@ -1,4 +1,15 @@
-import { BadgeCheck, BookOpen, Building2, ClipboardCheck, Hand, LayoutDashboard, ScrollText, ShieldCheck, Users } from "lucide-react";
+import {
+  BadgeCheck,
+  BookOpen,
+  Building2,
+  ClipboardCheck,
+  Hand,
+  LayoutDashboard,
+  ScrollText,
+  Settings,
+  ShieldCheck,
+  Users,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -11,7 +22,8 @@ export type AdminSection =
   | "signs"
   | "assessments"
   | "certificates"
-  | "analytics";
+  | "analytics"
+  | "settings";
 
 export const ADMIN_SECTIONS: { id: AdminSection; label: string; icon: LucideIcon }[] = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -22,6 +34,7 @@ export const ADMIN_SECTIONS: { id: AdminSection; label: string; icon: LucideIcon
   { id: "assessments", label: "Assessments", icon: ClipboardCheck },
   { id: "certificates", label: "Certificates", icon: ScrollText },
   { id: "analytics", label: "Analytics", icon: LayoutDashboard },
+  { id: "settings", label: "Settings", icon: Settings },
 ];
 
 export function TrainerProfileCard() {

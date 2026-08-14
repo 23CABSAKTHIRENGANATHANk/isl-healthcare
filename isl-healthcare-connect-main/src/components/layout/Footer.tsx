@@ -38,8 +38,8 @@ export function Footer() {
           <div>
             <Logo size="md" />
             <p className="mt-4 max-w-xs text-sm text-muted-foreground">
-              Learn ISL. Practice with AI. Communicate without barriers. A healthcare-first Indian Sign Language
-              learning, communication and certification platform.
+              Learn ISL. Practice with AI. Communicate without barriers. A healthcare-first Indian
+              Sign Language learning, communication and certification platform.
             </p>
           </div>
           {columns.map((column) => (
@@ -63,12 +63,13 @@ export function Footer() {
 
         <div className="mt-10 space-y-3 border-t border-border pt-6 text-xs text-muted-foreground">
           <p>
-            ISL Setu credentials are platform credentials issued by ISL Setu. They are not a government
-            accreditation and carry no official regulatory status.
+            ISL Setu credentials are platform credentials issued by ISL Setu. They are not a
+            government accreditation and carry no official regulatory status.
           </p>
           <p>
-            AI-assisted recognition is currently in clearly labelled Demo Mode. It is an assistance tool and does not
-            replace qualified interpreters or established clinical communication procedures.
+            AI-assisted recognition is currently in clearly labelled Demo Mode. It is an assistance
+            tool and does not replace qualified interpreters or established clinical communication
+            procedures.
           </p>
           <p>© {new Date().getFullYear()} ISL Setu. Built with the Deaf community in mind.</p>
         </div>

@@ -4,10 +4,7 @@
  */
 
 import { describe, it, expect } from "vitest";
-import {
-  CONTROLLED_HEALTHCARE_VOCABULARY,
-  CONTROLLED_PHRASES,
-} from "@/services/ai.service";
+import { CONTROLLED_HEALTHCARE_VOCABULARY, CONTROLLED_PHRASES } from "@/services/ai.service";
 
 describe("Controlled Healthcare Vocabulary", () => {
   it("contains all 10 MVP healthcare signs", () => {

@@ -16,7 +16,9 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     if (!loading && !user) {
       void navigate({
         to: "/login",
-        search: { redirect: typeof window !== "undefined" ? window.location.pathname : undefined } as never,
+        search: {
+          redirect: typeof window !== "undefined" ? window.location.pathname : undefined,
+        } as never,
       });
     }
   }, [user, loading, navigate]);

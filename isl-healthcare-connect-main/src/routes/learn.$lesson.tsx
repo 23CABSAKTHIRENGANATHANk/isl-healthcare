@@ -23,7 +23,9 @@ export const Route = createFileRoute("/learn/$lesson")({
   },
   head: ({ loaderData }) => {
     if (!loaderData) {
-      return { meta: [{ title: "Lesson not found — ISL Setu" }, { name: "robots", content: "noindex" }] };
+      return {
+        meta: [{ title: "Lesson not found — ISL Setu" }, { name: "robots", content: "noindex" }],
+      };
     }
     const title = `${loaderData.lesson.title} — ISL lesson`;
     return {
@@ -48,8 +50,14 @@ function LessonPlayerWrapper() {
 
 function LessonPlayer() {
   const { lesson } = Route.useLoaderData();
-  const signs = useQuery({ queryKey: ["lesson-signs", lesson.id], queryFn: () => listSignsForLesson(lesson.id) });
-  const recommendedQuery = useQuery({ queryKey: ["recommended-lessons"], queryFn: () => getRecommendedLessons(2) });
+  const signs = useQuery({
+    queryKey: ["lesson-signs", lesson.id],
+    queryFn: () => listSignsForLesson(lesson.id),
+  });
+  const recommendedQuery = useQuery({
+    queryKey: ["recommended-lessons"],
+    queryFn: () => getRecommendedLessons(2),
+  });
 
   const [step, setStep] = useState(0);
   const [done, setDone] = useState(false);
@@ -57,7 +65,8 @@ function LessonPlayer() {
 
   const items = signs.data ?? [];
   const current = items[step];
-  const percent = items.length > 0 ? Math.min(100, Math.round(((step + 1) / items.length) * 100)) : 0;
+  const percent =
+    items.length > 0 ? Math.min(100, Math.round(((step + 1) / items.length) * 100)) : 0;
 
   const handleFinishLesson = async () => {
     setSaving(true);
@@ -108,9 +117,14 @@ function LessonPlayer() {
       <PageHeader eyebrow={lesson.code} title={lesson.title} description={lesson.summary} />
 
       <div className="mt-6">
-        <Progress value={done ? 100 : percent} className="h-2" aria-label={`Lesson progress: ${done ? 100 : percent}%`} />
+        <Progress
+          value={done ? 100 : percent}
+          className="h-2"
+          aria-label={`Lesson progress: ${done ? 100 : percent}%`}
+        />
         <p className="mt-2 text-sm text-muted-foreground">
-          {done ? "Completed 100%" : `Sign ${items.length === 0 ? 0 : step + 1} of ${items.length}`} · {lesson.duration_minutes} min lesson
+          {done ? "Completed 100%" : `Sign ${items.length === 0 ? 0 : step + 1} of ${items.length}`}{" "}
+          · {lesson.duration_minutes} min lesson
         </p>
       </div>
 
@@ -135,7 +149,9 @@ function LessonPlayer() {
 
                 {current.steps && current.steps.length > 0 ? (
                   <div className="mt-4 rounded-xl bg-muted/40 p-4">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Key Sign Steps</p>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Key Sign Steps
+                    </p>
                     <ol className="mt-2 list-inside list-decimal space-y-1 text-sm text-foreground">
                       {current.steps.map((s, idx) => (
                         <li key={idx}>{s}</li>
@@ -155,12 +171,20 @@ function LessonPlayer() {
                   </Button>
                 </div>
                 <div className="mt-6 flex justify-between gap-3">
-                  <Button variant="ghost" disabled={step === 0} onClick={() => setStep((s) => Math.max(0, s - 1))}>
+                  <Button
+                    variant="ghost"
+                    disabled={step === 0}
+                    onClick={() => setStep((s) => Math.max(0, s - 1))}
+                  >
                     <ArrowLeft aria-hidden="true" />
                     Previous
                   </Button>
                   <Button variant="hero" onClick={handleStepForward} disabled={saving}>
-                    {step + 1 >= items.length ? (saving ? "Saving…" : "Finish lesson") : "Next sign"}
+                    {step + 1 >= items.length
+                      ? saving
+                        ? "Saving…"
+                        : "Finish lesson"
+                      : "Next sign"}
                     <ArrowRight aria-hidden="true" />
                   </Button>
                 </div>
@@ -168,16 +192,15 @@ function LessonPlayer() {
             ) : (
               <div className="py-6 text-center">
                 <CheckCircle2 className="mx-auto size-14 text-success" aria-hidden="true" />
-                <h2 className="mt-3 text-2xl font-bold text-foreground">
-                  Lesson completed! 🎉
-                </h2>
+                <h2 className="mt-3 text-2xl font-bold text-foreground">Lesson completed! 🎉</h2>
                 <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-                  You've mastered all signs in this lesson. Your progress and daily learning streak have been recorded.
+                  You've mastered all signs in this lesson. Your progress and daily learning streak
+                  have been recorded.
                 </p>
                 <div className="mt-6 flex flex-wrap justify-center gap-3">
                   {nextLesson ? (
                     <Button asChild variant="hero">
-                      <Link to={`/learn/${nextLesson.slug}`}>
+                      <Link to="/learn/$lesson" params={{ lesson: nextLesson.slug }}>
                         Next lesson: {nextLesson.title}
                         <ArrowRight aria-hidden="true" />
                       </Link>

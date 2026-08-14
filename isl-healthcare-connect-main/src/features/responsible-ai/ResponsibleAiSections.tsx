@@ -15,7 +15,17 @@ import {
 import { RevealGroup, RevealItem } from "@/components/motion/Reveal";
 import { Card, CardContent } from "@/components/ui/card";
 
-const vocabulary = ["HELP", "PAIN", "DOCTOR", "MEDICINE", "EMERGENCY", "WAIT", "WATER", "YES", "NO"];
+const vocabulary = [
+  "HELP",
+  "PAIN",
+  "DOCTOR",
+  "MEDICINE",
+  "EMERGENCY",
+  "WAIT",
+  "WATER",
+  "YES",
+  "NO",
+];
 
 export function ResponsibleAiSection() {
   const points = [
@@ -47,8 +57,8 @@ export function ResponsibleAiSection() {
         <div className="mt-2 rounded-xl border border-warning/30 bg-warning/10 p-4">
           <p className="flex items-start gap-2 text-sm font-medium text-foreground">
             <ShieldAlert className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden="true" />
-            Demo Mode: recognition results shown during practice are simulated for demonstration purposes and do
-            not reflect a deployed, clinically validated model.
+            Demo Mode: recognition results shown during practice are simulated for demonstration
+            purposes and do not reflect a deployed, clinically validated model.
           </p>
         </div>
       </CardContent>
@@ -71,8 +81,8 @@ export function HumanOversightSection() {
         </span>
         <h2 className="text-xl font-bold text-foreground">Human oversight &amp; escalation</h2>
         <p className="text-muted-foreground">
-          ISL Setu is designed to support basic, everyday communication. Please escalate to a qualified human
-          interpreter in situations such as:
+          ISL Setu is designed to support basic, everyday communication. Please escalate to a
+          qualified human interpreter in situations such as:
         </p>
         <ul className="flex flex-col gap-2">
           {scenarios.map((item) => (

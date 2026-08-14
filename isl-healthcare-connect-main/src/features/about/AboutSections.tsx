@@ -35,7 +35,9 @@ export function IconCard({ icon: Icon, title, description, tone = "primary" }: I
   return (
     <Card className="h-full rounded-2xl border-border/70 shadow-soft transition-shadow hover:shadow-lift">
       <CardContent className="flex h-full flex-col gap-3 p-6">
-        <span className={`grid size-11 shrink-0 place-items-center rounded-xl ${toneClasses[tone]}`}>
+        <span
+          className={`grid size-11 shrink-0 place-items-center rounded-xl ${toneClasses[tone]}`}
+        >
           <Icon className="size-5" aria-hidden="true" />
         </span>
         <h3 className="text-base font-semibold text-foreground">{title}</h3>
@@ -57,7 +59,8 @@ export function MissionVisionSection() {
             </span>
             <h2 className="text-xl font-bold text-foreground">Our mission</h2>
             <p className="text-muted-foreground">
-              To make basic Indian Sign Language communication more accessible across healthcare services.
+              To make basic Indian Sign Language communication more accessible across healthcare
+              services.
             </p>
           </CardContent>
         </Card>
@@ -161,9 +164,10 @@ export function HealthcareFocusSection() {
           </span>
           <h3 className="text-lg font-semibold text-foreground">Why healthcare first</h3>
           <p className="text-muted-foreground">
-            Healthcare interactions are frequent, high-stakes and time-sensitive. Even a small shared vocabulary
-            of signs — like HELP, PAIN or DOCTOR — can meaningfully improve a patient's experience and safety.
-            Starting here lets us prove the model where the need is most urgent before expanding elsewhere.
+            Healthcare interactions are frequent, high-stakes and time-sensitive. Even a small
+            shared vocabulary of signs — like HELP, PAIN or DOCTOR — can meaningfully improve a
+            patient's experience and safety. Starting here lets us prove the model where the need is
+            most urgent before expanding elsewhere.
           </p>
         </CardContent>
       </Card>

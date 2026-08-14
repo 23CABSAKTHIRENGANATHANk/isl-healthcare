@@ -41,11 +41,18 @@ export function StatCard({
   className,
 }: StatCardProps) {
   return (
-    <Card className={cn("h-full rounded-2xl border-border/70 shadow-soft transition-shadow hover:shadow-lift", className)}>
+    <Card
+      className={cn(
+        "h-full rounded-2xl border-border/70 shadow-soft transition-shadow hover:shadow-lift",
+        className,
+      )}
+    >
       <CardContent className="flex h-full flex-col gap-3 p-5">
         <div className="flex items-start justify-between gap-3">
           <p className="text-sm font-medium text-muted-foreground">{label}</p>
-          <span className={cn("grid size-10 shrink-0 place-items-center rounded-xl", toneClasses[tone])}>
+          <span
+            className={cn("grid size-10 shrink-0 place-items-center rounded-xl", toneClasses[tone])}
+          >
             <Icon className="size-5" aria-hidden="true" />
           </span>
         </div>
@@ -60,7 +67,11 @@ export function StatCard({
           )}
         </p>
         {typeof progress === "number" ? (
-          <Progress value={progress} className="h-2" aria-label={`${label}: ${progress}% complete`} />
+          <Progress
+            value={progress}
+            className="h-2"
+            aria-label={`${label}: ${progress}% complete`}
+          />
         ) : null}
         {helper ? <p className="mt-auto text-xs text-muted-foreground">{helper}</p> : null}
       </CardContent>

@@ -39,9 +39,9 @@ export function FeedbackForm() {
         <div>
           <h2 className="text-xl font-bold text-foreground">Report an issue or share feedback</h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Spotted an accessibility barrier, an incorrect sign, or something that felt unsafe or confusing?
-            Let us know. Reports are read and handled by the ISL Setu team — we don't currently promise a fixed
-            response time.
+            Spotted an accessibility barrier, an incorrect sign, or something that felt unsafe or
+            confusing? Let us know. Reports are read and handled by the ISL Setu team — we don't
+            currently promise a fixed response time.
           </p>
         </div>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
@@ -64,7 +64,13 @@ export function FeedbackForm() {
               placeholder="Describe the issue or feedback in as much detail as you can."
             />
           </div>
-          <Button type="submit" variant="default" size="lg" disabled={submitting} className="self-start">
+          <Button
+            type="submit"
+            variant="default"
+            size="lg"
+            disabled={submitting}
+            className="self-start"
+          >
             <Send /> {submitting ? "Sending…" : "Send report"}
           </Button>
         </form>

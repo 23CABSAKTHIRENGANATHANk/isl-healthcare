@@ -16,8 +16,16 @@ const config: Record<StatusKind, { label: string; icon: LucideIcon; className: s
     icon: Clock,
     className: "border-warning/35 bg-warning/15 text-warning",
   },
-  locked: { label: "Locked", icon: Lock, className: "border-border bg-muted text-muted-foreground" },
-  failed: { label: "Not Passed", icon: XCircle, className: "border-destructive/30 bg-destructive/10 text-destructive" },
+  locked: {
+    label: "Locked",
+    icon: Lock,
+    className: "border-border bg-muted text-muted-foreground",
+  },
+  failed: {
+    label: "Not Passed",
+    icon: XCircle,
+    className: "border-destructive/30 bg-destructive/10 text-destructive",
+  },
   not_started: {
     label: "Not Started",
     icon: CircleDashed,
@@ -40,14 +48,21 @@ export function StatusBadge({
   const item = config[status];
   const Icon = item.icon;
   return (
-    <Badge variant="outline" className={cn("gap-1.5 rounded-full px-2.5 py-1 font-semibold", item.className, className)}>
+    <Badge
+      variant="outline"
+      className={cn("gap-1.5 rounded-full px-2.5 py-1 font-semibold", item.className, className)}
+    >
       <Icon className="size-3.5" aria-hidden="true" />
       {label ?? item.label}
     </Badge>
   );
 }
 
-export function DifficultyBadge({ difficulty }: { difficulty: "beginner" | "intermediate" | "advanced" }) {
+export function DifficultyBadge({
+  difficulty,
+}: {
+  difficulty: "beginner" | "intermediate" | "advanced";
+}) {
   const map = {
     beginner: { label: "Beginner", dots: 1 },
     intermediate: { label: "Intermediate", dots: 2 },
@@ -73,7 +88,10 @@ export function DemoModeBadge({ className }: { className?: string }) {
   return (
     <Badge
       variant="outline"
-      className={cn("gap-1.5 rounded-full border-warning/40 bg-warning/15 font-semibold text-warning", className)}
+      className={cn(
+        "gap-1.5 rounded-full border-warning/40 bg-warning/15 font-semibold text-warning",
+        className,
+      )}
     >
       <CircleDashed className="size-3.5" aria-hidden="true" />
       Demo Mode — simulated result

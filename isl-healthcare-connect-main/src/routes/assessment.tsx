@@ -17,12 +17,14 @@ export const Route = createFileRoute("/assessment")({
       { title: "Healthcare ISL Assessment | ISL Setu" },
       {
         name: "description",
-        content: "Take the Bronze Healthcare ISL Assessment: 20 questions across sign identification, matching and live camera practice.",
+        content:
+          "Take the Bronze Healthcare ISL Assessment: 20 questions across sign identification, matching and live camera practice.",
       },
       { property: "og:title", content: "Healthcare ISL Assessment | ISL Setu" },
       {
         property: "og:description",
-        content: "Take the Bronze Healthcare ISL Assessment: 20 questions across sign identification, matching and live camera practice.",
+        content:
+          "Take the Bronze Healthcare ISL Assessment: 20 questions across sign identification, matching and live camera practice.",
       },
     ],
   }),
@@ -38,7 +40,11 @@ function AssessmentPageWrapper() {
 }
 
 function AssessmentPage() {
-  const { data: assessment, isLoading, isError } = useQuery({
+  const {
+    data: assessment,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["assessment", "bronze"],
     queryFn: () => getAssessment("bronze"),
   });

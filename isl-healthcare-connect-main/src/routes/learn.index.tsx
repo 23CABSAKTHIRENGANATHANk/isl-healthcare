@@ -25,7 +25,10 @@ export const Route = createFileRoute("/learn/")({
           "Healthcare ISL lesson categories: basic communication, clinical vocabulary, hospital navigation and patient needs.",
       },
       { property: "og:title", content: "Learn Indian Sign Language for healthcare" },
-      { property: "og:description", content: "Structured ISL lessons for hospital teams, with captions and quizzes." },
+      {
+        property: "og:description",
+        content: "Structured ISL lessons for hospital teams, with captions and quizzes.",
+      },
     ],
   }),
   component: LearnPageWrapper,
@@ -42,7 +45,10 @@ function LearnPageWrapper() {
 function LearnPage() {
   const grouped = useQuery({ queryKey: ["lessons-by-category"], queryFn: listLessonsByCategory });
   const summary = useQuery({ queryKey: ["progress-summary"], queryFn: () => getProgressSummary() });
-  const progressQuery = useQuery({ queryKey: ["all-lesson-progress"], queryFn: () => listLessonProgress() });
+  const progressQuery = useQuery({
+    queryKey: ["all-lesson-progress"],
+    queryFn: () => listLessonProgress(),
+  });
   const signs = useQuery({ queryKey: ["signs"], queryFn: listSigns });
 
   const progressMap = new Map((progressQuery.data ?? []).map((p) => [p.lesson_id, p.percent]));
@@ -84,9 +90,17 @@ function LearnPage() {
               suffix={` / ${summary.data.daily_goal_minutes} min`}
               icon={Target}
               tone="teal"
-              progress={Math.round((summary.data.daily_goal_done_minutes / summary.data.daily_goal_minutes) * 100)}
+              progress={Math.round(
+                (summary.data.daily_goal_done_minutes / summary.data.daily_goal_minutes) * 100,
+              )}
             />
-            <StatCard label="Learning Streak" value={summary.data.streak_days} suffix=" days" icon={Flame} tone="success" />
+            <StatCard
+              label="Learning Streak"
+              value={summary.data.streak_days}
+              suffix=" days"
+              icon={Flame}
+              tone="success"
+            />
           </div>
         )}
       </section>
@@ -140,8 +154,8 @@ function LearnPage() {
           Sign library
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          Every sign lists its regional variation note — ISL varies across India and no single form is presented as
-          universal.
+          Every sign lists its regional variation note — ISL varies across India and no single form
+          is presented as universal.
         </p>
         <Tabs defaultValue="basic" className="mt-6">
           <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1">

@@ -8,13 +8,7 @@
 export type Sector = "healthcare" | "education" | "government" | "banking" | "workplace";
 
 export type HealthcareRole =
-  | "nurse"
-  | "receptionist"
-  | "pharmacist"
-  | "asha_anm"
-  | "security"
-  | "doctor"
-  | "counsellor";
+  "nurse" | "receptionist" | "pharmacist" | "asha_anm" | "security" | "doctor" | "counsellor";
 
 export const HEALTHCARE_ROLES: { value: HealthcareRole; label: string }[] = [
   { value: "nurse", label: "Nurse" },

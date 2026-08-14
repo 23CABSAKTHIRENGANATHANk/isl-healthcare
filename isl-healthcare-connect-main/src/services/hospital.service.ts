@@ -1,16 +1,23 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Hospital, staff and facility analytics service with Supabase backend integration.
  */
-import { supabase } from "@/integrations/supabase/client";
-import { hospital as mockHospital, hospitalAnalytics as mockHospitalAnalytics, staff as mockStaff } from "./mock/data";
+import { supabase, from as dbFrom } from "@/integrations/supabase/client";
+import {
+  hospital as mockHospital,
+  hospitalAnalytics as mockHospitalAnalytics,
+  staff as mockStaff,
+} from "./mock/data";
 import type { Hospital, HospitalAnalytics, StaffMember } from "@/types";
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
 export async function getHospital(hospitalId?: string): Promise<Hospital> {
   try {
-    const query = supabase.from("hospitals").select("*");
-    const { data, error } = hospitalId ? await query.eq("id", hospitalId).maybeSingle() : await query.limit(1).maybeSingle();
+    const query = dbFrom("hospitals").select("*");
+    const { data, error } = hospitalId
+      ? await query.eq("id", hospitalId).maybeSingle()
+      : await query.limit(1).maybeSingle();
 
     if (!error && data) {
       return {
@@ -33,11 +40,11 @@ export async function getHospital(hospitalId?: string): Promise<Hospital> {
 
 export async function listStaff(hospitalId?: string): Promise<StaffMember[]> {
   try {
-    const query = supabase.from("hospital_staff").select("*");
+    const query = dbFrom("hospital_staff").select("*");
     const { data, error } = hospitalId ? await query.eq("hospital_id", hospitalId) : await query;
 
     if (!error && data && data.length > 0) {
-      return data.map((row) => ({
+      return data.map((row: any) => ({
         id: row.id,
         full_name: row.full_name,
         role: row.role as StaffMember["role"],
@@ -76,7 +83,7 @@ export async function addStaffMember(input: {
   progressPercent?: number;
 }): Promise<{ error: string | null }> {
   try {
-    const { error } = await supabase.from("hospital_staff").insert({
+    const { error } = await dbFrom("hospital_staff").insert({
       hospital_id: input.hospitalId,
       full_name: input.fullName,
       role: input.role,

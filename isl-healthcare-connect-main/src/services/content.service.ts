@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Content service: lessons, signs and categories with Supabase backend.
  */
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, from as dbFrom } from "@/integrations/supabase/client";
 import { categories, lessons as mockLessons, signs as mockSigns } from "./mock/data";
 import type { Lesson, QuizQuestion, Sign, SignCategory } from "@/types";
 
@@ -13,14 +14,13 @@ export async function listCategories(): Promise<SignCategory[]> {
 
 export async function listLessons(): Promise<Lesson[]> {
   try {
-    const { data, error } = await supabase
-      .from("lessons")
+    const { data, error } = await dbFrom("lessons")
       .select("*")
       .eq("is_published", true)
       .order("order_index", { ascending: true });
 
     if (!error && data && data.length > 0) {
-      return data.map((row) => ({
+      return data.map((row: any) => ({
         id: row.id,
         slug: row.slug,
         code: row.code,
@@ -31,7 +31,10 @@ export async function listLessons(): Promise<Lesson[]> {
         difficulty: row.difficulty as Lesson["difficulty"],
         sign_ids: (Array.isArray(row.sign_ids) ? row.sign_ids : []) as string[],
         thumbnail_tone: (row.thumbnail_tone as Lesson["thumbnail_tone"]) || "primary",
-        captions: (Array.isArray(row.captions) ? row.captions : []) as { at: number; text: string }[],
+        captions: (Array.isArray(row.captions) ? row.captions : []) as {
+          at: number;
+          text: string;
+        }[],
         quiz: (Array.isArray(row.quiz) ? row.quiz : []) as QuizQuestion[],
       }));
     }
@@ -41,7 +44,9 @@ export async function listLessons(): Promise<Lesson[]> {
   return clone(mockLessons);
 }
 
-export async function listLessonsByCategory(): Promise<{ category: SignCategory; lessons: Lesson[] }[]> {
+export async function listLessonsByCategory(): Promise<
+  { category: SignCategory; lessons: Lesson[] }[]
+> {
   const allLessons = await listLessons();
   return categories.map((category) => ({
     category,
@@ -51,8 +56,7 @@ export async function listLessonsByCategory(): Promise<{ category: SignCategory;
 
 export async function getLesson(slug: string): Promise<Lesson | null> {
   try {
-    const { data, error } = await supabase
-      .from("lessons")
+    const { data, error } = await dbFrom("lessons")
       .select("*")
       .or(`slug.eq.${slug},id.eq.${slug}`)
       .maybeSingle();
@@ -69,7 +73,10 @@ export async function getLesson(slug: string): Promise<Lesson | null> {
         difficulty: data.difficulty as Lesson["difficulty"],
         sign_ids: (Array.isArray(data.sign_ids) ? data.sign_ids : []) as string[],
         thumbnail_tone: (data.thumbnail_tone as Lesson["thumbnail_tone"]) || "primary",
-        captions: (Array.isArray(data.captions) ? data.captions : []) as { at: number; text: string }[],
+        captions: (Array.isArray(data.captions) ? data.captions : []) as {
+          at: number;
+          text: string;
+        }[],
         quiz: (Array.isArray(data.quiz) ? data.quiz : []) as QuizQuestion[],
       };
     }
@@ -85,13 +92,10 @@ export const getLessonBySlug = getLesson;
 
 export async function listSigns(): Promise<Sign[]> {
   try {
-    const { data, error } = await supabase
-      .from("signs")
-      .select("*")
-      .eq("is_published", true);
+    const { data, error } = await dbFrom("signs").select("*").eq("is_published", true);
 
     if (!error && data && data.length > 0) {
-      return data.map((row) => ({
+      return data.map((row: any) => ({
         id: row.id,
         gloss: row.gloss,
         meaning: row.meaning,
@@ -133,11 +137,12 @@ export async function signByGloss(gloss: string): Promise<Sign | null> {
 // Admin CRUD helpers
 // -----------------------------------------------------------------------------
 
-export async function createLesson(lesson: Partial<Lesson>): Promise<{ error: string | null; data?: Lesson }> {
+export async function createLesson(
+  lesson: Partial<Lesson>,
+): Promise<{ error: string | null; data?: Lesson }> {
   try {
     const id = lesson.slug || `lesson-${Date.now()}`;
-    const { data, error } = await supabase
-      .from("lessons")
+    const { data, error } = await dbFrom("lessons")
       .insert({
         id,
         slug: lesson.slug || id,
@@ -162,10 +167,12 @@ export async function createLesson(lesson: Partial<Lesson>): Promise<{ error: st
   }
 }
 
-export async function updateLesson(id: string, updates: Partial<Lesson>): Promise<{ error: string | null }> {
+export async function updateLesson(
+  id: string,
+  updates: Partial<Lesson>,
+): Promise<{ error: string | null }> {
   try {
-    const { error } = await supabase
-      .from("lessons")
+    const { error } = await dbFrom("lessons")
       .update({
         title: updates.title,
         summary: updates.summary,
@@ -183,18 +190,19 @@ export async function updateLesson(id: string, updates: Partial<Lesson>): Promis
 
 export async function deleteLesson(id: string): Promise<{ error: string | null }> {
   try {
-    const { error } = await supabase.from("lessons").delete().eq("id", id);
+    const { error } = await dbFrom("lessons").delete().eq("id", id);
     return { error: error?.message ?? null };
   } catch (err) {
     return { error: (err as Error).message };
   }
 }
 
-export async function createSign(sign: Partial<Sign>): Promise<{ error: string | null; data?: Sign }> {
+export async function createSign(
+  sign: Partial<Sign>,
+): Promise<{ error: string | null; data?: Sign }> {
   try {
     const id = (sign.gloss || "new-sign").toLowerCase().replace(/\s+/g, "-");
-    const { data, error } = await supabase
-      .from("signs")
+    const { data, error } = await dbFrom("signs")
       .insert({
         id,
         gloss: (sign.gloss || "NEW SIGN").toUpperCase(),
@@ -217,7 +225,7 @@ export async function createSign(sign: Partial<Sign>): Promise<{ error: string |
 
 export async function deleteSign(id: string): Promise<{ error: string | null }> {
   try {
-    const { error } = await supabase.from("signs").delete().eq("id", id);
+    const { error } = await dbFrom("signs").delete().eq("id", id);
     return { error: error?.message ?? null };
   } catch (err) {
     return { error: (err as Error).message };

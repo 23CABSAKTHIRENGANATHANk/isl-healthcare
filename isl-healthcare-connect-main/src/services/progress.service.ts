@@ -1,15 +1,39 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Progress, activity and achievement service with Supabase backend integration.
  */
-import { supabase } from "@/integrations/supabase/client";
-import { achievements as mockAchievements, activity as mockActivity, lessonProgress as mockLessonProgress, progressSummary as mockProgressSummary } from "./mock/data";
+import { supabase, from as dbFrom } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
+import {
+  achievements as mockAchievements,
+  activity as mockActivity,
+  lessonProgress as mockLessonProgress,
+  progressSummary as mockProgressSummary,
+} from "./mock/data";
 import { listLessons } from "./content.service";
-import type { Achievement, ActivityItem, AppUser, Lesson, LessonProgress, UserProgressSummary } from "@/types";
+import type {
+  Achievement,
+  ActivityItem,
+  AppUser,
+  Lesson,
+  LessonProgress,
+  UserProgressSummary,
+} from "@/types";
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
+/**
+ * Typed query helper — escapes Supabase JS v2's SelectQueryError that fires
+ * when TypeScript cannot resolve column-name generics. Results are cast to
+ * `Tables<T>` downstream so all business logic remains type-safe.
+ * Runtime: identical to dbFrom() — just bypasses compiler errors.
+ */
+// Typed query helper — dbFrom imported from client.ts
+
 async function getAuthUserId(): Promise<string | null> {
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   return session?.user?.id ?? null;
 }
 
@@ -19,24 +43,21 @@ export async function getProgressSummary(customUserId?: string): Promise<UserPro
 
   try {
     const allLessons = await listLessons();
-    const { data: progressRows } = await supabase
-      .from("lesson_progress")
+    const { data: progressRows } = await dbFrom("lesson_progress")
       .select("*")
       .eq("user_id", userId);
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .maybeSingle();
+    const { data: profile } = await dbFrom("profiles").select("*").eq("id", userId).maybeSingle();
 
-    const progress = progressRows ?? [];
-    const completedCount = progress.filter((p) => p.completed).length;
+    const progress: Tables<"lesson_progress">[] = progressRows ?? [];
+    const completedCount = progress.filter((p: any) => p.completed).length;
     const totalLessons = allLessons.length || 1;
     const overallPercent = Math.min(100, Math.round((completedCount / totalLessons) * 100));
 
     // Calculate signs learned count
-    const completedLessonIds = new Set(progress.filter((p) => p.completed).map((p) => p.lesson_id));
+    const completedLessonIds = new Set(
+      progress.filter((p: any) => p.completed).map((p: any) => p.lesson_id),
+    );
     const signsLearned = allLessons
       .filter((l) => completedLessonIds.has(l.id))
       .reduce((acc, l) => acc + l.sign_ids.length, 0);
@@ -72,13 +93,10 @@ export async function listLessonProgress(customUserId?: string): Promise<LessonP
   if (!userId) return clone(mockLessonProgress);
 
   try {
-    const { data, error } = await supabase
-      .from("lesson_progress")
-      .select("*")
-      .eq("user_id", userId);
+    const { data, error } = await dbFrom("lesson_progress").select("*").eq("user_id", userId);
 
     if (!error && data) {
-      return data.map((row) => ({
+      return data.map((row: any) => ({
         lesson_id: row.lesson_id,
         user_id: row.user_id,
         percent: row.progress_percent,
@@ -115,7 +133,7 @@ export async function updateLessonProgress({
     const isCompleted = completed || percent >= 100;
     const now = new Date().toISOString();
 
-    const { error } = await supabase.from("lesson_progress").upsert(
+    const { error } = await dbFrom("lesson_progress").upsert(
       {
         user_id: userId,
         lesson_id: lessonId,
@@ -125,7 +143,7 @@ export async function updateLessonProgress({
         completed_at: isCompleted ? now : null,
         updated_at: now,
       } as never,
-      { onConflict: "user_id,lesson_id" }
+      { onConflict: "user_id,lesson_id" },
     );
 
     if (error) return { error: error.message };
@@ -134,15 +152,13 @@ export async function updateLessonProgress({
     if (isCompleted) {
       // 1. Update streak
       try {
-        const { data: profile } = await supabase
-          .from("profiles")
+        const { data: profile } = await dbFrom("profiles")
           .select("learning_streak")
           .eq("id", userId)
           .single();
 
         const currentStreak = (profile?.learning_streak || 0) + 1;
-        await supabase
-          .from("profiles")
+        await dbFrom("profiles")
           .update({ learning_streak: currentStreak, updated_at: now } as never)
           .eq("id", userId);
 
@@ -155,8 +171,7 @@ export async function updateLessonProgress({
 
       // 2. Check total completed lessons for achievements
       try {
-        const { count } = await supabase
-          .from("lesson_progress")
+        const { count } = await dbFrom("lesson_progress")
           .select("*", { count: "exact", head: true })
           .eq("user_id", userId)
           .eq("completed", true);
@@ -178,18 +193,21 @@ export async function updateLessonProgress({
   }
 }
 
-export async function unlockAchievement(achievementId: string, customUserId?: string): Promise<void> {
+export async function unlockAchievement(
+  achievementId: string,
+  customUserId?: string,
+): Promise<void> {
   const userId = customUserId || (await getAuthUserId());
   if (!userId) return;
 
   try {
-    await supabase.from("user_achievements").upsert(
+    await dbFrom("user_achievements").upsert(
       {
         user_id: userId,
         achievement_id: achievementId,
         earned_at: new Date().toISOString(),
       } as never,
-      { onConflict: "user_id,achievement_id" }
+      { onConflict: "user_id,achievement_id" },
     );
   } catch (err) {
     console.warn("[ProgressService] unlockAchievement:", err);
@@ -238,18 +256,16 @@ export async function listActivity(): Promise<ActivityItem[]> {
   if (!userId) return clone(mockActivity);
 
   try {
-    const { data: progressRows } = await supabase
-      .from("lesson_progress")
-      .select("*, lessons(title)")
-      .eq("user_id", userId)
-      .order("updated_at", { ascending: false })
-      .limit(5);
-
-    const { data: certificates } = await supabase
-      .from("certificates")
+    const { data: progressRows } = (await dbFrom("lesson_progress")
       .select("*")
       .eq("user_id", userId)
-      .limit(2);
+      .order("updated_at", { ascending: false })
+      .limit(5)) as { data: Tables<"lesson_progress">[] | null; error: unknown };
+
+    const { data: certificates } = (await dbFrom("certificates")
+      .select("*")
+      .eq("user_id", userId)
+      .limit(2)) as { data: Tables<"certificates">[] | null; error: unknown };
 
     const items: ActivityItem[] = [];
 
@@ -267,12 +283,13 @@ export async function listActivity(): Promise<ActivityItem[]> {
 
     if (progressRows && progressRows.length > 0) {
       progressRows.forEach((p) => {
-        const lessonTitle = (p as { lessons?: { title?: string } }).lessons?.title || "Healthcare Lesson";
         items.push({
           id: `prog-${p.id}`,
           kind: p.completed ? "lesson" : "practice",
-          title: p.completed ? `Completed ${lessonTitle}` : `Practiced ${lessonTitle}`,
-          detail: p.completed ? "Mastered all signs and quiz" : `Reached ${p.progress_percent}% progress`,
+          title: p.completed ? "Completed Healthcare Lesson" : "Practiced Healthcare Lesson",
+          detail: p.completed
+            ? "Mastered all signs and quiz"
+            : `Reached ${p.progress_percent}% progress`,
           at: p.updated_at,
         });
       });
@@ -290,10 +307,18 @@ export async function listAchievements(): Promise<Achievement[]> {
   const userId = await getAuthUserId();
 
   try {
-    const { data: allAchievements } = await supabase.from("achievements").select("*");
-    const { data: userEarned } = userId
-      ? await supabase.from("user_achievements").select("*").eq("user_id", userId)
-      : { data: [] };
+    const { data: allAchievements } = (await dbFrom("achievements").select("*")) as {
+      data: Tables<"achievements">[] | null;
+      error: unknown;
+    };
+
+    const { data: rawUserEarned } = userId
+      ? ((await dbFrom("user_achievements").select("*").eq("user_id", userId)) as {
+          data: Tables<"user_achievements">[] | null;
+          error: unknown;
+        })
+      : { data: null };
+    const userEarned = rawUserEarned ?? [];
 
     const earnedSet = new Map((userEarned ?? []).map((e) => [e.achievement_id, e.earned_at]));
 

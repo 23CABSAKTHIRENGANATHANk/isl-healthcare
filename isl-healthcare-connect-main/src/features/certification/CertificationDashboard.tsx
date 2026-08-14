@@ -11,12 +11,7 @@ import { RevealGroup, RevealItem } from "@/components/motion/Reveal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/use-auth";
 import { getDemoUser } from "@/services/progress.service";
 import { toast } from "sonner";
@@ -55,7 +50,6 @@ const AI_BACKEND_URL =
     ? (import.meta.env["VITE_AI_API_URL"] as string)
     : "http://localhost:8000";
 
-
 /**
  * Downloads a server-side generated PDF certificate from the FastAPI backend.
  * Falls back to browser print if backend is unavailable.
@@ -63,7 +57,7 @@ const AI_BACKEND_URL =
 async function downloadServerPdf(
   certificate: Certificate,
   userName: string,
-  role: string
+  role: string,
 ): Promise<void> {
   const params = new URLSearchParams({
     name: userName,
@@ -101,25 +95,29 @@ export function CertificationDashboard({ certificates }: CertificationDashboardP
   const [activeCertificate, setActiveCertificate] = useState<Certificate | null>(null);
   const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
-  const currentUser: AppUser = profile || (authUser ? {
-    id: authUser.id,
-    full_name: displayName,
-    email: authUser.email || "",
-    role: "nurse",
-    hospital_id: null,
-    sector: "healthcare",
-    level: "bronze",
-    created_at: new Date().toISOString(),
-  } : demoUser || {
-    id: "guest",
-    full_name: displayName,
-    email: "",
-    role: "nurse",
-    hospital_id: null,
-    sector: "healthcare",
-    level: "bronze",
-    created_at: new Date().toISOString(),
-  });
+  const currentUser: AppUser =
+    profile ||
+    (authUser
+      ? {
+          id: authUser.id,
+          full_name: displayName,
+          email: authUser.email || "",
+          role: "nurse",
+          hospital_id: null,
+          sector: "healthcare",
+          level: "bronze",
+          created_at: new Date().toISOString(),
+        }
+      : demoUser || {
+          id: "guest",
+          full_name: displayName,
+          email: "",
+          role: "nurse",
+          hospital_id: null,
+          sector: "healthcare",
+          level: "bronze",
+          created_at: new Date().toISOString(),
+        });
 
   async function handleDownload(certificate: Certificate) {
     setDownloadingId(certificate.id);
@@ -151,8 +149,12 @@ export function CertificationDashboard({ certificates }: CertificationDashboardP
 
           return (
             <RevealItem key={certificate.id}>
-              <Card className={`h-full overflow-hidden rounded-2xl border-2 ${toneRing[certificate.tier]} shadow-soft`}>
-                <div className={`flex items-center justify-between px-5 py-4 ${toneBg[certificate.tier]}`}>
+              <Card
+                className={`h-full overflow-hidden rounded-2xl border-2 ${toneRing[certificate.tier]} shadow-soft`}
+              >
+                <div
+                  className={`flex items-center justify-between px-5 py-4 ${toneBg[certificate.tier]}`}
+                >
                   <div className="flex items-center gap-2">
                     <Award className={`size-5 ${toneText[certificate.tier]}`} aria-hidden="true" />
                     <p className={`font-display text-lg font-bold ${toneText[certificate.tier]}`}>
@@ -192,7 +194,10 @@ export function CertificationDashboard({ certificates }: CertificationDashboardP
                     <p className="text-sm font-semibold text-foreground">Requirements</p>
                     <ul className="mt-2 space-y-1.5">
                       {certificate.requirements.map((req) => (
-                        <li key={req} className="flex items-start gap-2 text-sm text-muted-foreground">
+                        <li
+                          key={req}
+                          className="flex items-start gap-2 text-sm text-muted-foreground"
+                        >
                           <CheckCircle2
                             className={`mt-0.5 size-4 shrink-0 ${isLocked ? "text-muted-foreground" : "text-success"}`}
                             aria-hidden="true"

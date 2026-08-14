@@ -57,7 +57,11 @@ function AccessibilityPage() {
       </Reveal>
 
       <section aria-labelledby="privacy-heading" className="flex flex-col gap-6">
-        <SectionHeading align="left" eyebrow="Data & privacy" title="What we store, and what we don't" />
+        <SectionHeading
+          align="left"
+          eyebrow="Data & privacy"
+          title="What we store, and what we don't"
+        />
         <DataPrivacySection />
       </section>
 
@@ -85,11 +89,14 @@ function AccessibilityPage() {
         </Reveal>
       </div>
 
-      <Reveal as="section" className="flex items-center gap-3 rounded-2xl border border-border/70 bg-surface p-6">
+      <Reveal
+        as="section"
+        className="flex items-center gap-3 rounded-2xl border border-border/70 bg-surface p-6"
+      >
         <ShieldCheck className="size-6 shrink-0 text-primary" aria-hidden="true" />
         <p className="text-sm text-muted-foreground">
-          This statement is reviewed as ISL Setu evolves. If something here doesn't match what you experience in
-          the product, please tell us using the form above.
+          This statement is reviewed as ISL Setu evolves. If something here doesn't match what you
+          experience in the product, please tell us using the form above.
         </p>
       </Reveal>
     </PageShell>

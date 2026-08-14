@@ -18,10 +18,14 @@ export const Route = createFileRoute("/voicebridge")({
       { title: "VoiceBridge — Sign to Text to Voice" },
       {
         name: "description",
-        content: "Convert Indian Sign Language into clear text and natural spoken voice for hospital front desks and triage.",
+        content:
+          "Convert Indian Sign Language into clear text and natural spoken voice for hospital front desks and triage.",
       },
       { property: "og:title", content: "VoiceBridge — Sign to Text to Voice" },
-      { property: "og:description", content: "Sign-to-text-to-voice communication bridge for hospital consultations." },
+      {
+        property: "og:description",
+        content: "Sign-to-text-to-voice communication bridge for hospital consultations.",
+      },
     ],
   }),
   component: VoiceBridgePageWrapper,
@@ -76,9 +80,7 @@ function VoiceBridgePage() {
   }
 
   // Construct readable sentence from captured sign tokens
-  const fullSentence = signs
-    .map((s) => CONTROLLED_PHRASES[s] || s)
-    .join(" ");
+  const fullSentence = signs.map((s) => CONTROLLED_PHRASES[s] || s).join(" ");
 
   return (
     <PageShell>
@@ -128,11 +130,22 @@ function VoiceBridgePage() {
                 <Hand aria-hidden="true" />
                 {capturing ? "Extracting Landmarks…" : "Capture Sign"}
               </Button>
-              <Button variant="teal" onClick={() => speak(fullSentence)} disabled={signs.length === 0}>
+              <Button
+                variant="teal"
+                onClick={() => speak(fullSentence)}
+                disabled={signs.length === 0}
+              >
                 <Volume2 aria-hidden="true" />
                 Speak All
               </Button>
-              <Button variant="outline" onClick={() => { setSigns([]); setLastConfidence(null); }} disabled={signs.length === 0}>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSigns([]);
+                  setLastConfidence(null);
+                }}
+                disabled={signs.length === 0}
+              >
                 <Trash2 aria-hidden="true" />
                 Clear
               </Button>
@@ -171,13 +184,12 @@ function VoiceBridgePage() {
 
               {lastConfidence !== null && (
                 <p className="text-xs text-muted-foreground">
-                  Last sign confidence: <strong className="text-foreground">{Math.round(lastConfidence * 100)}%</strong>
+                  Last sign confidence:{" "}
+                  <strong className="text-foreground">{Math.round(lastConfidence * 100)}%</strong>
                 </p>
               )}
 
-              {lastMessage && (
-                <p className="text-xs text-destructive">{lastMessage}</p>
-              )}
+              {lastMessage && <p className="text-xs text-destructive">{lastMessage}</p>}
             </CardContent>
           </Card>
 
@@ -186,7 +198,9 @@ function VoiceBridgePage() {
               <div className="flex items-start gap-2.5">
                 <AlertCircle className="mt-0.5 size-4 shrink-0 text-amber-600" />
                 <p className="text-xs leading-relaxed text-muted-foreground">
-                  <strong className="text-foreground">Responsible AI Notice:</strong> VoiceBridge is designed for basic healthcare assistance. It does not replace qualified human sign language interpreters for critical clinical diagnoses.
+                  <strong className="text-foreground">Responsible AI Notice:</strong> VoiceBridge is
+                  designed for basic healthcare assistance. It does not replace qualified human sign
+                  language interpreters for critical clinical diagnoses.
                 </p>
               </div>
             </CardContent>

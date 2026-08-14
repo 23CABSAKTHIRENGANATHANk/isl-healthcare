@@ -14,7 +14,11 @@ export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
       { title: "Log in — ISL Setu" },
-      { name: "description", content: "Log in to continue your Indian Sign Language healthcare learning journey on ISL Setu." },
+      {
+        name: "description",
+        content:
+          "Log in to continue your Indian Sign Language healthcare learning journey on ISL Setu.",
+      },
       { property: "og:title", content: "Log in — ISL Setu" },
       { property: "og:description", content: "Continue your ISL healthcare learning journey." },
     ],
@@ -83,27 +87,37 @@ function LoginPage() {
               </div>
 
               {error ? (
-                <p role="alert" className="rounded-xl bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive">
+                <p
+                  role="alert"
+                  className="rounded-xl bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive"
+                >
                   {error}
                 </p>
               ) : null}
 
               <Button type="submit" variant="hero" className="w-full" size="lg" disabled={busy}>
-                {busy ? <Loader2 className="animate-spin" aria-hidden="true" /> : <LogIn aria-hidden="true" />}
+                {busy ? (
+                  <Loader2 className="animate-spin" aria-hidden="true" />
+                ) : (
+                  <LogIn aria-hidden="true" />
+                )}
                 {busy ? "Signing in…" : "Log in"}
               </Button>
             </form>
 
             <p className="mt-6 text-sm text-muted-foreground">
               New to ISL Setu?{" "}
-              <Link to="/signup" className="font-semibold text-primary underline-offset-4 hover:underline">
+              <Link
+                to="/signup"
+                className="font-semibold text-primary underline-offset-4 hover:underline"
+              >
                 Create an account
               </Link>
             </p>
             <p className="mt-4 flex items-start gap-2 text-xs text-muted-foreground">
               <ShieldCheck className="mt-0.5 size-4 shrink-0 text-success" aria-hidden="true" />
-              Your account stores your learning progress only. Camera footage from practice screens is not stored by
-              default.
+              Your account stores your learning progress only. Camera footage from practice screens
+              is not stored by default.
             </p>
           </CardContent>
         </Card>

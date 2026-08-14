@@ -15,7 +15,9 @@ export function SignCard({ sign }: { sign: Sign }) {
           </span>
           <DifficultyBadge difficulty={sign.difficulty} />
         </div>
-        <h3 className="font-display text-lg font-bold tracking-tight text-foreground">{sign.gloss}</h3>
+        <h3 className="font-display text-lg font-bold tracking-tight text-foreground">
+          {sign.gloss}
+        </h3>
         <p className="text-sm text-muted-foreground">{sign.meaning}</p>
         <Tooltip>
           <TooltipTrigger asChild>

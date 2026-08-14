@@ -1,15 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { motion, useReducedMotion } from "framer-motion";
-import {
-  Award,
-  CheckCircle2,
-  Clock,
-  ListChecks,
-  Repeat,
-  Timer,
-  XCircle,
-} from "lucide-react";
+import { Award, CheckCircle2, Clock, ListChecks, Repeat, Timer, XCircle } from "lucide-react";
 
 import { CameraTaskQuestion } from "@/features/assessment/CameraTaskQuestion";
 import { StatCard } from "@/components/common/StatCard";
@@ -80,7 +73,7 @@ export function AssessmentRunner({ assessment }: AssessmentRunnerProps) {
     if (secondsLeft === 0 && !result && !submittedRef.current) {
       void handleSubmit();
     }
-  }, [secondsLeft]);
+  }, [secondsLeft, handleSubmit, result]);
 
   const gloss = useMemo(() => {
     if (!question) return null;
@@ -92,7 +85,11 @@ export function AssessmentRunner({ assessment }: AssessmentRunnerProps) {
     return null;
   }, [question]);
 
-  const contextSign = gloss ? signByGloss(gloss) : null;
+  const { data: contextSign } = useQuery({
+    queryKey: ["sign-by-gloss", gloss],
+    queryFn: () => (gloss ? signByGloss(gloss) : null),
+    enabled: Boolean(gloss),
+  });
 
   if (result) {
     const passed = result.passed;
@@ -106,15 +103,32 @@ export function AssessmentRunner({ assessment }: AssessmentRunnerProps) {
         <div className="rounded-3xl border border-border bg-card p-6 shadow-lift sm:p-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">Assessment Results</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                Assessment Results
+              </p>
               <h2 className="mt-2 text-2xl font-bold text-foreground">{assessment.title}</h2>
             </div>
-            <StatusBadge status={passed ? "completed" : "failed"} label={passed ? "Passed" : "Not Passed"} />
+            <StatusBadge
+              status={passed ? "completed" : "failed"}
+              label={passed ? "Passed" : "Not Passed"}
+            />
           </div>
 
           <div className="mt-6 grid gap-4 sm:grid-cols-3">
-            <StatCard label="Score" value={result.score} suffix={`/${result.total}`} icon={ListChecks} tone="primary" />
-            <StatCard label="Accuracy" value={result.accuracy_percent} suffix="%" icon={Award} tone="teal" />
+            <StatCard
+              label="Score"
+              value={result.score}
+              suffix={`/${result.total}`}
+              icon={ListChecks}
+              tone="primary"
+            />
+            <StatCard
+              label="Accuracy"
+              value={result.accuracy_percent}
+              suffix="%"
+              icon={Award}
+              tone="teal"
+            />
             <StatCard
               label="Correct Answers"
               value={result.score}
@@ -144,11 +158,13 @@ export function AssessmentRunner({ assessment }: AssessmentRunnerProps) {
                         {i + 1}. {q.prompt}
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        Your answer: <span className="font-medium text-foreground">{given || "No answer"}</span>
+                        Your answer:{" "}
+                        <span className="font-medium text-foreground">{given || "No answer"}</span>
                         {!correct ? (
                           <>
                             {" "}
-                            · Correct answer: <span className="font-medium text-foreground">{q.answer}</span>
+                            · Correct answer:{" "}
+                            <span className="font-medium text-foreground">{q.answer}</span>
                           </>
                         ) : null}
                       </p>
@@ -198,12 +214,17 @@ export function AssessmentRunner({ assessment }: AssessmentRunnerProps) {
       <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-3">
-            <Badge className="rounded-full bg-bronze/20 px-3 py-1 font-semibold text-bronze" variant="outline">
+            <Badge
+              className="rounded-full bg-bronze/20 px-3 py-1 font-semibold text-bronze"
+              variant="outline"
+            >
               Bronze Level
             </Badge>
             <span className="text-sm text-muted-foreground">{total} Questions</span>
             <span className="text-sm text-muted-foreground">·</span>
-            <span className="text-sm text-muted-foreground">{assessment.duration_minutes} minutes</span>
+            <span className="text-sm text-muted-foreground">
+              {assessment.duration_minutes} minutes
+            </span>
           </div>
           <div
             className={`flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold ${
@@ -222,7 +243,11 @@ export function AssessmentRunner({ assessment }: AssessmentRunnerProps) {
           </span>
           <span className="text-muted-foreground">{progressPercent}% complete</span>
         </div>
-        <Progress value={progressPercent} className="mt-2 h-2" aria-label={`Progress: ${progressPercent}%`} />
+        <Progress
+          value={progressPercent}
+          className="mt-2 h-2"
+          aria-label={`Progress: ${progressPercent}%`}
+        />
       </div>
 
       <div className="rounded-2xl border border-border bg-card p-6 shadow-soft sm:p-8">
@@ -239,11 +264,13 @@ export function AssessmentRunner({ assessment }: AssessmentRunnerProps) {
 
         {contextSign && question.kind !== "camera_task" ? (
           <div className="mt-4 rounded-xl border border-border bg-muted/50 p-4">
-            <p className="text-sm font-semibold text-foreground">Sign context: {contextSign.gloss}</p>
+            <p className="text-sm font-semibold text-foreground">
+              Sign context: {contextSign.gloss}
+            </p>
             <p className="mt-1 text-sm text-muted-foreground">{contextSign.region_note}</p>
-            {contextSign.steps.length > 0 ? (
+            {contextSign.steps && contextSign.steps.length > 0 ? (
               <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
-                {contextSign.steps.map((step, i) => (
+                {contextSign.steps.map((step: string, i: number) => (
                   <li key={i}>{step}</li>
                 ))}
               </ol>
@@ -273,7 +300,10 @@ export function AssessmentRunner({ assessment }: AssessmentRunnerProps) {
                     className="flex items-center gap-3 rounded-xl border border-border p-4 transition-colors has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5"
                   >
                     <RadioGroupItem value={option} id={optionId} className="size-5" />
-                    <Label htmlFor={optionId} className="min-h-11 flex-1 cursor-pointer py-1 text-base font-medium">
+                    <Label
+                      htmlFor={optionId}
+                      className="min-h-11 flex-1 cursor-pointer py-1 text-base font-medium"
+                    >
                       {option}
                     </Label>
                   </div>
@@ -285,7 +315,12 @@ export function AssessmentRunner({ assessment }: AssessmentRunnerProps) {
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Button variant="outline" size="lg" onClick={() => setIndex((i) => Math.max(0, i - 1))} disabled={index === 0}>
+        <Button
+          variant="outline"
+          size="lg"
+          onClick={() => setIndex((i) => Math.max(0, i - 1))}
+          disabled={index === 0}
+        >
           Previous
         </Button>
         {index === total - 1 ? (
@@ -299,7 +334,11 @@ export function AssessmentRunner({ assessment }: AssessmentRunnerProps) {
             {isSubmitting ? "Calculating Results…" : "Submit Assessment"}
           </Button>
         ) : (
-          <Button variant="default" size="lg" onClick={() => setIndex((i) => Math.min(total - 1, i + 1))}>
+          <Button
+            variant="default"
+            size="lg"
+            onClick={() => setIndex((i) => Math.min(total - 1, i + 1))}
+          >
             Next
           </Button>
         )}

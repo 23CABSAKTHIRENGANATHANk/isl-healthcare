@@ -1,7 +1,15 @@
-import { createContext, useContext, useEffect, useMemo, useState, useCallback, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  useCallback,
+  type ReactNode,
+} from "react";
 import type { Session, User } from "@supabase/supabase-js";
 
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, from as dbFrom } from "@/integrations/supabase/client";
 import type { AppUser, HealthcareRole } from "@/types";
 
 interface AuthContextValue {
@@ -32,54 +40,54 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = useCallback(async (userId: string, userEmail?: string, userMeta?: Record<string, unknown>) => {
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .maybeSingle();
+  const fetchProfile = useCallback(
+    async (userId: string, userEmail?: string, userMeta?: Record<string, unknown>) => {
+      try {
+        const { data, error } = await dbFrom("profiles").select("*").eq("id", userId).maybeSingle();
 
-      if (data) {
-        setProfile({
-          id: data.id,
-          full_name: data.full_name,
-          email: data.email,
-          role: (data.role as HealthcareRole) || "nurse",
-          hospital_id: data.hospital_id,
-          sector: "healthcare",
-          level: (data.current_level as "bronze" | "silver" | "gold") || "bronze",
-          created_at: data.created_at,
-        });
-      } else {
-        // Fallback: build temporary profile from metadata or upsert
-        const fallbackName = (userMeta?.["full_name"] as string) || userEmail?.split("@")[0] || "Healthcare Worker";
-        const fallbackRole = (userMeta?.["healthcare_role"] as HealthcareRole) || "nurse";
-        
-        const fallbackUser: AppUser = {
-          id: userId,
-          full_name: fallbackName,
-          email: userEmail || "",
-          role: fallbackRole,
-          hospital_id: null,
-          sector: "healthcare",
-          level: "bronze",
-          created_at: new Date().toISOString(),
-        };
-        setProfile(fallbackUser);
+        if (data) {
+          setProfile({
+            id: data.id,
+            full_name: data.full_name,
+            email: data.email,
+            role: (data.role as HealthcareRole) || "nurse",
+            hospital_id: data.hospital_id,
+            sector: "healthcare",
+            level: (data.current_level as "bronze" | "silver" | "gold") || "bronze",
+            created_at: data.created_at,
+          });
+        } else {
+          // Fallback: build temporary profile from metadata or upsert
+          const fallbackName =
+            (userMeta?.["full_name"] as string) || userEmail?.split("@")[0] || "Healthcare Worker";
+          const fallbackRole = (userMeta?.["healthcare_role"] as HealthcareRole) || "nurse";
 
-        // Attempt creation if table is available
-        await supabase.from("profiles").upsert({
-          id: userId,
-          full_name: fallbackName,
-          email: userEmail || "",
-          role: fallbackRole,
-        } as never);
+          const fallbackUser: AppUser = {
+            id: userId,
+            full_name: fallbackName,
+            email: userEmail || "",
+            role: fallbackRole,
+            hospital_id: null,
+            sector: "healthcare",
+            level: "bronze",
+            created_at: new Date().toISOString(),
+          };
+          setProfile(fallbackUser);
+
+          // Attempt creation if table is available
+          await dbFrom("profiles").upsert({
+            id: userId,
+            full_name: fallbackName,
+            email: userEmail || "",
+            role: fallbackRole,
+          } as never);
+        }
+      } catch (err) {
+        console.warn("[Auth] Failed to load profile:", err);
       }
-    } catch (err) {
-      console.warn("[Auth] Failed to load profile:", err);
-    }
-  }, []);
+    },
+    [],
+  );
 
   useEffect(() => {
     // Initial session load
@@ -90,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         void fetchProfile(
           initialSession.user.id,
           initialSession.user.email,
-          initialSession.user.user_metadata as Record<string, unknown>
+          initialSession.user.user_metadata as Record<string, unknown>,
         );
       } else {
         setProfile(null);
@@ -98,14 +106,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       setSession(nextSession);
       setUser(nextSession?.user ?? null);
       if (nextSession?.user) {
         void fetchProfile(
           nextSession.user.id,
           nextSession.user.email,
-          nextSession.user.user_metadata as Record<string, unknown>
+          nextSession.user.user_metadata as Record<string, unknown>,
         );
       } else {
         setProfile(null);
@@ -123,8 +133,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user, fetchProfile]);
 
   const value = useMemo<AuthContextValue>(() => {
-    const metadata = (user?.user_metadata ?? {}) as { full_name?: string; healthcare_role?: HealthcareRole };
-    const name = profile?.full_name || metadata.full_name || user?.email?.split("@")[0] || "Healthcare Staff";
+    const metadata = (user?.user_metadata ?? {}) as {
+      full_name?: string;
+      healthcare_role?: HealthcareRole;
+    };
+    const name =
+      profile?.full_name || metadata.full_name || user?.email?.split("@")[0] || "Healthcare Staff";
     const userRole = profile?.role || metadata.healthcare_role || "nurse";
 
     return {
@@ -140,7 +154,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) return { error: error.message };
         if (data.user) {
-          await fetchProfile(data.user.id, data.user.email, data.user.user_metadata as Record<string, unknown>);
+          await fetchProfile(
+            data.user.id,
+            data.user.email,
+            data.user.user_metadata as Record<string, unknown>,
+          );
         }
         return { error: null };
       },

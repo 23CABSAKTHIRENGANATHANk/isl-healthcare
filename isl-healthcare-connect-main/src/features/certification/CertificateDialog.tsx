@@ -26,10 +26,19 @@ interface CertificateDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function CertificateDialog({ certificate, user, open, onOpenChange }: CertificateDialogProps) {
+export function CertificateDialog({
+  certificate,
+  user,
+  open,
+  onOpenChange,
+}: CertificateDialogProps) {
   const reduceMotion = useReducedMotion();
   const issuedDate = certificate.issued_at
-    ? new Date(certificate.issued_at).toLocaleDateString("en-IN", { year: "numeric", month: "long", day: "numeric" })
+    ? new Date(certificate.issued_at).toLocaleDateString("en-IN", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
     : "—";
 
   return (
@@ -37,7 +46,9 @@ export function CertificateDialog({ certificate, user, open, onOpenChange }: Cer
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>{tierLabel[certificate.tier]} Certificate</DialogTitle>
-          <DialogDescription>Your ISL Setu learning credential for {certificate.subtitle}.</DialogDescription>
+          <DialogDescription>
+            Your ISL Setu learning credential for {certificate.subtitle}.
+          </DialogDescription>
         </DialogHeader>
 
         <motion.div
@@ -63,7 +74,9 @@ export function CertificateDialog({ certificate, user, open, onOpenChange }: Cer
             </div>
             <div>
               <p className="text-sm text-muted-foreground">This certifies that</p>
-              <p className="mt-1 font-display text-xl font-semibold text-foreground">{user.full_name}</p>
+              <p className="mt-1 font-display text-xl font-semibold text-foreground">
+                {user.full_name}
+              </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 has successfully completed {certificate.subtitle} on the ISL Setu learning platform.
               </p>
@@ -71,8 +84,12 @@ export function CertificateDialog({ certificate, user, open, onOpenChange }: Cer
 
             <div className="grid w-full grid-cols-2 gap-4 rounded-xl bg-muted/50 p-4 text-left text-sm">
               <div>
-                <p className="text-xs uppercase tracking-wide text-muted-foreground">Credential ID</p>
-                <p className="font-medium text-foreground">{certificate.credential_id ?? "Pending"}</p>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Credential ID
+                </p>
+                <p className="font-medium text-foreground">
+                  {certificate.credential_id ?? "Pending"}
+                </p>
               </div>
               <div>
                 <p className="text-xs uppercase tracking-wide text-muted-foreground">Issue Date</p>
@@ -82,7 +99,9 @@ export function CertificateDialog({ certificate, user, open, onOpenChange }: Cer
 
             <div className="mt-4 flex w-full items-center justify-between border-t border-border pt-4 text-left text-sm">
               <div>
-                <p className="font-display text-lg italic text-foreground">Certified Deaf ISL Trainer</p>
+                <p className="font-display text-lg italic text-foreground">
+                  Certified Deaf ISL Trainer
+                </p>
                 <p className="text-xs text-muted-foreground">ISL Setu Training Panel</p>
               </div>
               <p className="text-xs text-muted-foreground">Signed digitally</p>
@@ -90,8 +109,8 @@ export function CertificateDialog({ certificate, user, open, onOpenChange }: Cer
 
             <p className="flex items-center gap-2 rounded-lg bg-warning/10 px-3 py-2 text-left text-xs text-warning">
               <ShieldAlert className="size-4 shrink-0" aria-hidden="true" />
-              This is an ISL Setu platform learning credential, not a government accreditation or official
-              interpreter licence.
+              This is an ISL Setu platform learning credential, not a government accreditation or
+              official interpreter licence.
             </p>
           </div>
         </motion.div>
@@ -103,7 +122,9 @@ export function CertificateDialog({ certificate, user, open, onOpenChange }: Cer
               try {
                 toast.loading("Preparing certificate PDF...");
                 const id = certificate.credential_id || certificate.id || "pending";
-                const resp = await fetch(`http://127.0.0.1:8000/api/certificate/${encodeURIComponent(id)}/pdf`);
+                const resp = await fetch(
+                  `http://127.0.0.1:8000/api/certificate/${encodeURIComponent(id)}/pdf`,
+                );
                 if (!resp.ok) throw new Error("Failed to generate certificate");
                 const blob = await resp.blob();
                 const url = URL.createObjectURL(blob);

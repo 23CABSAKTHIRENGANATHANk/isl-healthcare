@@ -40,7 +40,10 @@ export function HeroPipeline() {
               <span className="text-xs font-semibold text-foreground sm:text-sm">{node.label}</span>
             </motion.div>
             {index < nodes.length - 1 ? (
-              <span className="relative mx-1 h-0.5 flex-1 overflow-hidden rounded-full bg-border" aria-hidden="true">
+              <span
+                className="relative mx-1 h-0.5 flex-1 overflow-hidden rounded-full bg-border"
+                aria-hidden="true"
+              >
                 {reduce ? (
                   <span className="absolute inset-0 bg-gradient-brand opacity-60" />
                 ) : (
@@ -48,7 +51,12 @@ export function HeroPipeline() {
                     className="absolute inset-y-0 w-1/2 bg-gradient-brand"
                     initial={{ x: "-100%" }}
                     animate={{ x: "200%" }}
-                    transition={{ duration: 1.8, repeat: Infinity, delay: index * 0.35, ease: "easeInOut" }}
+                    transition={{
+                      duration: 1.8,
+                      repeat: Infinity,
+                      delay: index * 0.35,
+                      ease: "easeInOut",
+                    }}
                   />
                 )}
               </span>
@@ -57,8 +65,9 @@ export function HeroPipeline() {
         ))}
       </ol>
       <p className="mt-6 rounded-xl bg-surface px-4 py-3 text-sm text-muted-foreground">
-        Recognition currently runs in clearly labelled <strong className="text-foreground">Demo Mode</strong> — results
-        are simulated, never presented as live AI predictions.
+        Recognition currently runs in clearly labelled{" "}
+        <strong className="text-foreground">Demo Mode</strong> — results are simulated, never
+        presented as live AI predictions.
       </p>
     </div>
   );

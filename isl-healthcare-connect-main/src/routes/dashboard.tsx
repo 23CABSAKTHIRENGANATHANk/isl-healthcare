@@ -16,7 +16,7 @@ import {
 // Dynamic import of recharts — defers loading the chart chunk until
 // the dashboard is first visited, keeping initial JS bundle smaller.
 const DashboardAreaChart = lazy(() =>
-  import("@/components/charts/DashboardAreaChart").then((m) => ({ default: m.DashboardAreaChart }))
+  import("@/components/charts/DashboardAreaChart").then((m) => ({ default: m.DashboardAreaChart })),
 );
 
 import { PageShell } from "@/components/layout/AppLayout";
@@ -38,7 +38,7 @@ import {
   getRecommendedLessons,
   listAchievements,
   listActivity,
-  progressForLesson,
+  listLessonProgress,
 } from "@/services/progress.service";
 
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
@@ -49,10 +49,14 @@ export const Route = createFileRoute("/dashboard")({
       { title: "My ISL dashboard — ISL Setu" },
       {
         name: "description",
-        content: "Track your ISL learning progress, streak, practice accuracy, achievements and certification progress.",
+        content:
+          "Track your ISL learning progress, streak, practice accuracy, achievements and certification progress.",
       },
       { property: "og:title", content: "My ISL dashboard — ISL Setu" },
-      { property: "og:description", content: "Your ISL learning progress, streak and certification path." },
+      {
+        property: "og:description",
+        content: "Your ISL learning progress, streak and certification path.",
+      },
     ],
   }),
   component: DashboardPageWrapper,
@@ -75,12 +79,22 @@ function greeting(): string {
 
 function DashboardPage() {
   const { displayName } = useAuth();
-  const summary = useQuery({ queryKey: ["progress-summary"], queryFn: getProgressSummary });
-  const continueLesson = useQuery({ queryKey: ["continue-lesson"], queryFn: getContinueLesson });
-  const recommended = useQuery({ queryKey: ["recommended"], queryFn: () => getRecommendedLessons(3) });
-  const activity = useQuery({ queryKey: ["activity"], queryFn: listActivity });
-  const achievements = useQuery({ queryKey: ["achievements"], queryFn: listAchievements });
-  const certificates = useQuery({ queryKey: ["certificates"], queryFn: listCertificates });
+  const summary = useQuery({ queryKey: ["progress-summary"], queryFn: () => getProgressSummary() });
+  const continueLesson = useQuery({
+    queryKey: ["continue-lesson"],
+    queryFn: () => getContinueLesson(),
+  });
+  const recommended = useQuery({
+    queryKey: ["recommended"],
+    queryFn: () => getRecommendedLessons(3),
+  });
+  const activity = useQuery({ queryKey: ["activity"], queryFn: () => listActivity() });
+  const achievements = useQuery({ queryKey: ["achievements"], queryFn: () => listAchievements() });
+  const certificates = useQuery({ queryKey: ["certificates"], queryFn: () => listCertificates() });
+  const progressList = useQuery({
+    queryKey: ["lesson-progress"],
+    queryFn: () => listLessonProgress(),
+  });
 
   return (
     <PageShell>
@@ -116,7 +130,13 @@ function DashboardPage() {
             />
             <StatCard
               label="Current Level"
-              value={summary.data.level === "bronze" ? "Bronze" : summary.data.level === "silver" ? "Silver" : "Gold"}
+              value={
+                summary.data.level === "bronze"
+                  ? "Bronze"
+                  : summary.data.level === "silver"
+                    ? "Silver"
+                    : "Gold"
+              }
               icon={Award}
               tone="gold"
               animate={false}
@@ -170,10 +190,15 @@ function DashboardPage() {
                         className="mt-2 h-2"
                         aria-label={`${continueLesson.data.lesson.title} progress: ${continueLesson.data.percent}%`}
                       />
-                      <p className="mt-1 text-xs text-muted-foreground">{continueLesson.data.percent}% complete</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {continueLesson.data.percent}% complete
+                      </p>
                     </div>
                     <Button asChild variant="hero">
-                      <Link to="/learn/$lesson" params={{ lesson: continueLesson.data.lesson.slug }}>
+                      <Link
+                        to="/learn/$lesson"
+                        params={{ lesson: continueLesson.data.lesson.slug }}
+                      >
                         <PlayCircle aria-hidden="true" />
                         Resume
                       </Link>
@@ -204,13 +229,17 @@ function DashboardPage() {
                 {summary.data ? (
                   <>
                     <div className="h-64 w-full">
-                      <Suspense fallback={<div className="h-64 animate-pulse rounded-xl bg-muted/50" />}>
+                      <Suspense
+                        fallback={<div className="h-64 animate-pulse rounded-xl bg-muted/50" />}
+                      >
                         <DashboardAreaChart data={summary.data.weekly} />
                       </Suspense>
                     </div>
                     <p className="mt-2 text-sm text-muted-foreground">
-                      You practised on {summary.data.weekly.filter((d) => d.minutes > 0).length} of 7 days this week,
-                      for {summary.data.weekly.reduce((total, d) => total + d.minutes, 0)} minutes in total.
+                      You practised on {summary.data.weekly.filter((d) => d.minutes > 0).length} of
+                      7 days this week, for{" "}
+                      {summary.data.weekly.reduce((total, d) => total + d.minutes, 0)} minutes in
+                      total.
                     </p>
                   </>
                 ) : (
@@ -229,11 +258,21 @@ function DashboardPage() {
                 {recommended.isLoading || !recommended.data ? (
                   <LessonGridSkeleton count={3} />
                 ) : recommended.data.length === 0 ? (
-                  <EmptyState icon={BookOpen} title="All caught up" description="You have completed every available lesson." />
+                  <EmptyState
+                    icon={BookOpen}
+                    title="All caught up"
+                    description="You have completed every available lesson."
+                  />
                 ) : (
                   <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                     {recommended.data.map((lesson) => (
-                      <LessonCard key={lesson.id} lesson={lesson} percent={progressForLesson(lesson.id)} />
+                      <LessonCard
+                        key={lesson.id}
+                        lesson={lesson}
+                        percent={
+                          progressList.data?.find((p) => p.lesson_id === lesson.id)?.percent ?? 0
+                        }
+                      />
                     ))}
                   </div>
                 )}
@@ -259,14 +298,21 @@ function DashboardPage() {
                         <p className="text-sm font-medium text-foreground">{item.title}</p>
                         <p className="text-xs text-muted-foreground">{item.detail}</p>
                         <p className="text-xs text-muted-foreground">
-                          {new Date(item.at).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                          {new Date(item.at).toLocaleDateString("en-IN", {
+                            day: "numeric",
+                            month: "short",
+                          })}
                         </p>
                       </div>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <EmptyState icon={Activity} title="No activity yet" description="Your lessons and practice sessions will appear here." />
+                <EmptyState
+                  icon={Activity}
+                  title="No activity yet"
+                  description="Your lessons and practice sessions will appear here."
+                />
               )}
             </CardContent>
           </Card>
@@ -289,7 +335,9 @@ function DashboardPage() {
                       <Target className="size-5" aria-hidden="true" />
                     </span>
                     <p className="mt-1.5 text-xs font-medium text-foreground">{badge.name}</p>
-                    <p className="text-[11px] text-muted-foreground">{badge.earned ? "Earned" : "Locked"}</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {badge.earned ? "Earned" : "Locked"}
+                    </p>
                   </li>
                 ))}
               </ul>
@@ -308,7 +356,9 @@ function DashboardPage() {
                     <StatusBadge status={certificate.status} />
                   </div>
                   <Progress
-                    value={Math.round((certificate.signs_completed / certificate.signs_required) * 100)}
+                    value={Math.round(
+                      (certificate.signs_completed / certificate.signs_required) * 100,
+                    )}
                     className="h-2"
                     aria-label={`${certificate.title}: ${certificate.signs_completed} of ${certificate.signs_required} signs`}
                   />

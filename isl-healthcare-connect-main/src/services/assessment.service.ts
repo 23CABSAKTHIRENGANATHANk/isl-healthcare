@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Assessment and certification service with Supabase backend integration.
  */
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, from as dbFrom } from "@/integrations/supabase/client";
 import { bronzeAssessment, certificates as mockCertificates } from "./mock/data";
 import { unlockAchievement } from "./progress.service";
 import type { Assessment, AssessmentResult, Certificate, QuizQuestion } from "@/types";
@@ -9,26 +10,26 @@ import type { Assessment, AssessmentResult, Certificate, QuizQuestion } from "@/
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
 async function getAuthUserId(): Promise<string | null> {
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   return session?.user?.id ?? null;
 }
 
 export async function getAssessment(tier = "bronze"): Promise<Assessment | null> {
   try {
-    const { data: assessmentRow, error } = await supabase
-      .from("assessments")
+    const { data: assessmentRow, error } = await dbFrom("assessments")
       .select("*")
       .eq("tier", tier)
       .maybeSingle();
 
     if (!error && assessmentRow) {
-      const { data: questionRows } = await supabase
-        .from("assessment_questions")
+      const { data: questionRows } = await dbFrom("assessment_questions")
         .select("*")
         .eq("assessment_id", assessmentRow.id)
         .order("order_index", { ascending: true });
 
-      const questions: QuizQuestion[] = (questionRows ?? []).map((q) => ({
+      const questions: QuizQuestion[] = (questionRows ?? []).map((q: any) => ({
         id: q.id,
         prompt: q.prompt,
         kind: q.kind as QuizQuestion["kind"],
@@ -54,9 +55,14 @@ export async function getAssessment(tier = "bronze"): Promise<Assessment | null>
   return tier === "bronze" ? clone(bronzeAssessment) : null;
 }
 
-export function scoreAssessment(assessment: Assessment, answers: Record<string, string>): AssessmentResult {
+export function scoreAssessment(
+  assessment: Assessment,
+  answers: Record<string, string>,
+): AssessmentResult {
   const total = assessment.questions.length;
-  const score = assessment.questions.filter((question) => answers[question.id] === question.answer).length;
+  const score = assessment.questions.filter(
+    (question) => answers[question.id] === question.answer,
+  ).length;
   const accuracy = total === 0 ? 0 : Math.round((score / total) * 100);
   return {
     score,
@@ -81,7 +87,7 @@ export async function submitAssessment({
 
   try {
     // 1. Record result in database
-    await supabase.from("assessment_results").insert({
+    await dbFrom("assessment_results").insert({
       user_id: userId,
       assessment_id: assessment.id,
       score: result.score,
@@ -95,7 +101,7 @@ export async function submitAssessment({
     if (result.passed) {
       const certNumber = `ISL-${assessment.tier.toUpperCase()}-${Date.now().toString(36).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
-      await supabase.from("certificates").insert({
+      await dbFrom("certificates").insert({
         user_id: userId,
         tier: assessment.tier,
         title: `${assessment.tier.charAt(0).toUpperCase() + assessment.tier.slice(1)} Healthcare ISL Credential`,
@@ -112,8 +118,7 @@ export async function submitAssessment({
       }
 
       // Update profile current_level
-      await supabase
-        .from("profiles")
+      await dbFrom("profiles")
         .update({ current_level: assessment.tier, updated_at: new Date().toISOString() } as never)
         .eq("id", userId);
 
@@ -130,20 +135,23 @@ export async function listCertificates(): Promise<Certificate[]> {
   const userId = await getAuthUserId();
 
   try {
-    const { data, error } = await supabase
-      .from("certificates")
+    const { data, error } = await dbFrom("certificates")
       .select("*")
       .order("issued_at", { ascending: false });
 
     if (!error && data && data.length > 0) {
-      const userCerts = userId ? data.filter((c) => c.user_id === userId) : data;
+      const userCerts = userId ? data.filter((c: any) => c.user_id === userId) : data;
       if (userCerts.length > 0) {
-        return userCerts.map((row) => ({
+        return userCerts.map((row: any) => ({
           id: row.id,
           tier: row.tier as Certificate["tier"],
           title: row.title,
           subtitle: row.subtitle,
-          requirements: ["Complete Healthcare Curriculum", "Pass Timed Assessment (>=75%)", "Adhere to Responsible AI Code"],
+          requirements: [
+            "Complete Healthcare Curriculum",
+            "Pass Timed Assessment (>=75%)",
+            "Adhere to Responsible AI Code",
+          ],
           signs_required: row.tier === "bronze" ? 40 : row.tier === "silver" ? 150 : 300,
           signs_completed: row.tier === "bronze" ? 40 : row.tier === "silver" ? 150 : 300,
           status: row.status as Certificate["status"],

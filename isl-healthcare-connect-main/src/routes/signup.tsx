@@ -8,7 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAuth } from "@/hooks/use-auth";
 import { HEALTHCARE_ROLES, type HealthcareRole } from "@/types";
 
@@ -18,10 +24,14 @@ export const Route = createFileRoute("/signup")({
       { title: "Create your ISL Setu account" },
       {
         name: "description",
-        content: "Sign up as a nurse, receptionist, pharmacist, ASHA/ANM worker, doctor or counsellor and start learning ISL.",
+        content:
+          "Sign up as a nurse, receptionist, pharmacist, ASHA/ANM worker, doctor or counsellor and start learning ISL.",
       },
       { property: "og:title", content: "Create your ISL Setu account" },
-      { property: "og:description", content: "Learn ISL. Practice with AI. Communicate without barriers." },
+      {
+        property: "og:description",
+        content: "Learn ISL. Practice with AI. Communicate without barriers.",
+      },
     ],
   }),
   component: SignupPage,
@@ -69,8 +79,9 @@ function SignupPage() {
                 </span>
                 <h1 className="text-2xl font-bold text-foreground">Check your email to confirm</h1>
                 <p className="text-sm text-muted-foreground">
-                  We sent a confirmation link to <strong className="text-foreground">{email}</strong>. Open it to
-                  activate your account, then log in.
+                  We sent a confirmation link to{" "}
+                  <strong className="text-foreground">{email}</strong>. Open it to activate your
+                  account, then log in.
                 </p>
                 <Button asChild variant="outline" className="w-full">
                   <Link to="/login">Go to log in</Link>
@@ -127,7 +138,10 @@ function SignupPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="role">Healthcare role</Label>
-                    <Select value={role} onValueChange={(value) => setRole(value as HealthcareRole)}>
+                    <Select
+                      value={role}
+                      onValueChange={(value) => setRole(value as HealthcareRole)}
+                    >
                       <SelectTrigger id="role" className="h-11">
                         <SelectValue placeholder="Select your role" />
                       </SelectTrigger>
@@ -142,20 +156,30 @@ function SignupPage() {
                   </div>
 
                   {error ? (
-                    <p role="alert" className="rounded-xl bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive">
+                    <p
+                      role="alert"
+                      className="rounded-xl bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive"
+                    >
                       {error}
                     </p>
                   ) : null}
 
                   <Button type="submit" variant="hero" size="lg" className="w-full" disabled={busy}>
-                    {busy ? <Loader2 className="animate-spin" aria-hidden="true" /> : <UserPlus aria-hidden="true" />}
+                    {busy ? (
+                      <Loader2 className="animate-spin" aria-hidden="true" />
+                    ) : (
+                      <UserPlus aria-hidden="true" />
+                    )}
                     {busy ? "Creating account…" : "Create account"}
                   </Button>
                 </form>
 
                 <p className="mt-6 text-sm text-muted-foreground">
                   Already have an account?{" "}
-                  <Link to="/login" className="font-semibold text-primary underline-offset-4 hover:underline">
+                  <Link
+                    to="/login"
+                    className="font-semibold text-primary underline-offset-4 hover:underline"
+                  >
                     Log in
                   </Link>
                 </p>

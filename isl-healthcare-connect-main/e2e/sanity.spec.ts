@@ -46,10 +46,10 @@ test.describe("Assessment Page", () => {
     // Check for navbar with key links
     const practiceLink = page.locator('a:has-text("Practice")').first();
     await expect(practiceLink).toBeVisible();
-    
+
     const voicebridgeLink = page.locator('a:has-text("VoiceBridge")').first();
     await expect(voicebridgeLink).toBeVisible();
-    
+
     const assessmentLink = page.locator('a:has-text("Assessment")').first();
     await expect(assessmentLink).toBeVisible();
   });
@@ -64,7 +64,7 @@ test.describe("Assessment Flow (Full)", () => {
       // Skip this test if auth redirects
       test.skip();
     }
-    
+
     // Look for assessment header
     const assessmentTitle = page.locator("text=/Healthcare ISL Assessment|Bronze/i").first();
     await expect(assessmentTitle).toBeVisible({ timeout: 5000 });
@@ -79,7 +79,7 @@ test.describe("Assessment Flow (Full)", () => {
 
     // Wait for first question to render
     await page.waitForTimeout(500);
-    
+
     // Try to select a radio option if visible
     const radioOptions = page.locator("input[type='radio']");
     const count = await radioOptions.count();
@@ -111,7 +111,7 @@ test.describe("Assessment Flow (Full)", () => {
     // Check if we can see a Submit button eventually
     const submitButton = page.locator("button:has-text('Submit')").first();
     const visible = await submitButton.isVisible({ timeout: 2000 }).catch(() => false);
-    
+
     // If Submit is visible, verify it exists (don't click to avoid long timeout)
     if (visible) {
       await expect(submitButton).toBeVisible();

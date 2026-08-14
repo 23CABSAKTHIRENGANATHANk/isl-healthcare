@@ -92,7 +92,11 @@ function AboutPage() {
       </section>
 
       <section aria-labelledby="accessibility-heading" className="flex flex-col gap-6">
-        <SectionHeading align="left" eyebrow="Accessibility" title="Designed to be usable by everyone" />
+        <SectionHeading
+          align="left"
+          eyebrow="Accessibility"
+          title="Designed to be usable by everyone"
+        />
         <AccessibilitySection />
       </section>
 
@@ -121,7 +125,8 @@ function AboutPage() {
             Ready to see ISL Setu in action?
           </h2>
           <p className="max-w-xl text-muted-foreground">
-            Start with a healthcare ISL lesson, or try VoiceBridge to see how our communication tool works.
+            Start with a healthcare ISL lesson, or try VoiceBridge to see how our communication tool
+            works.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <Button variant="hero" size="lg" asChild>

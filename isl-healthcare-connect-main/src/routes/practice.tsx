@@ -1,6 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Bot, CheckCircle2, Cpu, Gauge, HelpCircle, Info, RefreshCw, Sparkles, Target, Volume2, XCircle } from "lucide-react";
+import {
+  Bot,
+  CheckCircle2,
+  Cpu,
+  Gauge,
+  HelpCircle,
+  Info,
+  RefreshCw,
+  Sparkles,
+  Target,
+  Volume2,
+  XCircle,
+} from "lucide-react";
 import { useState } from "react";
 
 import { CameraPreview } from "@/components/common/CameraPreview";
@@ -23,10 +35,14 @@ export const Route = createFileRoute("/practice")({
       { title: "Practice ISL signs with AI feedback" },
       {
         name: "description",
-        content: "Practise healthcare ISL signs with real-time MediaPipe hand tracking and AI model feedback.",
+        content:
+          "Practise healthcare ISL signs with real-time MediaPipe hand tracking and AI model feedback.",
       },
       { property: "og:title", content: "Practice ISL signs with AI feedback" },
-      { property: "og:description", content: "Camera-based ISL practice with instant confidence scoring." },
+      {
+        property: "og:description",
+        content: "Camera-based ISL practice with instant confidence scoring.",
+      },
     ],
   }),
   component: PracticePageWrapper,
@@ -88,10 +104,12 @@ function PracticePage() {
           matched: false,
           mode: prediction.mode,
           modelVersion: prediction.model_version,
-          message: prediction.message || "Sign not recognised. Try again with better lighting and keep hand inside frame.",
+          message:
+            prediction.message ||
+            "Sign not recognised. Try again with better lighting and keep hand inside frame.",
         });
         speak("Sign not recognised. Please try again with clear lighting.");
-        
+
         void logPracticeAttempt({
           signId: target.id,
           predictedSign: null,
@@ -103,8 +121,10 @@ function PracticePage() {
       }
 
       setPhase("detected");
-      const matched = prediction.sign.toUpperCase() === target.gloss.toUpperCase() && prediction.confidence >= 0.70;
-      
+      const matched =
+        prediction.sign.toUpperCase() === target.gloss.toUpperCase() &&
+        prediction.confidence >= 0.7;
+
       if (matched) {
         setCorrect((v) => v + 1);
       }
@@ -118,7 +138,11 @@ function PracticePage() {
         message: prediction.message,
       });
 
-      speak(matched ? `Correct. ${target.gloss}` : `Detected ${prediction.sign}. Try again for ${target.gloss}`);
+      speak(
+        matched
+          ? `Correct. ${target.gloss}`
+          : `Detected ${prediction.sign}. Try again for ${target.gloss}`,
+      );
 
       void logPracticeAttempt({
         signId: target.id,
@@ -167,8 +191,22 @@ function PracticePage() {
 
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
         <StatCard label="Attempts" value={attempts} icon={Target} animate={false} />
-        <StatCard label="Correct Signs" value={correct} icon={Sparkles} tone="teal" animate={false} />
-        <StatCard label="Session Accuracy" value={accuracy} suffix="%" icon={Gauge} tone="success" progress={accuracy} animate={false} />
+        <StatCard
+          label="Correct Signs"
+          value={correct}
+          icon={Sparkles}
+          tone="teal"
+          animate={false}
+        />
+        <StatCard
+          label="Session Accuracy"
+          value={accuracy}
+          suffix="%"
+          icon={Gauge}
+          tone="success"
+          progress={accuracy}
+          animate={false}
+        />
       </div>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
@@ -219,9 +257,12 @@ function PracticePage() {
                       <Volume2 className="size-4" aria-hidden="true" />
                     </Button>
                   </div>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{target.meaning}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    {target.meaning}
+                  </p>
                   <p className="mt-3 text-xs text-muted-foreground">
-                    <span className="font-semibold text-foreground">Regional note:</span> {target.region_note}
+                    <span className="font-semibold text-foreground">Regional note:</span>{" "}
+                    {target.region_note}
                   </p>
                 </>
               ) : (
@@ -243,7 +284,13 @@ function PracticePage() {
                     ) : (
                       <XCircle className="size-5 text-destructive" aria-hidden="true" />
                     )}
-                    <p className={result.matched ? "text-sm font-bold text-success" : "text-sm font-bold text-destructive"}>
+                    <p
+                      className={
+                        result.matched
+                          ? "text-sm font-bold text-success"
+                          : "text-sm font-bold text-destructive"
+                      }
+                    >
                       {result.matched ? "Verified Correct Match ✓" : "Needs Adjustment"}
                     </p>
                   </div>
@@ -255,7 +302,9 @@ function PracticePage() {
                   <div>
                     <div className="flex justify-between text-xs text-muted-foreground">
                       <span>Confidence Score</span>
-                      <span className="font-semibold text-foreground">{Math.round(result.confidence * 100)}%</span>
+                      <span className="font-semibold text-foreground">
+                        {Math.round(result.confidence * 100)}%
+                      </span>
                     </div>
                     <Progress
                       value={Math.round(result.confidence * 100)}
@@ -274,7 +323,10 @@ function PracticePage() {
               ) : (
                 <div className="flex items-start gap-2 text-xs text-muted-foreground">
                   <HelpCircle className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-                  <p>Position your hand clearly inside the camera box and click "Check Sign" to receive landmark-based feedback.</p>
+                  <p>
+                    Position your hand clearly inside the camera box and click "Check Sign" to
+                    receive landmark-based feedback.
+                  </p>
                 </div>
               )}
             </CardContent>

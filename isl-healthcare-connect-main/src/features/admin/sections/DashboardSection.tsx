@@ -4,7 +4,12 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { StatCard } from "@/components/common/StatCard";
 import { StatGridSkeleton } from "@/components/common/LoadingStates";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
 import type { Certificate, HospitalAnalytics, Lesson, Sign, StaffMember } from "@/types";
 
 const config = {
@@ -54,7 +59,12 @@ export function DashboardSection({
                 <XAxis dataKey="month" tickLine={false} axisLine={false} />
                 <YAxis tickLine={false} axisLine={false} allowDecimals={false} />
                 <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="bronze" stackId="c" fill="var(--color-bronze)" radius={[0, 0, 4, 4]} />
+                <Bar
+                  dataKey="bronze"
+                  stackId="c"
+                  fill="var(--color-bronze)"
+                  radius={[0, 0, 4, 4]}
+                />
                 <Bar dataKey="silver" stackId="c" fill="var(--color-silver)" />
                 <Bar dataKey="gold" stackId="c" fill="var(--color-gold)" radius={[4, 4, 0, 0]} />
               </BarChart>

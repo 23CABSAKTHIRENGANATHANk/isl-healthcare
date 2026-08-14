@@ -23,38 +23,44 @@ export function CameraTaskQuestion({ targetSign, value, onAnswer }: CameraTaskQu
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
 
-  const runDetection = useCallback(async (forcedMode: "ai" | "demo" = "ai") => {
-    setBusy(true);
-    setFeedback(null);
-    setPhase("scanning");
-    await new Promise((resolve) => setTimeout(resolve, 400));
-    setPhase("recognising");
+  const runDetection = useCallback(
+    async (forcedMode: "ai" | "demo" = "ai") => {
+      setBusy(true);
+      setFeedback(null);
+      setPhase("scanning");
+      await new Promise((resolve) => setTimeout(resolve, 400));
+      setPhase("recognising");
 
-    const frame = status === "ready" ? videoRef.current : null;
-    const result = await predictSign(frame, { targetSign, mode: forcedMode });
+      const frame = status === "ready" ? videoRef.current : null;
+      const result = await predictSign(frame, { targetSign, mode: forcedMode });
 
-    if (result && result.success && result.sign) {
-      setConfidence(result.confidence);
-      const isMatch = result.sign.toUpperCase() === targetSign.toUpperCase() && result.confidence >= 0.70;
-      
-      if (isMatch) {
-        setPhase("detected");
-        setDetected(result.sign);
-        onAnswer(targetSign);
-        setFeedback(`Verified match: ${result.sign} (${Math.round(result.confidence * 100)}% confidence)`);
+      if (result && result.success && result.sign) {
+        setConfidence(result.confidence);
+        const isMatch =
+          result.sign.toUpperCase() === targetSign.toUpperCase() && result.confidence >= 0.7;
+
+        if (isMatch) {
+          setPhase("detected");
+          setDetected(result.sign);
+          onAnswer(targetSign);
+          setFeedback(
+            `Verified match: ${result.sign} (${Math.round(result.confidence * 100)}% confidence)`,
+          );
+        } else {
+          setPhase("failed");
+          setDetected(result.sign);
+          onAnswer(result.sign);
+          setFeedback(`Recognised as ${result.sign}, but target was ${targetSign}.`);
+        }
       } else {
         setPhase("failed");
-        setDetected(result.sign);
-        onAnswer(result.sign);
-        setFeedback(`Recognised as ${result.sign}, but target was ${targetSign}.`);
+        setDetected(null);
+        setFeedback(result?.message || "Sign not recognised. Hold hand steady and try again.");
       }
-    } else {
-      setPhase("failed");
-      setDetected(null);
-      setFeedback(result?.message || "Sign not recognised. Hold hand steady and try again.");
-    }
-    setBusy(false);
-  }, [onAnswer, status, targetSign, videoRef]);
+      setBusy(false);
+    },
+    [onAnswer, status, targetSign, videoRef],
+  );
 
   const isCorrect = value.toUpperCase() === targetSign.toUpperCase();
 
@@ -111,7 +117,10 @@ export function CameraTaskQuestion({ targetSign, value, onAnswer }: CameraTaskQu
       {!value && !feedback && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <AlertCircle className="size-3.5 text-primary" />
-          <span>Show the <strong className="text-foreground">{targetSign}</strong> sign clearly to your camera, then click "Record & Verify Sign".</span>
+          <span>
+            Show the <strong className="text-foreground">{targetSign}</strong> sign clearly to your
+            camera, then click "Record & Verify Sign".
+          </span>
         </div>
       )}
     </div>

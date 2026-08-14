@@ -48,7 +48,11 @@ async function mockSupabaseAuth(page: Page) {
     }
 
     // assessment_results, certificates — return empty OK
-    if (url.includes("/assessment_results") || url.includes("/certificates") || url.includes("/profiles")) {
+    if (
+      url.includes("/assessment_results") ||
+      url.includes("/certificates") ||
+      url.includes("/profiles")
+    ) {
       return route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -150,7 +154,9 @@ test.describe("Assessment → Certificate Flow", () => {
     await page.waitForLoadState("networkidle", { timeout: 8000 }).catch(() => null);
 
     // Look for a Download PDF button (our updated CertificationDashboard renders this for completed certs)
-    const downloadBtn = page.locator("button:has-text('Download PDF'), a:has-text('Download PDF')").first();
+    const downloadBtn = page
+      .locator("button:has-text('Download PDF'), a:has-text('Download PDF')")
+      .first();
     const viewBtn = page.locator("button:has-text('View'), a:has-text('View')").first();
 
     // One of these should exist if there are completed certs

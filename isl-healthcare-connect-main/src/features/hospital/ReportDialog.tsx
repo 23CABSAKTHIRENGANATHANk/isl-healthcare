@@ -22,7 +22,8 @@ export function ReportDialog({
   return (
     <Dialog
       onOpenChange={(open) => {
-        if (open) toast("Report generated", { description: "A readiness summary is ready to review." });
+        if (open)
+          toast("Report generated", { description: "A readiness summary is ready to review." });
       }}
     >
       <DialogTrigger asChild>

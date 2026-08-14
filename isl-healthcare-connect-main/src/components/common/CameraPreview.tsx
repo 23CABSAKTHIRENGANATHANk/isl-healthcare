@@ -50,11 +50,19 @@ export function CameraPreview({
             <span
               className={cn(
                 "size-2.5 rounded-full",
-                live ? "bg-success" : status === "requesting" ? "bg-warning" : "bg-muted-foreground",
+                live
+                  ? "bg-success"
+                  : status === "requesting"
+                    ? "bg-warning"
+                    : "bg-muted-foreground",
               )}
               aria-hidden="true"
             />
-            {live ? phaseLabels[phase] : status === "requesting" ? "Requesting camera…" : "Camera off"}
+            {live
+              ? phaseLabels[phase]
+              : status === "requesting"
+                ? "Requesting camera…"
+                : "Camera off"}
           </p>
           {targetSign ? (
             <p className="rounded-full bg-primary/15 px-3 py-1 text-sm font-bold tracking-wide text-primary">
@@ -124,10 +132,12 @@ export function CameraPreview({
                   <span className="mx-auto grid size-12 place-items-center rounded-2xl bg-primary/15 text-primary">
                     <Camera className="size-6" aria-hidden="true" />
                   </span>
-                  <h3 className="text-base font-semibold text-card-foreground">Before we turn on your camera</h3>
+                  <h3 className="text-base font-semibold text-card-foreground">
+                    Before we turn on your camera
+                  </h3>
                   <p className="text-sm text-muted-foreground">
-                    Your camera is used for sign practice. Camera footage is not stored by default and nothing is
-                    uploaded from this screen.
+                    Your camera is used for sign practice. Camera footage is not stored by default
+                    and nothing is uploaded from this screen.
                   </p>
                   <Button variant="hero" onClick={onStart}>
                     <Camera aria-hidden="true" />

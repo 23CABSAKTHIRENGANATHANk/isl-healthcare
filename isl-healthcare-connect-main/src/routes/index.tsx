@@ -59,9 +59,27 @@ const stats = [
     note: "Estimate, not a verified count",
     icon: Users,
   },
-  { value: 4, suffix: "", label: "Core platform capabilities", note: "Learn · Practice · Communicate · Certify", icon: Sparkles },
-  { value: 50, suffix: "+", label: "Healthcare signs planned for MVP", note: "Planned scope for the first release", icon: Hand },
-  { value: 24, suffix: "/7", label: "Digital learning access", note: "Self-paced, any shift pattern", icon: Clock },
+  {
+    value: 4,
+    suffix: "",
+    label: "Core platform capabilities",
+    note: "Learn · Practice · Communicate · Certify",
+    icon: Sparkles,
+  },
+  {
+    value: 50,
+    suffix: "+",
+    label: "Healthcare signs planned for MVP",
+    note: "Planned scope for the first release",
+    icon: Hand,
+  },
+  {
+    value: 24,
+    suffix: "/7",
+    label: "Digital learning access",
+    note: "Self-paced, any shift pattern",
+    icon: Clock,
+  },
 ];
 
 const problems = [
@@ -119,18 +137,54 @@ const capabilities = [
 ];
 
 const steps = [
-  { icon: BookOpen, title: "Learn", body: "Work through healthcare-first lesson categories at your own pace." },
-  { icon: Hand, title: "Practice", body: "Rehearse each sign in front of the camera with guided hand positioning." },
-  { icon: Mic, title: "Communicate", body: "Use VoiceBridge at the desk or bedside for core patient needs." },
-  { icon: ClipboardCheck, title: "Assess", body: "Take a mixed assessment covering identification and live signing tasks." },
-  { icon: Award, title: "Certify", body: "Earn an ISL Setu credential and track it at facility level." },
+  {
+    icon: BookOpen,
+    title: "Learn",
+    body: "Work through healthcare-first lesson categories at your own pace.",
+  },
+  {
+    icon: Hand,
+    title: "Practice",
+    body: "Rehearse each sign in front of the camera with guided hand positioning.",
+  },
+  {
+    icon: Mic,
+    title: "Communicate",
+    body: "Use VoiceBridge at the desk or bedside for core patient needs.",
+  },
+  {
+    icon: ClipboardCheck,
+    title: "Assess",
+    body: "Take a mixed assessment covering identification and live signing tasks.",
+  },
+  {
+    icon: Award,
+    title: "Certify",
+    body: "Earn an ISL Setu credential and track it at facility level.",
+  },
 ];
 
 const rural = [
-  { icon: WifiOff, title: "Offline Learning", body: "Planned progressive web app support so lessons keep working on weak connections." },
-  { icon: Smartphone, title: "Mobile First", body: "Large targets, bottom navigation and camera-first layouts on small screens." },
-  { icon: HeartHandshake, title: "ASHA / ANM Friendly", body: "Short, role-relevant modules designed around community health visits." },
-  { icon: Building2, title: "District ISL Champions", body: "A planned model where trained staff support colleagues locally." },
+  {
+    icon: WifiOff,
+    title: "Offline Learning",
+    body: "Planned progressive web app support so lessons keep working on weak connections.",
+  },
+  {
+    icon: Smartphone,
+    title: "Mobile First",
+    body: "Large targets, bottom navigation and camera-first layouts on small screens.",
+  },
+  {
+    icon: HeartHandshake,
+    title: "ASHA / ANM Friendly",
+    body: "Short, role-relevant modules designed around community health visits.",
+  },
+  {
+    icon: Building2,
+    title: "District ISL Champions",
+    body: "A planned model where trained staff support colleagues locally.",
+  },
 ];
 
 function Landing() {
@@ -139,7 +193,10 @@ function Landing() {
       <section className="bg-gradient-hero">
         <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:py-24">
           <Reveal>
-            <Badge variant="outline" className="mb-5 gap-1.5 rounded-full border-primary/25 bg-card px-3 py-1.5">
+            <Badge
+              variant="outline"
+              className="mb-5 gap-1.5 rounded-full border-primary/25 bg-card px-3 py-1.5"
+            >
               <Stethoscope className="size-3.5 text-primary" aria-hidden="true" />
               Healthcare-first Indian Sign Language platform
             </Badge>
@@ -150,9 +207,10 @@ function Landing() {
               Learn Indian Sign Language, practice with AI, and communicate with confidence.
             </p>
             <p className="mt-4 max-w-xl text-muted-foreground">
-              ISL Setu is a complete learning, communication and certification platform for healthcare teams —
-              receptionists, nurses, pharmacists, ASHA and ANM workers, security staff, doctors and counsellors. Learn
-              the signs, practise them, then use them where they matter.
+              ISL Setu is a complete learning, communication and certification platform for
+              healthcare teams — receptionists, nurses, pharmacists, ASHA and ANM workers, security
+              staff, doctors and counsellors. Learn the signs, practise them, then use them where
+              they matter.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild variant="hero" size="lg">
@@ -244,7 +302,11 @@ function Landing() {
                   </span>
                   <h3 className="text-lg font-semibold text-foreground">{item.title}</h3>
                   <p className="text-sm text-muted-foreground">{item.body}</p>
-                  <Button asChild variant="ghost" className="mt-auto justify-start px-0 text-primary hover:bg-transparent">
+                  <Button
+                    asChild
+                    variant="ghost"
+                    className="mt-auto justify-start px-0 text-primary hover:bg-transparent"
+                  >
                     <Link to={item.to}>{item.cta} →</Link>
                   </Button>
                 </CardContent>
@@ -317,13 +379,20 @@ function Landing() {
                 <Languages className="size-5" aria-hidden="true" />
               </span>
               <div>
-                <h3 className="text-lg font-semibold text-foreground">ISL is not one uniform language</h3>
+                <h3 className="text-lg font-semibold text-foreground">
+                  ISL is not one uniform language
+                </h3>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  ISL Setu uses credible ISL learning resources and clearly labels regional variations rather than
-                  presenting one form as universal. Where a sign differs across regions, the lesson says so and asks you
-                  to confirm the local variant with Deaf signers in your area.
+                  ISL Setu uses credible ISL learning resources and clearly labels regional
+                  variations rather than presenting one form as universal. Where a sign differs
+                  across regions, the lesson says so and asks you to confirm the local variant with
+                  Deaf signers in your area.
                 </p>
-                <Button asChild variant="ghost" className="mt-3 px-0 text-primary hover:bg-transparent">
+                <Button
+                  asChild
+                  variant="ghost"
+                  className="mt-3 px-0 text-primary hover:bg-transparent"
+                >
                   <Link to="/accessibility">
                     <Info aria-hidden="true" />
                     Read our Responsible AI &amp; accessibility statement
@@ -345,8 +414,8 @@ function Landing() {
               Start with one sign. Change how your facility communicates.
             </h2>
             <p className="mt-3 text-muted-foreground">
-              Healthcare first, with the architecture ready for education, government, banking and workplace sectors
-              next.
+              Healthcare first, with the architecture ready for education, government, banking and
+              workplace sectors next.
             </p>
             <div className="mt-7 flex flex-wrap justify-center gap-3">
               <Button asChild variant="hero" size="lg">

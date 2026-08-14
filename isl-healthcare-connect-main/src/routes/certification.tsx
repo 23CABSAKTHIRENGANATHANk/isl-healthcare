@@ -17,12 +17,14 @@ export const Route = createFileRoute("/certification")({
       { title: "Certification Dashboard | ISL Setu" },
       {
         name: "description",
-        content: "Track your Bronze, Silver and Gold healthcare ISL certifications and view or download your credentials.",
+        content:
+          "Track your Bronze, Silver and Gold healthcare ISL certifications and view or download your credentials.",
       },
       { property: "og:title", content: "Certification Dashboard | ISL Setu" },
       {
         property: "og:description",
-        content: "Track your Bronze, Silver and Gold healthcare ISL certifications and view or download your credentials.",
+        content:
+          "Track your Bronze, Silver and Gold healthcare ISL certifications and view or download your credentials.",
       },
     ],
   }),
@@ -38,7 +40,11 @@ function CertificationPageWrapper() {
 }
 
 function CertificationPage() {
-  const { data: certificates, isLoading, isError } = useQuery({
+  const {
+    data: certificates,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ["certificates"],
     queryFn: listCertificates,
   });
@@ -55,7 +61,10 @@ function CertificationPage() {
         {isLoading ? (
           <div className="grid gap-6 lg:grid-cols-3" aria-busy="true" aria-live="polite">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="h-96 animate-pulse rounded-2xl border border-border bg-muted/40" />
+              <div
+                key={i}
+                className="h-96 animate-pulse rounded-2xl border border-border bg-muted/40"
+              />
             ))}
           </div>
         ) : isError || !certificates || certificates.length === 0 ? (

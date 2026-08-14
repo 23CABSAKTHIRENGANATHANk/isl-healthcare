@@ -19,7 +19,14 @@ const toneClasses = {
   destructive: "bg-destructive/10 text-destructive",
 };
 
-export function EmptyState({ icon: Icon, title, description, action, tone = "neutral", className }: EmptyStateProps) {
+export function EmptyState({
+  icon: Icon,
+  title,
+  description,
+  action,
+  tone = "neutral",
+  className,
+}: EmptyStateProps) {
   return (
     <Card className={cn("rounded-2xl border-dashed border-border shadow-none", className)}>
       <CardContent className="flex flex-col items-center gap-3 px-6 py-12 text-center">
