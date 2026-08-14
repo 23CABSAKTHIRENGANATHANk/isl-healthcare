@@ -8,6 +8,7 @@ import { PageShell } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/common/PageHeader";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
 import { SignCard } from "@/components/common/SignCard";
+import { SignDisplay } from "@/components/common/SignDisplay";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -136,12 +137,12 @@ function LessonPlayer() {
           <CardContent>
             {current && !done ? (
               <>
-                <div className="grid aspect-video w-full place-items-center rounded-2xl bg-gradient-brand text-center text-primary-foreground">
-                  <div className="px-6">
-                    <p className="text-3xl font-bold sm:text-5xl">{current.gloss}</p>
-                    <p className="mt-2 text-sm opacity-90">Demo Mode: illustrative sign playback</p>
-                  </div>
-                </div>
+                <SignDisplay
+                  gloss={current.gloss}
+                  meaning={current.meaning}
+                  videoUrl={current.video_url}
+                  demoMode={!current.video_url}
+                />
                 <p className="mt-5 text-sm leading-relaxed text-foreground">{current.meaning}</p>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Regional note: {current.region_note}
