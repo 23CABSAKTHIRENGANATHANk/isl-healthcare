@@ -200,9 +200,9 @@ function PracticePage() {
 
       if (matched) {
         setCorrect((v) => v + 1);
-        speak(`Great! ${target.gloss} matched.`);
+        speak(`Excellent! ${target.gloss} matched. ${Math.round(prediction.confidence * 100)}% accurate.`);
       } else {
-        speak(`Detected ${prediction.sign}. Expected ${target.gloss}.`);
+        speak(`Detected ${prediction.sign}. Expected ${target.gloss}. Try again.`);
       }
 
       setResult({
@@ -212,8 +212,8 @@ function PracticePage() {
         mode: prediction.mode,
         modelVersion: prediction.model_version,
         message: matched
-          ? `High accuracy gesture match! (${Math.round(prediction.confidence * 100)}%)`
-          : `Gesture matched ${prediction.sign} instead of ${target.gloss}. Adjust finger angle.`,
+          ? `✓ Perfect gesture match! (${Math.round(prediction.confidence * 100)}% confidence)`
+          : `Detected ${prediction.sign} but expected ${target.gloss}. Adjust hand position.`,
       });
 
       void logPracticeAttempt({

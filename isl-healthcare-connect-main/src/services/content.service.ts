@@ -20,6 +20,7 @@ export async function listLessons(): Promise<Lesson[]> {
       .order("order_index", { ascending: true });
 
     if (!error && data && data.length > 0) {
+      console.log("[ContentService] Loaded lessons from Supabase:", data.length);
       return data.map((row: any) => ({
         id: row.id,
         slug: row.slug,
@@ -37,10 +38,15 @@ export async function listLessons(): Promise<Lesson[]> {
         }[],
         quiz: (Array.isArray(row.quiz) ? row.quiz : []) as QuizQuestion[],
       }));
+    } else if (error) {
+      console.warn("[ContentService] Supabase error - using mock data:", error.message);
+    } else {
+      console.log("[ContentService] No Supabase data - using mock lessons");
     }
   } catch (err) {
-    console.warn("[ContentService] Supabase listLessons fallback:", err);
+    console.warn("[ContentService] Supabase listLessons exception:", err);
   }
+  console.log("[ContentService] Returning mock lessons - count:", mockLessons.length);
   return clone(mockLessons);
 }
 
@@ -95,6 +101,7 @@ export async function listSigns(): Promise<Sign[]> {
     const { data, error } = await dbFrom("signs").select("*").eq("is_published", true);
 
     if (!error && data && data.length > 0) {
+      console.log("[ContentService] Loaded signs from Supabase:", data.length);
       return data.map((row: any) => ({
         id: row.id,
         gloss: row.gloss,
@@ -105,10 +112,15 @@ export async function listSigns(): Promise<Sign[]> {
         video_url: row.video_url,
         steps: (Array.isArray(row.steps) ? row.steps : []) as string[],
       }));
+    } else if (error) {
+      console.warn("[ContentService] Supabase error - using mock data:", error.message);
+    } else {
+      console.log("[ContentService] No Supabase data - using mock signs");
     }
   } catch (err) {
-    console.warn("[ContentService] Supabase listSigns fallback:", err);
+    console.warn("[ContentService] Supabase listSigns exception:", err);
   }
+  console.log("[ContentService] Returning mock signs - count:", mockSigns.length);
   return clone(mockSigns);
 }
 
