@@ -114,6 +114,7 @@ function PracticePage() {
   const [checking, setChecking] = useState(false);
   const { videoRef, status, message, start, isLive } = useCamera();
   const [phase, setPhase] = useState<RecognitionPhase>("idle");
+  const hasSpokenForCurrentSign = useRef(false);
 
   const items = signs.data ?? [];
   const target = items[index];
@@ -133,6 +134,7 @@ function PracticePage() {
         setIndex(foundIdx);
         setResult(null);
         setCountdown(null);
+        hasSpokenForCurrentSign.current = false;
       }
     }
   }, [searchParams.sign, items]);
@@ -223,7 +225,12 @@ function PracticePage() {
       if (matched) {
         setCorrect((v) => v + 1);
         setCompletedSigns((prev) => new Set([...prev, target.id]));
-        speak(`Great! ${target.gloss} matched.`);
+
+        // Speak only ONCE per sign match — never repeat
+        if (!hasSpokenForCurrentSign.current) {
+          hasSpokenForCurrentSign.current = true;
+          speak(`Great! ${target.gloss} matched.`);
+        }
 
         setResult({
           gloss: prediction.sign,
@@ -265,6 +272,7 @@ function PracticePage() {
   const handleNext = () => {
     setCountdown(null);
     setResult(null);
+    hasSpokenForCurrentSign.current = false;
     if (items.length === 0) return;
     const nextIdx = (index + 1) % items.length;
     setIndex(nextIdx);
@@ -276,6 +284,7 @@ function PracticePage() {
   const handlePrev = () => {
     setCountdown(null);
     setResult(null);
+    hasSpokenForCurrentSign.current = false;
     if (items.length === 0) return;
     const prevIdx = (index - 1 + items.length) % items.length;
     setIndex(prevIdx);
@@ -284,6 +293,7 @@ function PracticePage() {
   const handleSelectSign = (signIndex: number) => {
     setCountdown(null);
     setResult(null);
+    hasSpokenForCurrentSign.current = false;
     setIndex(signIndex);
   };
 

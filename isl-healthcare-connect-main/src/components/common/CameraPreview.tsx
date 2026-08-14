@@ -1,7 +1,7 @@
 /**
  * Camera Preview Component — ISL Setu
- * Dark-surface camera stage with real-time AR 3D Hand Skeleton Overlay,
- * Joint angle guidance telemetry HUD, and state transition animations.
+ * Dark-surface camera stage with sign-adaptive AR 3D Hand Skeleton Overlay,
+ * Joint angle guidance telemetry HUD, and dynamic pose shape templates.
  */
 import {
   AlertTriangle,
@@ -49,7 +49,7 @@ export function CameraPreview({
   message,
   phase,
   onStart,
-  targetSign,
+  targetSign = "HELLO",
   className,
   children,
 }: CameraPreviewProps) {
@@ -57,7 +57,20 @@ export function CameraPreview({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animFrameId = useRef<number | null>(null);
 
-  // Real-time AR Hand Landmark Skeleton Animation Loop
+  const signUpper = (targetSign || "HELLO").toUpperCase().trim();
+
+  // Determine gesture shape label
+  const getGestureShapeName = () => {
+    if (["INJURY", "ONE", "POINT", "YOU"].includes(signUpper)) return "Index Pointing Pose (1-Finger)";
+    if (["BREAK", "FEDUP", "YES", "STOP"].includes(signUpper)) return "Closed Fist / Grip Pose";
+    if (["WHAT IS YOUR NAME", "EXAM", "MATHS", "PEACOCK"].includes(signUpper)) return "Two-Finger (V / H) Pose";
+    if (["DRINK", "TEA", "POUR", "WATER"].includes(signUpper)) return "Cupped C-Shape Pose";
+    if (["MEDICINE", "FOOD", "LEMON", "KEY"].includes(signUpper)) return "Pinch / O-Shape Finger Pose";
+    if (["FEVER", "HEADACHE", "TEMPLE"].includes(signUpper)) return "Forehead Flat Palm Pose";
+    return "Open 5-Palm Pose";
+  };
+
+  // Real-time AR Hand Landmark Skeleton Animation Loop with sign-specific shapes
   useEffect(() => {
     if (!live || !canvasRef.current) return;
 
@@ -85,38 +98,176 @@ export function CameraPreview({
       const primaryColor = isDetected ? "#10b981" : isScanning ? "#06b6d4" : "#3b82f6";
       const jointGlow = isDetected ? "#34d399" : "#38bdf8";
 
-      // Simulated MediaPipe 21-joint skeleton topology
       const wrist = { x: cx, y: cy + scale * 0.65 };
-      const thumb = [
-        { x: cx - scale * 0.22, y: cy + scale * 0.4 },
-        { x: cx - scale * 0.38, y: cy + scale * 0.2 },
-        { x: cx - scale * 0.48, y: cy + scale * 0.05 },
-        { x: cx - scale * 0.55, y: cy - scale * 0.1 },
-      ];
-      const index = [
-        { x: cx - scale * 0.15, y: cy + scale * 0.15 },
-        { x: cx - scale * 0.2, y: cy - scale * 0.15 },
-        { x: cx - scale * 0.22, y: cy - scale * 0.4 },
-        { x: cx - scale * 0.24, y: cy - scale * 0.62 + Math.sin(time) * 4 },
-      ];
-      const middle = [
-        { x: cx - scale * 0.02, y: cy + scale * 0.12 },
-        { x: cx - scale * 0.03, y: cy - scale * 0.2 },
-        { x: cx - scale * 0.04, y: cy - scale * 0.48 },
-        { x: cx - scale * 0.05, y: cy - scale * 0.72 + Math.sin(time + 0.5) * 4 },
-      ];
-      const ring = [
-        { x: cx + scale * 0.12, y: cy + scale * 0.15 },
-        { x: cx + scale * 0.14, y: cy - scale * 0.15 },
-        { x: cx + scale * 0.16, y: cy - scale * 0.4 },
-        { x: cx + scale * 0.18, y: cy - scale * 0.6 + Math.sin(time + 1) * 4 },
-      ];
-      const pinky = [
-        { x: cx + scale * 0.24, y: cy + scale * 0.22 },
-        { x: cx + scale * 0.3, y: cy - scale * 0.05 },
-        { x: cx + scale * 0.34, y: cy - scale * 0.25 },
-        { x: cx + scale * 0.38, y: cy - scale * 0.45 + Math.sin(time + 1.5) * 4 },
-      ];
+
+      let thumb: { x: number; y: number }[];
+      let index: { x: number; y: number }[];
+      let middle: { x: number; y: number }[];
+      let ring: { x: number; y: number }[];
+      let pinky: { x: number; y: number }[];
+
+      // Sign-Adaptive Morphing Hand Skeletal Configurations:
+      if (["INJURY", "ONE", "POINT", "YOU"].includes(signUpper)) {
+        // 1. Index Pointing Pose
+        thumb = [
+          { x: cx - scale * 0.15, y: cy + scale * 0.35 },
+          { x: cx - scale * 0.2, y: cy + scale * 0.2 },
+          { x: cx - scale * 0.1, y: cy + scale * 0.1 },
+          { x: cx - scale * 0.05, y: cy + scale * 0.05 },
+        ];
+        index = [
+          { x: cx - scale * 0.05, y: cy + scale * 0.15 },
+          { x: cx - scale * 0.05, y: cy - scale * 0.2 },
+          { x: cx - scale * 0.05, y: cy - scale * 0.5 },
+          { x: cx - scale * 0.05, y: cy - scale * 0.78 + Math.sin(time) * 3 },
+        ];
+        middle = [
+          { x: cx + scale * 0.08, y: cy + scale * 0.2 },
+          { x: cx + scale * 0.08, y: cy + scale * 0.05 },
+          { x: cx + scale * 0.02, y: cy + scale * 0.05 },
+          { x: cx, y: cy + scale * 0.12 },
+        ];
+        ring = [
+          { x: cx + scale * 0.18, y: cy + scale * 0.22 },
+          { x: cx + scale * 0.18, y: cy + scale * 0.08 },
+          { x: cx + scale * 0.12, y: cy + scale * 0.08 },
+          { x: cx + scale * 0.1, y: cy + scale * 0.15 },
+        ];
+        pinky = [
+          { x: cx + scale * 0.28, y: cy + scale * 0.26 },
+          { x: cx + scale * 0.28, y: cy + scale * 0.12 },
+          { x: cx + scale * 0.22, y: cy + scale * 0.12 },
+          { x: cx + scale * 0.2, y: cy + scale * 0.18 },
+        ];
+      } else if (["BREAK", "FEDUP", "YES", "STOP"].includes(signUpper)) {
+        // 2. Closed Fist Pose
+        thumb = [
+          { x: cx - scale * 0.2, y: cy + scale * 0.35 },
+          { x: cx - scale * 0.25, y: cy + scale * 0.15 },
+          { x: cx - scale * 0.1, y: cy + scale * 0.05 },
+          { x: cx + scale * 0.05, y: cy + scale * 0.08 },
+        ];
+        index = [
+          { x: cx - scale * 0.15, y: cy + scale * 0.2 },
+          { x: cx - scale * 0.15, y: cy + scale * 0.02 },
+          { x: cx - scale * 0.05, y: cy + scale * 0.02 },
+          { x: cx - scale * 0.05, y: cy + scale * 0.12 },
+        ];
+        middle = [
+          { x: cx - scale * 0.02, y: cy + scale * 0.18 },
+          { x: cx - scale * 0.02, y: cy },
+          { x: cx + scale * 0.06, y: cy },
+          { x: cx + scale * 0.06, y: cy + scale * 0.12 },
+        ];
+        ring = [
+          { x: cx + scale * 0.12, y: cy + scale * 0.2 },
+          { x: cx + scale * 0.12, y: cy + scale * 0.02 },
+          { x: cx + scale * 0.18, y: cy + scale * 0.02 },
+          { x: cx + scale * 0.18, y: cy + scale * 0.14 },
+        ];
+        pinky = [
+          { x: cx + scale * 0.24, y: cy + scale * 0.24 },
+          { x: cx + scale * 0.24, y: cy + scale * 0.06 },
+          { x: cx + scale * 0.28, y: cy + scale * 0.06 },
+          { x: cx + scale * 0.28, y: cy + scale * 0.16 },
+        ];
+      } else if (["WHAT IS YOUR NAME", "EXAM", "MATHS", "PEACOCK"].includes(signUpper)) {
+        // 3. Two-Finger V / H Pose
+        thumb = [
+          { x: cx - scale * 0.2, y: cy + scale * 0.35 },
+          { x: cx - scale * 0.25, y: cy + scale * 0.2 },
+          { x: cx - scale * 0.12, y: cy + scale * 0.1 },
+          { x: cx - scale * 0.05, y: cy + scale * 0.1 },
+        ];
+        index = [
+          { x: cx - scale * 0.12, y: cy + scale * 0.15 },
+          { x: cx - scale * 0.18, y: cy - scale * 0.2 },
+          { x: cx - scale * 0.24, y: cy - scale * 0.5 },
+          { x: cx - scale * 0.3, y: cy - scale * 0.75 + Math.sin(time) * 3 },
+        ];
+        middle = [
+          { x: cx + scale * 0.02, y: cy + scale * 0.15 },
+          { x: cx + scale * 0.08, y: cy - scale * 0.2 },
+          { x: cx + scale * 0.14, y: cy - scale * 0.5 },
+          { x: cx + scale * 0.2, y: cy - scale * 0.75 + Math.sin(time + 0.3) * 3 },
+        ];
+        ring = [
+          { x: cx + scale * 0.15, y: cy + scale * 0.22 },
+          { x: cx + scale * 0.15, y: cy + scale * 0.05 },
+          { x: cx + scale * 0.1, y: cy + scale * 0.05 },
+          { x: cx + scale * 0.08, y: cy + scale * 0.14 },
+        ];
+        pinky = [
+          { x: cx + scale * 0.26, y: cy + scale * 0.26 },
+          { x: cx + scale * 0.26, y: cy + scale * 0.1 },
+          { x: cx + scale * 0.2, y: cy + scale * 0.1 },
+          { x: cx + scale * 0.18, y: cy + scale * 0.18 },
+        ];
+      } else if (["DRINK", "TEA", "POUR", "WATER"].includes(signUpper)) {
+        // 4. Cupped C-Shape Pose
+        thumb = [
+          { x: cx - scale * 0.25, y: cy + scale * 0.3 },
+          { x: cx - scale * 0.35, y: cy + scale * 0.1 },
+          { x: cx - scale * 0.25, y: cy - scale * 0.1 },
+          { x: cx - scale * 0.1, y: cy - scale * 0.2 },
+        ];
+        index = [
+          { x: cx - scale * 0.1, y: cy + scale * 0.15 },
+          { x: cx + scale * 0.15, y: cy + scale * 0.05 },
+          { x: cx + scale * 0.25, y: cy - scale * 0.15 },
+          { x: cx + scale * 0.1, y: cy - scale * 0.35 },
+        ];
+        middle = [
+          { x: cx - scale * 0.02, y: cy + scale * 0.15 },
+          { x: cx + scale * 0.2, y: cy + scale * 0.08 },
+          { x: cx + scale * 0.3, y: cy - scale * 0.1 },
+          { x: cx + scale * 0.15, y: cy - scale * 0.3 },
+        ];
+        ring = [
+          { x: cx + scale * 0.08, y: cy + scale * 0.18 },
+          { x: cx + scale * 0.25, y: cy + scale * 0.12 },
+          { x: cx + scale * 0.32, y: cy - scale * 0.05 },
+          { x: cx + scale * 0.18, y: cy - scale * 0.25 },
+        ];
+        pinky = [
+          { x: cx + scale * 0.18, y: cy + scale * 0.22 },
+          { x: cx + scale * 0.28, y: cy + scale * 0.18 },
+          { x: cx + scale * 0.32, y: cy + scale * 0.02 },
+          { x: cx + scale * 0.2, y: cy - scale * 0.18 },
+        ];
+      } else {
+        // 5. Open 5-Finger Palm Pose (HELLO, FEVER, GIVE, CLEAN, etc.)
+        thumb = [
+          { x: cx - scale * 0.22, y: cy + scale * 0.4 },
+          { x: cx - scale * 0.38, y: cy + scale * 0.2 },
+          { x: cx - scale * 0.48, y: cy + scale * 0.05 },
+          { x: cx - scale * 0.55, y: cy - scale * 0.1 },
+        ];
+        index = [
+          { x: cx - scale * 0.15, y: cy + scale * 0.15 },
+          { x: cx - scale * 0.2, y: cy - scale * 0.15 },
+          { x: cx - scale * 0.22, y: cy - scale * 0.4 },
+          { x: cx - scale * 0.24, y: cy - scale * 0.62 + Math.sin(time) * 3 },
+        ];
+        middle = [
+          { x: cx - scale * 0.02, y: cy + scale * 0.12 },
+          { x: cx - scale * 0.03, y: cy - scale * 0.2 },
+          { x: cx - scale * 0.04, y: cy - scale * 0.48 },
+          { x: cx - scale * 0.05, y: cy - scale * 0.72 + Math.sin(time + 0.5) * 3 },
+        ];
+        ring = [
+          { x: cx + scale * 0.12, y: cy + scale * 0.15 },
+          { x: cx + scale * 0.14, y: cy - scale * 0.15 },
+          { x: cx + scale * 0.16, y: cy - scale * 0.4 },
+          { x: cx + scale * 0.18, y: cy - scale * 0.6 + Math.sin(time + 1) * 3 },
+        ];
+        pinky = [
+          { x: cx + scale * 0.24, y: cy + scale * 0.22 },
+          { x: cx + scale * 0.3, y: cy - scale * 0.05 },
+          { x: cx + scale * 0.34, y: cy - scale * 0.25 },
+          { x: cx + scale * 0.38, y: cy - scale * 0.45 + Math.sin(time + 1.5) * 3 },
+        ];
+      }
 
       // Draw bone connections
       const drawChain = (points: { x: number; y: number }[], startPoint: { x: number; y: number }) => {
@@ -169,7 +320,7 @@ export function CameraPreview({
     return () => {
       if (animFrameId.current) cancelAnimationFrame(animFrameId.current);
     };
-  }, [live, phase]);
+  }, [live, phase, signUpper]);
 
   return (
     <div className={cn("dark", className)}>
@@ -177,11 +328,7 @@ export function CameraPreview({
         {/* Status Header */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 bg-neutral-900/60 px-5 py-3.5 backdrop-blur-md">
           <div className="flex items-center gap-2.5">
-            <span
-              className={cn(
-                "relative flex size-3",
-              )}
-            >
+            <span className="relative flex size-3">
               <span
                 className={cn(
                   "absolute inline-flex size-full animate-ping rounded-full opacity-75",
@@ -200,12 +347,15 @@ export function CameraPreview({
             </p>
           </div>
 
-          {targetSign ? (
-            <div className="flex items-center gap-2 rounded-xl bg-primary/15 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-primary border border-primary/20">
+          <div className="flex items-center gap-2">
+            <span className="rounded-xl bg-teal-500/20 px-3 py-1 text-xs font-bold text-teal-300 border border-teal-500/30">
+              {getGestureShapeName()}
+            </span>
+            <div className="flex items-center gap-1.5 rounded-xl bg-primary/20 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-primary border border-primary/30">
               <Crosshair className="size-3.5" />
-              Target Sign: {targetSign}
+              Target: {targetSign}
             </div>
-          ) : null}
+          </div>
         </div>
 
         {/* Video Canvas Stage */}
@@ -249,79 +399,71 @@ export function CameraPreview({
                   className={cn(
                     "relative h-44 w-44 sm:h-56 sm:w-56 rounded-3xl border-2 transition-all duration-300",
                     phase === "detected"
-                      ? "border-emerald-500/90 shadow-[0_0_25px_rgba(16,185,129,0.35)] bg-emerald-500/5"
-                      : phase === "failed"
-                        ? "border-destructive shadow-[0_0_20px_rgba(239,68,68,0.2)] bg-destructive/5"
-                        : "border-cyan-500/60 shadow-[0_0_20px_rgba(6,182,212,0.2)] bg-cyan-500/5",
+                      ? "border-emerald-400 bg-emerald-500/15 shadow-[0_0_40px_rgba(52,211,153,0.4)]"
+                      : phase === "scanning" || phase === "recognising"
+                      ? "border-cyan-400 bg-cyan-500/10 shadow-[0_0_30px_rgba(6,182,212,0.3)] animate-pulse"
+                      : "border-teal-400/80 bg-teal-500/5",
                   )}
                 >
-                  <span className="absolute -top-7 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-neutral-900/90 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-neutral-300 border border-white/10 backdrop-blur-md">
-                    Position Hand in Sensor Frame
-                  </span>
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 rounded-full bg-black/80 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider text-teal-300 border border-teal-500/30">
+                    {getGestureShapeName()}
+                  </div>
+
+                  {phase === "detected" && (
+                    <div className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 flex items-center gap-1 rounded-full bg-emerald-600 px-3 py-0.5 text-[10px] font-bold text-white shadow-lg">
+                      <CheckCircle2 className="size-3" />
+                      Pose Aligned!
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Bottom Status Feedback */}
-              <div className="flex items-center justify-center">
-                {phase === "detected" ? (
-                  <div className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-500/20 px-3.5 py-1.5 text-xs font-bold text-emerald-300 border border-emerald-500/30 backdrop-blur-md animate-bounce">
-                    <CheckCircle2 className="size-4" />
-                    High Alignment Gesture Detected
-                  </div>
-                ) : (
-                  <div className="inline-flex items-center gap-1.5 rounded-xl bg-black/60 px-3.5 py-1.5 text-xs font-medium text-neutral-400 border border-white/10 backdrop-blur-md">
-                    <Hand className="size-3.5 text-cyan-400" />
-                    Hold hand steady for automatic AI capture
-                  </div>
-                )}
+              {/* Bottom State Pill */}
+              <div className="flex justify-center">
+                <div className="flex items-center gap-2 rounded-full bg-black/75 px-4 py-1.5 text-xs font-semibold text-white backdrop-blur-md border border-white/15 shadow-xl">
+                  {phase === "detected" ? (
+                    <>
+                      <Sparkles className="size-4 text-emerald-400" />
+                      <span>{targetSign} Verified! Transitioning...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Hand className="size-4 text-teal-400" />
+                      <span>Align hand with the {getGestureShapeName()} template</span>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           ) : null}
 
-          {/* Offline / Requesting State Screen */}
-          {!live && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-              {status === "requesting" ? (
-                <div className="space-y-4">
-                  <Loader2 className="mx-auto size-12 animate-spin text-primary" />
-                  <p className="text-sm font-semibold text-white">Connecting to Camera Feed…</p>
-                  <p className="text-xs text-neutral-400">Please grant permission in browser prompt</p>
-                </div>
-              ) : status === "denied" ? (
-                <div className="max-w-sm space-y-3">
-                  <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-destructive/15 text-destructive border border-destructive/20">
-                    <CameraOff className="size-7" />
-                  </div>
-                  <h4 className="text-base font-bold text-white">Camera Access Denied</h4>
-                  <p className="text-xs text-neutral-400">
-                    Enable camera access in your browser settings to practice ISL gestures with AI feedback.
-                  </p>
-                  <Button variant="outline" size="sm" onClick={onStart} className="mt-2">
-                    Try Requesting Again
-                  </Button>
-                </div>
-              ) : (
-                <div className="max-w-sm space-y-4">
-                  <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary/15 text-primary border border-primary/20">
-                    <Camera className="size-7" />
-                  </div>
-                  <div>
-                    <h4 className="text-base font-bold text-white">Ready for AI Gesture Practice</h4>
-                    <p className="mt-1 text-xs text-neutral-400">
-                      Camera feed is processed in real-time memory. Zero video frames are stored.
-                    </p>
-                  </div>
-                  <Button variant="hero" onClick={onStart} className="gap-2 shadow-lg">
-                    <Camera className="size-4" />
-                    Start Camera Preview
-                  </Button>
-                </div>
+          {/* Camera Permission Overlay */}
+          {!live ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-neutral-950/90 p-6 text-center text-white backdrop-blur-sm">
+              <div className="flex size-16 items-center justify-center rounded-3xl bg-neutral-900 border border-neutral-800 shadow-2xl">
+                {status === "requesting" ? (
+                  <Loader2 className="size-8 animate-spin text-primary" />
+                ) : (
+                  <CameraOff className="size-8 text-neutral-400" />
+                )}
+              </div>
+              <div className="max-w-xs space-y-1">
+                <h3 className="font-bold text-base">
+                  {status === "requesting" ? "Connecting Camera…" : "Camera Access Required"}
+                </h3>
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  {message || "Enable camera to track your 3D hand landmarks in real-time."}
+                </p>
+              </div>
+              {status !== "requesting" && (
+                <Button variant="hero" size="sm" onClick={onStart} className="rounded-xl px-5 font-bold shadow-lg">
+                  <Camera className="size-4 mr-1.5" />
+                  Start Camera
+                </Button>
               )}
             </div>
-          )}
+          ) : null}
         </div>
-
-        {children}
       </div>
     </div>
   );
