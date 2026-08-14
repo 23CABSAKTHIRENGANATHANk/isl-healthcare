@@ -331,12 +331,20 @@ export function evaluateLandmarksKinematics(
 
   const palmSize = Math.max(0.01, dist2D(0, 9)); // wrist (0) to middle MCP (9)
 
-  // Extension tests relative to palm geometry
-  const indexExt = dist2D(0, 8) > dist2D(0, 6) * 1.10 && dist2D(5, 8) > dist2D(5, 6) * 1.12;
-  const middleExt = dist2D(0, 12) > dist2D(0, 10) * 1.10 && dist2D(9, 12) > dist2D(9, 10) * 1.12;
-  const ringExt = dist2D(0, 16) > dist2D(0, 14) * 1.10 && dist2D(13, 16) > dist2D(13, 14) * 1.12;
-  const pinkyExt = dist2D(0, 20) > dist2D(0, 18) * 1.10 && dist2D(17, 20) > dist2D(17, 18) * 1.12;
-  const thumbExt = dist2D(4, 17) > dist2D(3, 17) * 1.12 && dist2D(0, 4) > dist2D(0, 2) * 1.20;
+  // Extension tests relative to palm geometry and MCP joint
+  function isFingerExtended(mcpIdx: number, pipIdx: number, tipIdx: number) {
+    const tipToMcp = dist2D(tipIdx, mcpIdx);
+    const pipToMcp = dist2D(pipIdx, mcpIdx);
+    const tipToWrist = dist2D(tipIdx, 0);
+    const pipToWrist = dist2D(pipIdx, 0);
+    return tipToMcp > pipToMcp * 1.05 && tipToWrist > pipToWrist * 1.05;
+  }
+
+  const indexExt = isFingerExtended(5, 6, 8);
+  const middleExt = isFingerExtended(9, 10, 12);
+  const ringExt = isFingerExtended(13, 14, 16);
+  const pinkyExt = isFingerExtended(17, 18, 20);
+  const thumbExt = dist2D(4, 17) > dist2D(3, 17) * 1.08 && dist2D(0, 4) > dist2D(0, 2) * 1.15;
 
   const fingerStates = {
     thumb: thumbExt,
