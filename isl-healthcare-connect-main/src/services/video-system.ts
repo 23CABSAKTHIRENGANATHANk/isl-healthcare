@@ -18,6 +18,15 @@ export interface VideoLoadResult {
 /**
  * Generate optimized video URL candidates in priority order
  */
+const normalizeVideoToken = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[_-]+/g, " ")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
 export function generateVideoUrlCandidates(gloss: string, signId?: string): string[] {
   const candidates: string[] = [];
   const seen = new Set<string>();
@@ -29,41 +38,59 @@ export function generateVideoUrlCandidates(gloss: string, signId?: string): stri
     }
   };
 
-  // Priority 1: Explicit video URL mapping for sign ID
+  const normalizedGloss = normalizeVideoToken(gloss || "");
+  const normalizedSignId = normalizeVideoToken(signId || "");
+
+  // Priority 1: explicit direct map by sign ID
   if (signId) {
     const mapped = SIGN_VIDEO_URLS[signId.toLowerCase()];
     if (mapped) addUnique(mapped);
   }
 
-  // Priority 2: Video mapping by gloss name
+  // Priority 2: exact gloss mapping by known canonical names
   const glossKey = gloss.toLowerCase();
   if (SIGN_VIDEO_URLS[glossKey]) {
     addUnique(SIGN_VIDEO_URLS[glossKey]);
   }
 
-  // Priority 3: Generate candidates from gloss variations
+  // Priority 3: match the real inventory keys and values using normalized names
+  Object.entries(VIDEO_INVENTORY).forEach(([key, value]) => {
+    const normalizedKey = normalizeVideoToken(key);
+    const normalizedValue = normalizeVideoToken(value);
+    const shouldMatch =
+      normalizedKey === normalizedGloss ||
+      normalizedKey === normalizedSignId ||
+      normalizedValue.includes(normalizedGloss) ||
+      normalizedValue.includes(normalizedSignId) ||
+      normalizedGloss.includes(normalizedKey) ||
+      normalizedSignId.includes(normalizedKey);
+
+    if (shouldMatch) addUnique(value);
+  });
+
+  // Priority 4: Generate candidates from gloss variations using the actual file naming conventions
   const cleanGloss = gloss.trim();
-  const caseVariations = [
+  const variants = new Set<string>([
     cleanGloss,
-    // Title case each word
+    cleanGloss.replace(/\s+/g, " "),
+    cleanGloss.replace(/\s+/g, "-"),
     cleanGloss
       .split(" ")
       .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
       .join(" "),
-    // Sentence case
     cleanGloss.charAt(0).toUpperCase() + cleanGloss.slice(1).toLowerCase(),
-    // All uppercase
     cleanGloss.toUpperCase(),
-    // All lowercase
     cleanGloss.toLowerCase(),
-  ];
+  ]);
 
-  caseVariations.forEach((variant) => {
-    if (VIDEO_INVENTORY[variant as keyof typeof VIDEO_INVENTORY]) {
-      addUnique(VIDEO_INVENTORY[variant as keyof typeof VIDEO_INVENTORY]);
-    }
+  variants.forEach((variant) => {
+    const encoded = encodeURI(variant);
+    addUnique(`/videos/signs/${encoded}.mp4`);
     addUnique(`/videos/signs/${variant}.mp4`);
+    addUnique(`/videos/dataset-videos/${encoded}.mp4`);
     addUnique(`/videos/dataset-videos/${variant}.mp4`);
+    addUnique(`/dataset-videos/${encoded}.mp4`);
+    addUnique(`/dataset-videos/${variant}.mp4`);
   });
 
   return candidates;

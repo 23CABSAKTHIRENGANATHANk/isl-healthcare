@@ -18,34 +18,136 @@ import type { Sign } from "@/types";
 /** Build a prioritised list of candidate video URLs for a sign */
 function buildCandidateUrls(gloss: string, videoUrl?: string | null): string[] {
   const urls: string[] = [];
-  if (videoUrl) urls.push(videoUrl);
+  const seen = new Set<string>();
+
+  const addUnique = (candidate?: string | null) => {
+    if (!candidate) return;
+    const normalized = candidate.trim();
+    if (normalized && !seen.has(normalized)) {
+      urls.push(normalized);
+      seen.add(normalized);
+    }
+  };
+
+  addUnique(videoUrl);
 
   const clean = gloss.trim();
-  const titleCased = clean
-    .split(" ")
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-    .join(" ");
-  const sentenceCased = clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
-  const upperCase = clean.toUpperCase();
-  const lowerCase = clean.toLowerCase();
+  const normalize = (value: string) =>
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/[_-]+/g, " ")
+      .replace(/[^a-z0-9\s]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
 
-  const candidates = [
+  const variants = new Set<string>([
     clean,
-    titleCased,
-    sentenceCased,
-    upperCase,
-    lowerCase,
+    clean.replace(/\s+/g, " "),
+    clean.replace(/\s+/g, "-"),
+    clean.split(" ").map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" "),
+    clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase(),
+    clean.toUpperCase(),
+    clean.toLowerCase(),
     "What is your Name",
     "Good morning",
     "Good afternoon",
     "Thank you",
-  ];
-  candidates.forEach((name) => {
-    urls.push(`/videos/signs/${name}.mp4`);
-    urls.push(`/videos/dataset-videos/${name}.mp4`);
-    urls.push(`/dataset-videos/${name}.mp4`);
+  ]);
+
+  const knownNames = new Set<string>([
+    "Fever",
+    "Injury",
+    "Exam",
+    "Interview",
+    "Break",
+    "Fedup",
+    "Volcano",
+    "Still",
+    "Hello",
+    "Good morning",
+    "Good afternoon",
+    "Thank you",
+    "What is your Name",
+    "Come",
+    "Give",
+    "Drink",
+    "Clean",
+    "Close",
+    "Switch",
+    "Busy",
+    "Wrong",
+    "Maybe",
+    "Tea",
+    "Cook",
+    "Pour",
+    "Lemon",
+    "Chilli",
+    "Cucumber",
+    "Vegetables",
+    "Carrot",
+    "Cabbage",
+    "Cauliflower",
+    "Onion",
+    "Radish",
+    "Brinjal",
+    "Hug",
+    "Cry",
+    "Jump",
+    "Umbrella",
+    "Bear",
+    "Crocodile",
+    "Deer",
+    "Elephant",
+    "Giraffe",
+    "Lion",
+    "Monkey",
+    "Peacock",
+    "Pigeon",
+    "Sparrow",
+    "Tiger",
+    "Turtle",
+    "Budget",
+    "Maths",
+    "Writer",
+    "Wife",
+    "Uncle",
+    "Man",
+    "Key",
+    "Knife",
+    "Karnataka",
+    "Temple",
+    "Blood",
+    "Doctor",
+    "Emergency",
+    "Help",
+    "Hospital",
+    "Medicine",
+    "Nurse",
+    "Pain",
+  ]);
+
+  const normalizedGloss = normalize(clean);
+  knownNames.forEach((name) => {
+    const normalizedName = normalize(name);
+    if (normalizedGloss === normalizedName || normalizedGloss.includes(normalizedName) || normalizedName.includes(normalizedGloss)) {
+      addUnique(`/videos/signs/${name}.mp4`);
+      addUnique(`/videos/dataset-videos/${name}.mp4`);
+      addUnique(`/dataset-videos/${name}.mp4`);
+    }
   });
-  return Array.from(new Set(urls));
+
+  variants.forEach((name) => {
+    const encoded = encodeURI(name);
+    addUnique(`/videos/signs/${encoded}.mp4`);
+    addUnique(`/videos/signs/${name}.mp4`);
+    addUnique(`/videos/dataset-videos/${encoded}.mp4`);
+    addUnique(`/videos/dataset-videos/${name}.mp4`);
+    addUnique(`/dataset-videos/${encoded}.mp4`);
+    addUnique(`/dataset-videos/${name}.mp4`);
+  });
+
+  return urls;
 }
 
 export function SignCard({ sign }: { sign: Sign }) {
