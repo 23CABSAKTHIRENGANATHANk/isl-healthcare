@@ -19,8 +19,11 @@ dist-ssr
 # Datasets & ML artifacts
 sign dataset/
 dataset viedo/
+dataset viedo 2/
 *.csv
 *.mp4
+!public/videos/**
+
 
 # Wrangler / Cloudflare
 .wrangler/

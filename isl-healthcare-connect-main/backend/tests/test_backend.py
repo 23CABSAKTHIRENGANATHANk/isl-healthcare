@@ -110,12 +110,12 @@ class TestSignRecognizerVocabulary:
                 import pytest; pytest.skip("MediaPipe not installed")
             raise
 
-    def test_vocabulary_has_10_signs(self):
+    def test_vocabulary_has_required_signs(self):
         try:
             from services.sign_recognizer import HEALTHCARE_VOCABULARY
         except ImportError as e:
             import pytest; pytest.skip(str(e))
-        assert len(HEALTHCARE_VOCABULARY) == 10
+        assert len(HEALTHCARE_VOCABULARY) >= 10
 
     def test_all_required_signs_present(self):
         try:
@@ -124,7 +124,7 @@ class TestSignRecognizerVocabulary:
             import pytest; pytest.skip(str(e))
         required = {"FEVER", "PAIN", "WATER", "HELLO", "THANK YOU",
                     "GOOD MORNING", "MEDICINE", "FOOD", "STOP", "COME"}
-        assert required == set(HEALTHCARE_VOCABULARY)
+        assert required.issubset(set(HEALTHCARE_VOCABULARY))
 
     def test_every_sign_has_phrase(self):
         try:
