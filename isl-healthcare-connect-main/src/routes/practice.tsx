@@ -1,7 +1,7 @@
 /**
  * ISL Setu — Interactive AI Gesture Practice Workspace
- * Real-time MediaPipe Hand Computer Vision Recognition, User-Controlled Progression,
- * Picture-in-Picture Demonstration Guide & Interactive Curriculum Ribbon.
+ * Real-Time MediaPipe Hand Computer Vision Recognition, Camera Accessories Deck,
+ * User-Controlled Progression, Picture-in-Picture Demonstration Guide & Interactive Curriculum Ribbon.
  */
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -18,7 +18,10 @@ import {
   Hand,
   HelpCircle,
   Info,
+  Layers,
+  RotateCcw,
   Sparkles,
+  Sun,
   Target,
   Trophy,
   Video,
@@ -27,7 +30,7 @@ import {
   XCircle,
   Zap,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 import { CameraPreview, type RecognitionPhase } from "@/components/common/CameraPreview";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -46,11 +49,17 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { useCamera } from "@/hooks/use-camera";
 import {
+  getClientHandLandmarker,
+  evaluateLandmarksKinematics,
   logPracticeAttempt,
   predictSign,
+  playFeedbackSound,
   speak,
+  type LandmarkPoint,
+  type DetectionStrictness,
 } from "@/services/ai.service";
 import { listSigns } from "@/services/content.service";
+import { isTargetMatch } from "@/services/sign-matching";
 
 interface PracticeSearch {
   sign?: string;
@@ -97,6 +106,25 @@ function PracticePage() {
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [videoSpeed, setVideoSpeed] = useState(1.0);
 
+  // Camera Accessories & Vision States
+  const [showMesh, setShowMesh] = useState(true);
+  const [showGuide, setShowGuide] = useState(true);
+  const [autoDetect, setAutoDetect] = useState(false);
+  const [strictness, setStrictness] = useState<DetectionStrictness>("balanced");
+  const [soundEnabled, setSoundEnabled] = useState(true);
+
+  // Real-time Landmarks & Kinematics
+  const [liveLandmarks, setLiveLandmarks] = useState<LandmarkPoint[][]>([]);
+  const [liveFingerStates, setLiveFingerStates] = useState<{
+    thumb: boolean;
+    index: boolean;
+    middle: boolean;
+    ring: boolean;
+    pinky: boolean;
+  }>({ thumb: false, index: false, middle: false, ring: false, pinky: false });
+  const [liveExtendedCount, setLiveExtendedCount] = useState<number>(0);
+  const [fps, setFps] = useState<number>(30);
+
   const [result, setResult] = useState<{
     gloss: string;
     confidence: number;
@@ -104,11 +132,41 @@ function PracticePage() {
     mode: "ai" | "demo";
     modelVersion: string;
     message?: string;
+    fingerStates?: {
+      thumb: boolean;
+      index: boolean;
+      middle: boolean;
+      ring: boolean;
+      pinky: boolean;
+    };
+    extendedCount?: number;
   } | null>(null);
+
   const [checking, setChecking] = useState(false);
-  const { videoRef, status, message, start, isLive } = useCamera();
+  const {
+    videoRef,
+    status,
+    message,
+    start,
+    isLive,
+    devices,
+    selectedDeviceId,
+    switchDevice,
+    isMirrored,
+    toggleMirror,
+    brightness,
+    contrast,
+    toggleLowLightBoost,
+    zoom,
+    setZoom,
+  } = useCamera();
+
   const [phase, setPhase] = useState<RecognitionPhase>("idle");
   const hasSpokenForCurrentSign = useRef(false);
+  const autoDetectConsecutiveMatches = useRef(0);
+  const latestLandmarksRef = useRef<LandmarkPoint[][]>([]);
+  const lastFrameTimeRef = useRef(performance.now());
+  const animationFrameIdRef = useRef<number | null>(null);
 
   const items = signs.data ?? [];
   const target = items[index];
@@ -122,17 +180,143 @@ function PracticePage() {
       const foundIdx = items.findIndex(
         (s) =>
           s.id.toLowerCase() === paramLower ||
-          s.gloss.toLowerCase() === paramLower,
+          s.gloss.toLowerCase() === paramLower
       );
       if (foundIdx !== -1 && foundIdx !== index) {
         setIndex(foundIdx);
         setResult(null);
         hasSpokenForCurrentSign.current = false;
+        autoDetectConsecutiveMatches.current = 0;
       }
     }
   }, [searchParams.sign, items]);
 
-  // Spacebar and Arrow shortcuts
+  // ---------------------------------------------------------------------------
+  // Continuous Real-Time MediaPipe Landmark Tracking Loop
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    let isActive = true;
+
+    async function setupLandmarkerLoop() {
+      if (!isLive || !videoRef.current) return;
+
+      const landmarker = await getClientHandLandmarker();
+      if (!landmarker || !isActive) return;
+
+      let frameCount = 0;
+      let lastFpsUpdate = performance.now();
+
+      function renderLoop() {
+        if (!isActive || !videoRef.current || videoRef.current.readyState < 2) {
+          animationFrameIdRef.current = requestAnimationFrame(renderLoop);
+          return;
+        }
+
+        try {
+          const now = performance.now();
+          frameCount++;
+          if (now - lastFpsUpdate >= 1000) {
+            setFps(Math.round((frameCount * 1000) / (now - lastFpsUpdate)));
+            frameCount = 0;
+            lastFpsUpdate = now;
+          }
+
+          // Run MediaPipe Video Hand Detection
+          const results = landmarker.detectForVideo(videoRef.current, now);
+
+          if (results.landmarks && results.landmarks.length > 0) {
+            const raw = results.landmarks as LandmarkPoint[][];
+            latestLandmarksRef.current = raw;
+            setLiveLandmarks(raw);
+
+            // Kinematic evaluation for UI badges & live telemetry
+            const hand = raw[0];
+            if (target && hand && hand.length >= 21) {
+              const kinEval = evaluateLandmarksKinematics(hand, target.gloss, strictness);
+              if (kinEval.fingerStates) {
+                setLiveFingerStates(kinEval.fingerStates);
+              }
+              if (kinEval.extendedCount !== undefined) {
+                setLiveExtendedCount(kinEval.extendedCount);
+              }
+
+              // Auto-Detect Logic
+              if (autoDetect && !checking && !result?.matched) {
+                if (kinEval.success && kinEval.confidence >= 0.85) {
+                  autoDetectConsecutiveMatches.current += 1;
+                  if (autoDetectConsecutiveMatches.current >= 4) {
+                    // Match confirmed automatically!
+                    autoDetectConsecutiveMatches.current = 0;
+                    void handleSignMatchSuccess(kinEval, target);
+                  }
+                } else {
+                  autoDetectConsecutiveMatches.current = Math.max(0, autoDetectConsecutiveMatches.current - 1);
+                }
+              }
+            }
+          } else {
+            latestLandmarksRef.current = [];
+            setLiveLandmarks([]);
+            setLiveExtendedCount(0);
+            autoDetectConsecutiveMatches.current = 0;
+          }
+        } catch (e) {
+          // Frame timestamp glitch safety
+        }
+
+        animationFrameIdRef.current = requestAnimationFrame(renderLoop);
+      }
+
+      animationFrameIdRef.current = requestAnimationFrame(renderLoop);
+    }
+
+    void setupLandmarkerLoop();
+
+    return () => {
+      isActive = false;
+      if (animationFrameIdRef.current) {
+        cancelAnimationFrame(animationFrameIdRef.current);
+      }
+    };
+  }, [isLive, target, autoDetect, checking, strictness, result?.matched]);
+
+  // Match success handler
+  const handleSignMatchSuccess = async (prediction: any, currentTarget: any) => {
+    setPhase("detected");
+    setCorrect((v) => v + 1);
+    setAttempts((v) => v + 1);
+    setCompletedSigns((prev) => new Set([...prev, currentTarget.id]));
+
+    if (soundEnabled) {
+      playFeedbackSound("success");
+    }
+
+    if (!hasSpokenForCurrentSign.current) {
+      hasSpokenForCurrentSign.current = true;
+      speak(`Great! ${currentTarget.gloss} matched.`);
+    }
+
+    setResult({
+      gloss: prediction.sign || currentTarget.gloss,
+      confidence: prediction.confidence || 0.95,
+      matched: true,
+      mode: prediction.mode,
+      modelVersion: prediction.model_version || "isl_mediapipe_v2",
+      message: `✓ Perfect match! Hand shape verified for ${currentTarget.gloss}.`,
+      fingerStates: prediction.fingerStates || liveFingerStates,
+      extendedCount: prediction.extendedCount || liveExtendedCount,
+    });
+
+    void logPracticeAttempt({
+      signId: currentTarget.id,
+      predictedSign: currentTarget.gloss,
+      confidence: prediction.confidence || 0.95,
+      mode: prediction.mode,
+      success: true,
+    });
+  };
+
+  // Keyboard Shortcuts (Spacebar & Arrow keys)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === "Space" && !checking && target) {
@@ -153,34 +337,44 @@ function PracticePage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [checking, target, isLive, mode, index, items]);
 
+  // Main check function
   async function check() {
     if (!target || checking) return;
     setChecking(true);
 
     try {
       setPhase("scanning");
-      await new Promise((r) => setTimeout(r, 120));
+      if (soundEnabled) playFeedbackSound("detect");
+      await new Promise((r) => setTimeout(r, 100));
       setPhase("recognising");
 
       const frame = isLive ? videoRef.current : null;
+      const currentLandmarks = latestLandmarksRef.current;
+
       const prediction = await predictSign(frame, {
         targetSign: target.gloss,
         mode,
+        strictness,
+        landmarks: currentLandmarks,
       });
 
       setAttempts((v) => v + 1);
 
       if (!prediction.success || !prediction.sign) {
         setPhase("failed");
+        if (soundEnabled) playFeedbackSound("adjust");
+
         setResult({
-          gloss: "Not recognised",
+          gloss: "Adjustment Needed",
           confidence: prediction.confidence,
           matched: false,
           mode: prediction.mode,
           modelVersion: prediction.model_version,
           message:
             prediction.message ||
-            "Please position your hand in front of the camera and try again.",
+            `Please adjust your hand shape for ${target.gloss} and try again.`,
+          fingerStates: prediction.fingerStates || liveFingerStates,
+          extendedCount: prediction.extendedCount || liveExtendedCount,
         });
         return;
       }
@@ -189,14 +383,14 @@ function PracticePage() {
       const matched = isTargetMatch(
         prediction.sign,
         target.gloss,
-        prediction.confidence,
+        prediction.confidence
       );
 
       if (matched) {
         setCorrect((v) => v + 1);
         setCompletedSigns((prev) => new Set([...prev, target.id]));
+        if (soundEnabled) playFeedbackSound("success");
 
-        // Speak only ONCE per sign match — never repeat
         if (!hasSpokenForCurrentSign.current) {
           hasSpokenForCurrentSign.current = true;
           speak(`Great! ${target.gloss} matched.`);
@@ -209,15 +403,20 @@ function PracticePage() {
           mode: prediction.mode,
           modelVersion: prediction.model_version,
           message: `✓ Perfect match! Click 'Next Sign' below when you are ready to continue.`,
+          fingerStates: prediction.fingerStates || liveFingerStates,
+          extendedCount: prediction.extendedCount || liveExtendedCount,
         });
       } else {
+        if (soundEnabled) playFeedbackSound("adjust");
         setResult({
           gloss: prediction.sign,
           confidence: prediction.confidence,
           matched: false,
           mode: prediction.mode,
           modelVersion: prediction.model_version,
-          message: `Detected ${prediction.sign}. Target is ${target.gloss}. Adjust your hand shape.`,
+          message: `Detected ${prediction.sign}. Target is ${target.gloss}. Adjust your hand position.`,
+          fingerStates: prediction.fingerStates || liveFingerStates,
+          extendedCount: prediction.extendedCount || liveExtendedCount,
         });
       }
 
@@ -239,6 +438,7 @@ function PracticePage() {
   const handleNext = () => {
     setResult(null);
     hasSpokenForCurrentSign.current = false;
+    autoDetectConsecutiveMatches.current = 0;
     if (items.length === 0) return;
     const nextIdx = (index + 1) % items.length;
     setIndex(nextIdx);
@@ -250,6 +450,7 @@ function PracticePage() {
   const handlePrev = () => {
     setResult(null);
     hasSpokenForCurrentSign.current = false;
+    autoDetectConsecutiveMatches.current = 0;
     if (items.length === 0) return;
     const prevIdx = (index - 1 + items.length) % items.length;
     setIndex(prevIdx);
@@ -258,6 +459,7 @@ function PracticePage() {
   const handleSelectSign = (signIndex: number) => {
     setResult(null);
     hasSpokenForCurrentSign.current = false;
+    autoDetectConsecutiveMatches.current = 0;
     setIndex(signIndex);
   };
 
@@ -268,7 +470,7 @@ function PracticePage() {
         <PageHeader
           eyebrow="AI Computer Vision"
           title="Practice Signs with Live AI Feedback"
-          description="Show prompted sign to your camera. Press Space or click 'Check Sign Now' to test your gesture."
+          description="Real-time 21-landmark 3D hand tracking. Hold your hand in front of the camera and press Space or click 'Check Sign Now'."
         />
 
         <div className="flex items-center gap-2 rounded-2xl border border-border bg-card p-1.5 shadow-soft">
@@ -349,7 +551,7 @@ function PracticePage() {
       {/* Main Practice Workspace */}
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
-          {/* Camera Stage */}
+          {/* Camera Stage with Accessories */}
           <div className="relative overflow-hidden rounded-3xl">
             <CameraPreview
               videoRef={videoRef}
@@ -359,11 +561,38 @@ function PracticePage() {
               onStart={() => start()}
               targetSign={target ? target.gloss : undefined}
               className="w-full"
+              // Camera Accessories
+              devices={devices}
+              selectedDeviceId={selectedDeviceId}
+              onSwitchDevice={switchDevice}
+              isMirrored={isMirrored}
+              onToggleMirror={toggleMirror}
+              brightness={brightness}
+              contrast={contrast}
+              onToggleLowLight={toggleLowLightBoost}
+              zoom={zoom}
+              onSetZoom={setZoom}
+              // Real-time landmarks & HUD
+              landmarks={liveLandmarks}
+              fingerStates={liveFingerStates}
+              extendedCount={liveExtendedCount}
+              confidence={result ? result.confidence : 0}
+              fps={fps}
+              showMesh={showMesh}
+              onToggleMesh={() => setShowMesh((v) => !v)}
+              showGuide={showGuide}
+              onToggleGuide={() => setShowGuide((v) => !v)}
+              autoDetect={autoDetect}
+              onToggleAutoDetect={() => setAutoDetect((v) => !v)}
+              strictness={strictness}
+              onSetStrictness={setStrictness}
+              soundEnabled={soundEnabled}
+              onToggleSound={() => setSoundEnabled((v) => !v)}
             />
 
             {/* Video Picture-in-Picture Guide Overlay */}
             {showPipVideo && target && target.video_url && isLive && (
-              <div className="absolute right-4 top-4 w-44 overflow-hidden rounded-2xl border-2 border-white/20 bg-black/90 shadow-2xl backdrop-blur-md">
+              <div className="absolute right-4 top-14 w-44 overflow-hidden rounded-2xl border-2 border-white/20 bg-black/90 shadow-2xl backdrop-blur-md">
                 <div className="flex items-center justify-between bg-black/70 px-2 py-1 text-[10px] font-bold text-white">
                   <span className="flex items-center gap-1">
                     <span className="size-1.5 rounded-full bg-teal-400" />
@@ -433,7 +662,7 @@ function PracticePage() {
                     className="gap-1.5 text-xs text-muted-foreground hover:text-foreground"
                   >
                     <Video className="size-4" />
-                    Full Video Modal
+                    Full Video
                   </Button>
                 )}
 
@@ -542,9 +771,41 @@ function PracticePage() {
           {/* Real-time AI Landmark Feedback Card */}
           <Card className="rounded-3xl border-border/70 shadow-soft">
             <CardHeader className="pb-2">
-              <CardTitle className="text-base font-bold">AI Landmark Feedback</CardTitle>
+              <CardTitle className="text-base font-bold flex items-center justify-between">
+                <span>AI Landmark Feedback</span>
+                <span className="text-xs font-normal text-muted-foreground">
+                  {liveExtendedCount > 0 ? `${liveExtendedCount} Fingers Detected` : "Ready"}
+                </span>
+              </CardTitle>
             </CardHeader>
             <CardContent aria-live="polite" className="space-y-3.5">
+              {/* Live Active Finger Status Badges */}
+              <div className="flex flex-wrap items-center gap-1.5 pb-1">
+                <span className="text-[11px] font-semibold text-muted-foreground mr-1">Fingers:</span>
+                {[
+                  { key: "thumb", label: "Thumb" },
+                  { key: "index", label: "Index" },
+                  { key: "middle", label: "Middle" },
+                  { key: "ring", label: "Ring" },
+                  { key: "pinky", label: "Pinky" },
+                ].map(({ key, label }) => {
+                  const isActive = (liveFingerStates as any)[key];
+                  return (
+                    <Badge
+                      key={key}
+                      variant="outline"
+                      className={`text-[10px] font-medium transition-colors ${
+                        isActive
+                          ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
+                          : "bg-muted/40 text-muted-foreground/60 border-transparent"
+                      }`}
+                    >
+                      {label}
+                    </Badge>
+                  );
+                })}
+              </div>
+
               {result ? (
                 <>
                   <div className="flex items-center gap-2.5">

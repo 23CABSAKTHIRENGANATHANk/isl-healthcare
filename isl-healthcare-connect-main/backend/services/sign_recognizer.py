@@ -1,7 +1,7 @@
 """
 ISL Setu — Production Real-Time Hand Gesture Recognition Service
-Strict Computer Vision segmentation, contour hull defect finger counting,
-and distinct gesture shape classification for all ISL healthcare signs.
+Robust radial distance peak profile analysis, multi-space skin segmentation,
+and accurate sign-specific gesture classification for Indian Sign Language.
 """
 
 import os
@@ -122,7 +122,7 @@ class SignRecognizer:
     def _detect_hand_features(self, rgb_image: np.ndarray) -> Dict[str, Any]:
         """
         Extracts hand skin mask, bounding box area, contour, and counts extended fingers
-        using OpenCV multi-space color segmentation and geometry.
+        using OpenCV multi-space color segmentation and radial distance peak profiling.
         """
         hsv = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2HSV)
         ycrcb = cv2.cvtColor(rgb_image, cv2.COLOR_RGB2YCrCb)
@@ -144,7 +144,7 @@ class SignRecognizer:
         if skin_ratio < 0.005:
             return {"has_hand": False, "fingers": 0, "reason": "No hand detected in camera. Please raise your hand."}
 
-        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         if not contours:
             return {"has_hand": False, "fingers": 0, "reason": "No hand contour found."}
 
@@ -154,32 +154,43 @@ class SignRecognizer:
         if area < 1000:
             return {"has_hand": False, "fingers": 0, "reason": "Hand is too far. Bring hand closer to camera."}
 
-        # Calculate convexity defects for finger counting
-        hull = cv2.convexHull(c, returnPoints=False)
-        extended_fingers = 1
-        
-        if hull is not None and len(hull) > 3 and len(c) > 3:
-            try:
-                defects = cv2.convexityDefects(c, hull)
-                if defects is not None:
-                    deep_defects = 0
-                    for i in range(defects.shape[0]):
-                        s, e, f, d = defects[i, 0]
-                        if d > 2000: # Significant inter-finger valley
-                            deep_defects += 1
-                    extended_fingers = min(5, deep_defects + 1)
-            except Exception:
-                pass
-
-        # Compute bounding box aspect ratio
+        # Compute bounding box & aspect ratio
         x, y, bw, bh = cv2.boundingRect(c)
         aspect_ratio = bh / float(bw) if bw > 0 else 1.0
+
+        # Radial Distance Peak Profiling for Accurate Finger Counting
+        pts = c.reshape(-1, 2)
+        M = cv2.moments(c)
+        cx = int(M['m10'] / M['m00']) if M['m00'] > 0 else x + bw // 2
+        cy = int(M['m01'] / M['m00']) if M['m00'] > 0 else y + bh // 2
+
+        dists = np.sqrt((pts[:, 0] - cx)**2 + (pts[:, 1] - cy)**2)
+        kernel_size = 21
+        kernel = np.ones(kernel_size) / kernel_size
+        smoothed = np.convolve(dists, kernel, mode='same')
+
+        peaks = 0
+        mean_dist = np.mean(smoothed) if len(smoothed) > 0 else 1.0
+        for i in range(1, len(smoothed) - 1):
+            if smoothed[i] > smoothed[i-1] and smoothed[i] > smoothed[i+1] and smoothed[i] > mean_dist * 1.06:
+                peaks += 1
+
+        # Solidity Check (Open vs Compact Fist)
+        hull_pts = cv2.convexHull(c)
+        hull_area = cv2.contourArea(hull_pts) if hull_pts is not None else area
+        solidity = float(area) / max(1.0, hull_area)
+
+        # Reconcile detected peaks with solidity
+        extended_fingers = max(0, min(5, peaks))
+        if solidity < 0.80 and extended_fingers < 4:
+            extended_fingers = max(4, extended_fingers)
 
         return {
             "has_hand": True,
             "fingers": extended_fingers,
             "area": area,
             "aspect_ratio": aspect_ratio,
+            "solidity": solidity,
             "skin_ratio": skin_ratio
         }
 
@@ -229,6 +240,7 @@ class SignRecognizer:
 
         fingers = hand_feat["fingers"]
         aspect = hand_feat["aspect_ratio"]
+        solidity = hand_feat.get("solidity", 1.0)
 
         # -------------------------------------------------------------
         # STRICT SIGN-SPECIFIC GESTURE MATCHING
@@ -240,7 +252,7 @@ class SignRecognizer:
 
         # 1. Single Index Pointing Gestures (INJURY, ONE, POINT, NO)
         if target in ["INJURY", "ONE", "POINT", "YOU", "NO"]:
-            if fingers == 1 and aspect > 1.15:
+            if (fingers in [1, 2] and aspect > 1.15) or fingers == 1:
                 is_matched = True
                 confidence = 0.94
                 detected_sign = target
@@ -248,12 +260,12 @@ class SignRecognizer:
             else:
                 is_matched = False
                 confidence = 0.40
-                detected_sign = "OPEN_PALM" if fingers >= 4 else "FIST"
+                detected_sign = "OPEN_PALM" if fingers >= 3 else "FIST"
                 feedback_msg = f"Detected {fingers} fingers. Please point 1 index finger to match {target}."
 
         # 2. Two-Finger V/H Shape Gestures (WHAT IS YOUR NAME, EXAM, NURSE, MATHS)
         elif target in ["WHAT IS YOUR NAME", "EXAM", "MATHS", "NURSE"]:
-            if fingers == 2:
+            if fingers in [2, 3] and aspect > 1.0:
                 is_matched = True
                 confidence = 0.93
                 detected_sign = target
@@ -266,7 +278,7 @@ class SignRecognizer:
 
         # 3. Closed Fist Gestures (BREAK, FEDUP, YES, STOP, PAIN)
         elif target in ["BREAK", "FEDUP", "YES", "STOP", "PAIN"]:
-            if fingers <= 1 and aspect < 1.3:
+            if (fingers <= 1 and aspect < 1.3) or solidity > 0.85:
                 is_matched = True
                 confidence = 0.94
                 detected_sign = target
@@ -292,7 +304,7 @@ class SignRecognizer:
 
         # 5. Open 5-Finger Palm Gestures (HELLO, GIVE, CLEAN, FEVER, HELP, WATER, HOSPITAL, DOCTOR)
         elif target in ["HELLO", "GIVE", "CLEAN", "FEVER", "HELP", "WATER", "HOSPITAL", "DOCTOR"]:
-            if fingers >= 4:
+            if fingers >= 3 or solidity < 0.82:
                 is_matched = True
                 confidence = 0.95
                 detected_sign = target
