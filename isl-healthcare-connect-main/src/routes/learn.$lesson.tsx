@@ -8,6 +8,7 @@ import { PageShell } from "@/components/layout/AppLayout";
 import { PageHeader } from "@/components/common/PageHeader";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
 import { SignCard } from "@/components/common/SignCard";
+import { SignDisplay } from "@/components/common/SignDisplay";
 import { VideoPlayer } from "@/components/common/VideoPlayer";
 import { Quiz } from "@/components/common/Quiz";
 import { Button } from "@/components/ui/button";
@@ -147,15 +148,14 @@ function LessonPlayer() {
           <CardContent className="space-y-6">
             {current && !done ? (
               <>
-                {/* Video Player */}
-                <div>
-                  <VideoPlayer
-                    src={current.video_url}
-                    title={current.gloss}
-                    controls={true}
-                    captions={lesson.captions}
-                  />
-                </div>
+                {/* High-Definition Sign Video & Gesture Demonstration */}
+                <SignDisplay
+                  gloss={current.gloss}
+                  meaning={current.meaning}
+                  videoUrl={current.video_url}
+                  steps={current.steps}
+                  regionNote={current.region_note}
+                />
 
                 {/* Sign Info */}
                 <div className="space-y-3">
