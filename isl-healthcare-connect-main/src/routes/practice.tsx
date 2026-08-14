@@ -88,7 +88,7 @@ function PracticePage() {
   const [mode, setMode] = useState<"ai" | "demo">("ai");
   const [attempts, setAttempts] = useState(0);
   const [correct, setCorrect] = useState(0);
-  const [autoDetect, setAutoDetect] = useState(false);
+  const [autoDetect, setAutoDetect] = useState(true);
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [videoSpeed, setVideoSpeed] = useState(1.0);
   const [result, setResult] = useState<{
@@ -147,7 +147,7 @@ function PracticePage() {
       if (isLive && !checking && target) {
         void check();
       }
-    }, 2800);
+    }, 2000);
     return () => clearInterval(interval);
   }, [autoDetect, isLive, checking, target, index]);
 

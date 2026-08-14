@@ -45,6 +45,7 @@ class PredictRequest(BaseModel):
     image: Optional[str] = None
     target_sign: Optional[str] = None
     mode: Optional[str] = "ai"
+    landmarks: Optional[List[List[Dict[str, float]]]] = None
 
 class PredictResponse(BaseModel):
     success: bool
@@ -109,7 +110,7 @@ def predict_sign_endpoint(payload: PredictRequest):
             message="Demo Mode simulation result"
         )
 
-    result = recognizer.predict(payload.image, target_sign=payload.target_sign)
+    result = recognizer.predict(payload.image, target_sign=payload.target_sign, client_landmarks=payload.landmarks)
 
     return PredictResponse(
         success=result["success"],
