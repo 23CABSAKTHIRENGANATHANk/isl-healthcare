@@ -150,6 +150,7 @@ function LessonPlayer() {
               <>
                 {/* High-Definition Sign Video & Gesture Demonstration */}
                 <SignDisplay
+                  key={current.id || current.gloss}
                   gloss={current.gloss}
                   meaning={current.meaning}
                   videoUrl={current.video_url}
@@ -301,6 +302,8 @@ function LessonPlayer() {
                 type="button"
                 onClick={() => {
                   setDone(false);
+                  setShowQuiz(false);
+                  setQuizScore(null);
                   setStep(index);
                 }}
                 className={

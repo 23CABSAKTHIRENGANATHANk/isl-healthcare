@@ -2,24 +2,13 @@
  * Sign Display Component — ISL Setu
  * Displays real ISL video demonstration with slow-motion speed controls (0.5x, 0.75x, 1x, 1.25x)
  * and rich interactive hand gesture guidance.
- * 
- * Features:
- * - Automatic video URL resolution from mapping system
- * - Multiple fallback candidates for video sources
- * - Speed control for learning (0.5x, 0.75x, 1x, 1.25x)
- * - Fullscreen support
- * - Audio pronunciation on demand
  */
 import {
-  AlertCircle,
   CheckCircle2,
-  FastForward,
-  Hand,
   Maximize,
   Pause,
   Play,
   Repeat,
-  Sparkles,
   Volume2,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -30,7 +19,7 @@ interface SignDisplayProps {
   gloss: string;
   meaning: string;
   videoUrl?: string | null;
-  signId?: string; // For video mapping lookup
+  signId?: string;
   demoMode?: boolean;
   steps?: string[];
   regionNote?: string;
@@ -54,44 +43,89 @@ export function SignDisplay({
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Generate prioritized candidate URLs using enhanced video system
+  // Generate prioritized candidate URLs based on gloss & signId
   const candidateUrls = useMemo(() => {
-    // Use the enhanced video system that includes mapping fallbacks
-    return generateVideoUrlCandidates(gloss, signId || videoUrl || undefined);
+    const urls: string[] = [];
+    if (videoUrl) urls.push(videoUrl);
+
+    // Get candidates from video system
+    const sysCandidates = generateVideoUrlCandidates(gloss, signId);
+    sysCandidates.forEach((c) => urls.push(c));
+
+    const clean = gloss.trim();
+    const titleCased = clean
+      .split(" ")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(" ");
+    const sentenceCased = clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
+    const upperCase = clean.toUpperCase();
+    const lowerCase = clean.toLowerCase();
+
+    const names = [
+      clean,
+      titleCased,
+      sentenceCased,
+      upperCase,
+      lowerCase,
+      "What is your Name",
+      "Good morning",
+      "Good afternoon",
+      "Thank you",
+    ];
+
+    names.forEach((name) => {
+      urls.push(`/videos/signs/${name}.mp4`);
+      urls.push(`/videos/dataset-videos/${name}.mp4`);
+      urls.push(`/dataset-videos/${name}.mp4`);
+    });
+
+    return Array.from(new Set(urls));
   }, [gloss, signId, videoUrl]);
 
   const currentUrl = candidateUrls[candidateIdx] || candidateUrls[0];
 
-  // Auto-play and handle speed changes on sign change
+  // Auto-play immediately on mount and on sign change
+  const attemptPlay = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = true;
+      videoRef.current.defaultMuted = true;
+      videoRef.current.playbackRate = speed;
+      const p = videoRef.current.play();
+      if (p !== undefined) {
+        p.then(() => setIsPlaying(true)).catch(() => {
+          setIsPlaying(false);
+        });
+      }
+    }
+  };
+
   useEffect(() => {
     setHasError(false);
     setCandidateIdx(0);
-    setIsPlaying(true);
-  }, [gloss, videoUrl]);
-
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.playbackRate = speed;
-      videoRef.current.play().catch(() => {});
-    }
-  }, [speed, currentUrl]);
+    attemptPlay();
+  }, [gloss, currentUrl]);
 
   const togglePlayPause = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play().catch(() => setIsPlaying(false));
+    if (!videoRef.current) return;
+    if (isPlaying) {
+      videoRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      videoRef.current.muted = true;
+      const p = videoRef.current.play();
+      if (p !== undefined) {
+        p.then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
       }
-      setIsPlaying(!isPlaying);
     }
   };
 
   const handleReplay = () => {
-    if (videoRef.current) {
-      videoRef.current.currentTime = 0;
-      videoRef.current.play().catch(() => setIsPlaying(false));
-      setIsPlaying(true);
+    if (!videoRef.current) return;
+    videoRef.current.currentTime = 0;
+    videoRef.current.muted = true;
+    const p = videoRef.current.play();
+    if (p !== undefined) {
+      p.then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
     }
   };
 
@@ -131,16 +165,19 @@ export function SignDisplay({
           src={currentUrl}
           className="h-full w-full object-contain"
           onError={handleVideoError}
+          onLoadedData={attemptPlay}
+          onCanPlay={attemptPlay}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
           autoPlay
           loop
           muted
           playsInline
+          preload="auto"
         />
 
         {/* Top Info Bar */}
-        <div className="absolute left-0 right-0 top-0 flex items-center justify-between bg-gradient-to-b from-black/85 via-black/40 to-transparent p-4 text-white">
+        <div className="absolute left-0 right-0 top-0 flex items-center justify-between bg-gradient-to-b from-black/85 via-black/40 to-transparent p-4 text-white pointer-events-none">
           <div className="flex items-center gap-2">
             <span className="flex size-2.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399]" />
             <span className="font-display text-base font-bold tracking-wide text-white">
@@ -158,10 +195,12 @@ export function SignDisplay({
           )}
         </div>
 
-        {/* Center Play/Pause Overlay */}
+        {/* Center Play Button Overlay (shown when paused or hovered) */}
         <div
           onClick={togglePlayPause}
-          className="absolute inset-0 flex cursor-pointer items-center justify-center bg-black/20 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+          className={`absolute inset-0 flex cursor-pointer items-center justify-center bg-black/25 transition-opacity duration-200 ${
+            isPlaying ? "opacity-0 group-hover:opacity-100" : "opacity-100"
+          }`}
         >
           <button
             type="button"
