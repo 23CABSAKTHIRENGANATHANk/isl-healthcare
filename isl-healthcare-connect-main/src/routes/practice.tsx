@@ -1,55 +1,70 @@
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
+  AlertCircle,
   Bot,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Cpu,
+  Eye,
+  FastForward,
   Gauge,
   HelpCircle,
   Info,
+  Layers,
+  Play,
   RefreshCw,
   Sparkles,
   Target,
+  Video,
   Volume2,
+  X,
   XCircle,
+  Zap,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { CameraPreview } from "@/components/common/CameraPreview";
+import { CameraPreview, type RecognitionPhase } from "@/components/common/CameraPreview";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatCard } from "@/components/common/StatCard";
 import { PageShell } from "@/components/layout/AppLayout";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { logPracticeAttempt, predictSign, speak } from "@/services/ai.service";
-import { listSigns } from "@/services/content.service";
 import { useCamera } from "@/hooks/use-camera";
-import type { RecognitionPhase } from "@/components/common/CameraPreview";
-import { useEffect } from "react";
+import {
+  logPracticeAttempt,
+  predictSign,
+  speak,
+} from "@/services/ai.service";
+import { listSigns } from "@/services/content.service";
 
 interface PracticeSearch {
   sign?: string;
 }
 
 export const Route = createFileRoute("/practice")({
-  validateSearch: (search: Record<string, unknown>): PracticeSearch => ({
-    sign: typeof search.sign === "string" ? search.sign : undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): PracticeSearch => {
+    return {
+      sign: typeof search.sign === "string" ? search.sign : undefined,
+    };
+  },
   head: () => ({
     meta: [
-      { title: "Practice ISL signs with AI feedback — ISL Setu" },
+      { title: "AI Gesture Practice | ISL Setu" },
       {
         name: "description",
         content:
-          "Practise healthcare ISL signs with real-time MediaPipe hand tracking and AI model feedback.",
-      },
-      { property: "og:title", content: "Practice ISL signs with AI feedback — ISL Setu" },
-      {
-        property: "og:description",
-        content: "Camera-based ISL practice with instant confidence scoring.",
+          "Practice Indian Sign Language with real-time MediaPipe computer-vision landmark feedback.",
       },
     ],
   }),
@@ -65,26 +80,17 @@ function PracticePageWrapper() {
 }
 
 function PracticePage() {
-  const search = Route.useSearch();
+  const navigate = useNavigate();
+  const searchParams = Route.useSearch();
   const signs = useQuery({ queryKey: ["signs"], queryFn: listSigns });
+
   const [index, setIndex] = useState(0);
-
-  // Automatically preselect target sign if passed via search param (?sign=help / ?sign=FEVER)
-  useEffect(() => {
-    if (search.sign && signs.data && signs.data.length > 0) {
-      const targetQuery = search.sign.toLowerCase().trim();
-      const foundIdx = signs.data.findIndex(
-        (s) => s.id.toLowerCase() === targetQuery || s.gloss.toLowerCase() === targetQuery,
-      );
-      if (foundIdx !== -1) {
-        setIndex(foundIdx);
-      }
-    }
-  }, [search.sign, signs.data]);
-
+  const [mode, setMode] = useState<"ai" | "demo">("ai");
   const [attempts, setAttempts] = useState(0);
   const [correct, setCorrect] = useState(0);
-  const [mode, setMode] = useState<"ai" | "demo">("ai");
+  const [autoDetect, setAutoDetect] = useState(false);
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
+  const [videoSpeed, setVideoSpeed] = useState(1.0);
   const [result, setResult] = useState<{
     gloss: string;
     confidence: number;
@@ -100,6 +106,50 @@ function PracticePage() {
   const items = signs.data ?? [];
   const target = items[index];
   const accuracy = attempts === 0 ? 0 : Math.round((correct / attempts) * 100);
+
+  // Sync selected sign from URL search parameters (?sign=FEVER)
+  useEffect(() => {
+    if (searchParams.sign && items.length > 0) {
+      const paramLower = searchParams.sign.toLowerCase().trim();
+      const foundIdx = items.findIndex(
+        (s) =>
+          s.id.toLowerCase() === paramLower ||
+          s.gloss.toLowerCase() === paramLower,
+      );
+      if (foundIdx !== -1 && foundIdx !== index) {
+        setIndex(foundIdx);
+      }
+    }
+  }, [searchParams.sign, items]);
+
+  // Spacebar keyboard shortcut for hands-free checking
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "Space" && !checking && target) {
+        // Prevent default page scroll on space
+        if (
+          document.activeElement?.tagName !== "INPUT" &&
+          document.activeElement?.tagName !== "TEXTAREA"
+        ) {
+          e.preventDefault();
+          void check();
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [checking, target, isLive, mode, index]);
+
+  // Continuous auto-detection loop when toggled on
+  useEffect(() => {
+    if (!autoDetect || !isLive || checking) return;
+    const interval = setInterval(() => {
+      if (isLive && !checking && target) {
+        void check();
+      }
+    }, 2800);
+    return () => clearInterval(interval);
+  }, [autoDetect, isLive, checking, target, index]);
 
   async function check() {
     if (!target) return;
@@ -129,9 +179,9 @@ function PracticePage() {
           modelVersion: prediction.model_version,
           message:
             prediction.message ||
-            "Sign not recognised. Try again with better lighting and keep hand inside frame.",
+            "Sign not recognised. Hold hand steady inside sensor frame.",
         });
-        speak("Sign not recognised. Please try again with clear lighting.");
+        speak("Sign not recognised. Please try again.");
 
         void logPracticeAttempt({
           signId: target.id,
@@ -150,6 +200,9 @@ function PracticePage() {
 
       if (matched) {
         setCorrect((v) => v + 1);
+        speak(`Great! ${target.gloss} matched.`);
+      } else {
+        speak(`Detected ${prediction.sign}. Expected ${target.gloss}.`);
       }
 
       setResult({
@@ -158,14 +211,10 @@ function PracticePage() {
         matched,
         mode: prediction.mode,
         modelVersion: prediction.model_version,
-        message: prediction.message,
+        message: matched
+          ? `High accuracy gesture match! (${Math.round(prediction.confidence * 100)}%)`
+          : `Gesture matched ${prediction.sign} instead of ${target.gloss}. Adjust finger angle.`,
       });
-
-      speak(
-        matched
-          ? `Correct. ${target.gloss}`
-          : `Detected ${prediction.sign}. Try again for ${target.gloss}`,
-      );
 
       void logPracticeAttempt({
         signId: target.id,
@@ -176,17 +225,29 @@ function PracticePage() {
       });
     } finally {
       setChecking(false);
-      setTimeout(() => setPhase("idle"), 1200);
+      setTimeout(() => {
+        setPhase((curr) => (curr === "scanning" || curr === "recognising" ? "idle" : curr));
+      }, 1500);
     }
   }
+
+  const handleNext = () => {
+    setResult(null);
+    setIndex((v) => (items.length === 0 ? 0 : (v + 1) % items.length));
+  };
+
+  const handlePrev = () => {
+    setResult(null);
+    setIndex((v) => (items.length === 0 ? 0 : (v - 1 + items.length) % items.length));
+  };
 
   return (
     <PageShell>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <PageHeader
           eyebrow="AI Computer Vision"
-          title="Practice signs with AI feedback"
-          description="Show the prompted sign to your camera. Real-time MediaPipe Hand landmark analysis checks your hand shape and motion."
+          title="Practice Signs with Live AI Feedback"
+          description="Show prompted sign to your camera. Real-time MediaPipe Hand 3D landmark analysis checks your hand shape and joint angles."
         />
 
         {/* Mode Switcher */}
@@ -212,10 +273,11 @@ function PracticePage() {
         </div>
       </div>
 
+      {/* Metrics Bar */}
       <div className="mt-8 grid gap-4 sm:grid-cols-3">
-        <StatCard label="Attempts" value={attempts} icon={Target} animate={false} />
+        <StatCard label="Total Attempts" value={attempts} icon={Target} animate={false} />
         <StatCard
-          label="Correct Signs"
+          label="Correct Matches"
           value={correct}
           icon={Sparkles}
           tone="teal"
@@ -232,8 +294,10 @@ function PracticePage() {
         />
       </div>
 
+      {/* Main Practice Workspace */}
       <div className="mt-8 grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        <div className="space-y-4 lg:col-span-2">
+          {/* Camera Stage */}
           <CameraPreview
             videoRef={videoRef}
             status={status}
@@ -241,114 +305,210 @@ function PracticePage() {
             phase={phase}
             onStart={() => start()}
             targetSign={target ? target.gloss : undefined}
-            className="h-[420px]"
+            className="w-full"
           />
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap gap-2">
-              <Button variant="hero" onClick={check} disabled={checking || !target}>
-                <Sparkles aria-hidden="true" />
-                {checking ? "Analysing Hand Landmarks…" : `Check Sign (${mode.toUpperCase()})`}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setResult(null);
-                  setIndex((value) => (items.length === 0 ? 0 : (value + 1) % items.length));
-                }}
-              >
-                <RefreshCw aria-hidden="true" />
-                Next sign
-              </Button>
+
+          {/* Interactive Action Command Deck */}
+          <div className="rounded-3xl border border-border/80 bg-card/80 p-4 shadow-soft backdrop-blur-md">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-2.5">
+                {/* Main Check Sign Button */}
+                <Button
+                  variant="hero"
+                  size="lg"
+                  onClick={check}
+                  disabled={checking || !target}
+                  className="gap-2.5 px-6 shadow-lg text-sm font-bold tracking-wide"
+                >
+                  <Sparkles className="size-4 animate-pulse" />
+                  {checking ? "Analysing Hand Skeleton…" : "Check Sign Now"}
+                  <kbd className="hidden sm:inline-block rounded bg-black/30 px-1.5 py-0.5 text-[10px] font-mono uppercase">
+                    Space
+                  </kbd>
+                </Button>
+
+                {/* Watch Video Demonstration */}
+                {target && target.video_url && (
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    onClick={() => setVideoModalOpen(true)}
+                    className="gap-2 border-primary/30 text-primary hover:bg-primary/10"
+                  >
+                    <Eye className="size-4" />
+                    Watch Video Guide
+                  </Button>
+                )}
+
+                {/* Pronounce Word */}
+                {target && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => speak(target.gloss)}
+                    title="Hear Pronunciation"
+                    className="rounded-2xl"
+                  >
+                    <Volume2 className="size-5 text-muted-foreground hover:text-foreground" />
+                  </Button>
+                )}
+              </div>
+
+              {/* Navigation & Auto-Detect Controls */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={autoDetect ? "teal" : "outline"}
+                  size="sm"
+                  onClick={() => setAutoDetect(!autoDetect)}
+                  className="rounded-xl text-xs font-semibold gap-1.5"
+                  title="Automatically checks hand position every 2.5s"
+                >
+                  <Zap className={`size-3.5 ${autoDetect ? "fill-current" : ""}`} />
+                  Auto-Detect {autoDetect ? "ON" : "OFF"}
+                </Button>
+
+                <div className="flex items-center gap-1 border-l border-border pl-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handlePrev}
+                    disabled={items.length <= 1}
+                    className="size-9 rounded-xl"
+                  >
+                    <ChevronLeft className="size-4" />
+                  </Button>
+                  <span className="px-2 text-xs font-bold text-muted-foreground">
+                    {index + 1} / {items.length}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleNext}
+                    disabled={items.length <= 1}
+                    className="size-9 rounded-xl"
+                  >
+                    <ChevronRight className="size-4" />
+                  </Button>
+                </div>
+              </div>
             </div>
-            <Badge variant="outline" className="text-xs">
-              Model: {mode === "ai" ? "ISL Setu AI v1 (MediaPipe)" : "Simulation Engine"}
-            </Badge>
           </div>
         </div>
 
+        {/* Right Sidebar: Target Information & Live Feedback */}
         <div className="space-y-6">
-          <Card className="rounded-2xl border-border/70 shadow-soft">
-            <CardHeader>
-              <CardTitle className="text-lg">Target Sign Prompt</CardTitle>
+          {/* Target Prompt Card */}
+          <Card className="rounded-3xl border-border/70 shadow-soft">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-base font-bold">Target Sign Prompt</CardTitle>
+              <Badge variant="outline" className="text-xs uppercase font-mono tracking-wider">
+                {target?.difficulty || "Beginner"}
+              </Badge>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               {target ? (
                 <>
-                  <div className="flex items-center justify-between">
-                    <p className="text-3xl font-bold text-foreground">{target.gloss}</p>
-                    <Button size="icon" variant="ghost" onClick={() => speak(target.gloss)}>
-                      <Volume2 className="size-4" aria-hidden="true" />
-                    </Button>
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <h2 className="font-display text-3xl font-bold tracking-tight text-foreground">
+                        {target.gloss}
+                      </h2>
+                      <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">
+                        {target.category_id}
+                      </span>
+                    </div>
+                    <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">
+                      {target.meaning}
+                    </p>
                   </div>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                    {target.meaning}
-                  </p>
-                  <p className="mt-3 text-xs text-muted-foreground">
-                    <span className="font-semibold text-foreground">Regional note:</span>{" "}
-                    {target.region_note}
-                  </p>
+
+                  {/* Step-by-Step Performance Guide */}
+                  {target.steps && target.steps.length > 0 && (
+                    <div className="space-y-2 rounded-2xl bg-muted/40 p-3.5 border border-border/50 text-xs">
+                      <p className="font-bold uppercase tracking-wider text-muted-foreground text-[10px]">
+                        How to Sign:
+                      </p>
+                      <ol className="space-y-1.5">
+                        {target.steps.map((stepText, idx) => (
+                          <li key={idx} className="flex gap-2">
+                            <span className="flex size-4 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary font-bold text-[10px]">
+                              {idx + 1}
+                            </span>
+                            <span className="text-foreground leading-snug">{stepText}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  )}
+
+                  {target.region_note && (
+                    <p className="text-xs text-teal font-medium">
+                      Note: {target.region_note}
+                    </p>
+                  )}
                 </>
               ) : (
-                <Progress value={0} className="h-2" />
+                <p className="text-sm text-muted-foreground">Loading curriculum signs…</p>
               )}
             </CardContent>
           </Card>
 
-          <Card className="rounded-2xl border-border/70 shadow-soft">
-            <CardHeader>
-              <CardTitle className="text-lg">AI Feedback</CardTitle>
+          {/* Real-time AI Landmark Feedback Card */}
+          <Card className="rounded-3xl border-border/70 shadow-soft">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-bold">AI Landmark Feedback</CardTitle>
             </CardHeader>
-            <CardContent aria-live="polite" className="space-y-3">
+            <CardContent aria-live="polite" className="space-y-3.5">
               {result ? (
                 <>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2.5">
                     {result.matched ? (
-                      <CheckCircle2 className="size-5 text-success" aria-hidden="true" />
+                      <CheckCircle2 className="size-6 text-emerald-500" />
                     ) : (
-                      <XCircle className="size-5 text-destructive" aria-hidden="true" />
+                      <XCircle className="size-6 text-destructive" />
                     )}
-                    <p
-                      className={
-                        result.matched
-                          ? "text-sm font-bold text-success"
-                          : "text-sm font-bold text-destructive"
-                      }
-                    >
-                      {result.matched ? "Verified Correct Match ✓" : "Needs Adjustment"}
-                    </p>
+                    <div>
+                      <p
+                        className={
+                          result.matched
+                            ? "text-base font-bold text-emerald-500"
+                            : "text-base font-bold text-destructive"
+                        }
+                      >
+                        {result.matched ? "Verified Match ✓" : "Adjustment Needed"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Detected: <strong className="text-foreground">{result.gloss}</strong>
+                      </p>
+                    </div>
                   </div>
 
-                  <p className="text-sm text-muted-foreground">
-                    Detected: <strong className="text-foreground">{result.gloss}</strong>
-                  </p>
-
                   <div>
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>Confidence Score</span>
-                      <span className="font-semibold text-foreground">
+                    <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                      <span>Landmark Alignment Score</span>
+                      <span className="font-bold text-foreground font-mono">
                         {Math.round(result.confidence * 100)}%
                       </span>
                     </div>
                     <Progress
                       value={Math.round(result.confidence * 100)}
-                      className="mt-1.5 h-2"
-                      aria-label={`Confidence ${Math.round(result.confidence * 100)}%`}
+                      className="h-2"
                     />
                   </div>
 
-                  {result.message ? (
-                    <p className="rounded-xl bg-muted/60 p-3 text-xs leading-relaxed text-muted-foreground">
+                  {result.message && (
+                    <div className="rounded-2xl bg-muted/60 p-3 text-xs leading-relaxed text-muted-foreground border border-border/40">
                       <Info className="mr-1.5 inline size-3.5 text-primary" />
                       {result.message}
-                    </p>
-                  ) : null}
+                    </div>
+                  )}
                 </>
               ) : (
-                <div className="flex items-start gap-2 text-xs text-muted-foreground">
-                  <HelpCircle className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                <div className="flex items-start gap-2.5 text-xs text-muted-foreground rounded-2xl bg-muted/30 p-3 border border-border/30">
+                  <HelpCircle className="mt-0.5 size-4 shrink-0 text-primary" />
                   <p>
-                    Position your hand clearly inside the camera box and click "Check Sign" to
-                    receive landmark-based feedback.
+                    Position hand inside the sensor box. Press <strong>Space</strong> or click{" "}
+                    <strong>Check Sign</strong> for instant landmark feedback.
                   </p>
                 </div>
               )}
@@ -356,6 +516,60 @@ function PracticePage() {
           </Card>
         </div>
       </div>
+
+      {/* Video Demonstration Modal */}
+      {target && target.video_url && (
+        <Dialog open={videoModalOpen} onOpenChange={setVideoModalOpen}>
+          <DialogContent className="max-w-2xl rounded-3xl p-6">
+            <DialogHeader>
+              <DialogTitle className="flex items-center justify-between text-xl font-bold">
+                <span>Demonstration: {target.gloss}</span>
+                <span className="text-xs font-semibold text-teal">{target.meaning}</span>
+              </DialogTitle>
+            </DialogHeader>
+
+            <div className="overflow-hidden rounded-2xl bg-black aspect-video relative">
+              <video
+                key={target.video_url}
+                src={target.video_url}
+                className="size-full object-contain"
+                controls
+                autoPlay
+                loop
+                playsInline
+                ref={(el) => {
+                  if (el) el.playbackRate = videoSpeed;
+                }}
+              />
+            </div>
+
+            {/* Speed Control Pill */}
+            <div className="flex items-center justify-between pt-2">
+              <div className="flex items-center gap-1.5 text-xs">
+                <span className="font-bold text-muted-foreground">Speed:</span>
+                {[0.5, 0.75, 1.0, 1.25].map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setVideoSpeed(s)}
+                    className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-all ${
+                      videoSpeed === s
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    }`}
+                  >
+                    {s}x
+                  </button>
+                ))}
+              </div>
+
+              <Button size="sm" variant="hero" onClick={() => setVideoModalOpen(false)}>
+                Back to Practice
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </PageShell>
   );
 }
