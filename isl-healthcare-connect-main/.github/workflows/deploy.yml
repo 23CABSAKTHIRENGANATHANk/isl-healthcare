@@ -92,7 +92,15 @@ jobs:
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
-      # Backend Deploy (Railway CLI)
+      # Backend Deploy (Render Deploy Hook)
+      - name: Trigger Render Backend Deploy
+        if: env.RENDER_DEPLOY_HOOK_URL != ''
+        run: |
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+
+      # Optional: Railway Deploy (if using Railway as fallback)
       - name: Trigger Railway Backend Deploy
         if: env.RAILWAY_TOKEN != ''
         run: |
@@ -100,3 +108,4 @@ jobs:
           railway up --service backend --detach
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+

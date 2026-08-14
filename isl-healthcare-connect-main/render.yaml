@@ -1,0 +1,29 @@
+# ==============================================================================
+# ISL Setu — Render Infrastructure as Code Blueprint
+# https://render.com/docs/blueprint-spec
+# ==============================================================================
+
+services:
+  # Python FastAPI AI Backend (MediaPipe, Sign Classifier, PDF Generator)
+  - type: web
+    name: isl-setu-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: ALLOWED_ORIGINS
+        sync: false
+        # Set to your Vercel frontend URL in Render dashboard, e.g.:
+        # https://isl-setu.vercel.app,https://*.vercel.app
+      - key: SUPABASE_URL
+        value: https://nndjafynozneorhvpxvg.supabase.co
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
