@@ -9,7 +9,7 @@ import {
 } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 
-import { supabase, from as dbFrom } from "@/integrations/supabase/client";
+import { supabase, from as dbFrom, isSupabaseConfigured } from "@/integrations/supabase/client";
 import type { AppUser, HealthcareRole } from "@/types";
 
 interface AuthContextValue {
@@ -39,6 +39,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const applyDemoSession = useCallback(() => {
+    const demoUser = {
+      id: "demo-user",
+      email: "demo@islsetu.local",
+      created_at: new Date().toISOString(),
+      aud: "authenticated",
+      app_metadata: { provider: "demo" },
+      user_metadata: {
+        full_name: "Sakthi Renganathan",
+        healthcare_role: "nurse",
+      },
+    } as User;
+
+    const demoProfile: AppUser = {
+      id: demoUser.id,
+      full_name: "Sakthi Renganathan",
+      email: demoUser.email || "demo@islsetu.local",
+      role: "nurse",
+      hospital_id: null,
+      sector: "healthcare",
+      level: "bronze",
+      created_at: new Date().toISOString(),
+    };
+
+    const demoSession = {
+      access_token: "demo-access-token",
+      refresh_token: "demo-refresh-token",
+      expires_in: 3600,
+      token_type: "bearer",
+      expires_at: Math.floor(Date.now() / 1000) + 3600,
+      user: demoUser,
+    } as Session;
+
+    setSession(demoSession);
+    setUser(demoUser);
+    setProfile(demoProfile);
+    setLoading(false);
+  }, []);
 
   const fetchProfile = useCallback(
     async (userId: string, userEmail?: string, userMeta?: Record<string, unknown>) => {
@@ -82,6 +121,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   useEffect(() => {
+    if (!isSupabaseConfigured) {
+      applyDemoSession();
+      return;
+    }
+
     // Initial session load
     supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
       setSession(initialSession);
@@ -116,7 +160,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, [fetchProfile]);
+  }, [applyDemoSession, fetchProfile]);
 
   const refreshProfile = useCallback(async () => {
     if (user) {
@@ -143,6 +187,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       currentLevel: profile?.level || "bronze",
       learningStreak: 0,
       signIn: async (email, password) => {
+        if (!isSupabaseConfigured) {
+          const demoProfile: AppUser = {
+            id: "demo-user",
+            full_name: "Sakthi Renganathan",
+            email: email || "demo@islsetu.local",
+            role: "nurse",
+            hospital_id: null,
+            sector: "healthcare",
+            level: "bronze",
+            created_at: new Date().toISOString(),
+          };
+          setSession({
+            access_token: "demo-access-token",
+            refresh_token: "demo-refresh-token",
+            expires_in: 3600,
+            token_type: "bearer",
+            expires_at: Math.floor(Date.now() / 1000) + 3600,
+            user: {
+              id: "demo-user",
+              email: email || "demo@islsetu.local",
+              created_at: new Date().toISOString(),
+              aud: "authenticated",
+              app_metadata: { provider: "demo" },
+              user_metadata: { full_name: "Sakthi Renganathan", healthcare_role: "nurse" },
+            } as User,
+          } as Session);
+          setUser({
+            id: "demo-user",
+            email: email || "demo@islsetu.local",
+            created_at: new Date().toISOString(),
+            aud: "authenticated",
+            app_metadata: { provider: "demo" },
+            user_metadata: { full_name: "Sakthi Renganathan", healthcare_role: "nurse" },
+          } as User);
+          setProfile(demoProfile);
+          setLoading(false);
+          return { error: null };
+        }
+
         const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) return { error: error.message };
         if (data.user) {
@@ -155,6 +238,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: null };
       },
       signUp: async ({ email, password, fullName, role }) => {
+        if (!isSupabaseConfigured) {
+          const demoProfile: AppUser = {
+            id: "demo-user",
+            full_name: fullName || "Sakthi Renganathan",
+            email: email || "demo@islsetu.local",
+            role,
+            hospital_id: null,
+            sector: "healthcare",
+            level: "bronze",
+            created_at: new Date().toISOString(),
+          };
+          setSession({
+            access_token: "demo-access-token",
+            refresh_token: "demo-refresh-token",
+            expires_in: 3600,
+            token_type: "bearer",
+            expires_at: Math.floor(Date.now() / 1000) + 3600,
+            user: {
+              id: "demo-user",
+              email: email || "demo@islsetu.local",
+              created_at: new Date().toISOString(),
+              aud: "authenticated",
+              app_metadata: { provider: "demo" },
+              user_metadata: { full_name: fullName || "Sakthi Renganathan", healthcare_role: role },
+            } as User,
+          } as Session);
+          setUser({
+            id: "demo-user",
+            email: email || "demo@islsetu.local",
+            created_at: new Date().toISOString(),
+            aud: "authenticated",
+            app_metadata: { provider: "demo" },
+            user_metadata: { full_name: fullName || "Sakthi Renganathan", healthcare_role: role },
+          } as User);
+          setProfile(demoProfile);
+          setLoading(false);
+          return { error: null, needsConfirmation: false };
+        }
+
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
@@ -186,6 +308,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
       },
       signOut: async () => {
+        if (!isSupabaseConfigured) {
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+          setLoading(false);
+          return;
+        }
+
         await supabase.auth.signOut();
         setSession(null);
         setUser(null);

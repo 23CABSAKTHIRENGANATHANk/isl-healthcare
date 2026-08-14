@@ -122,7 +122,7 @@ const fullSigns = [
 ];
 
 const mappedSigns = fullSigns.map(s => ({
-  id: s.gloss.toLowerCase().replace(/\\s+/g, '-'),
+  id: s.gloss.toLowerCase(),
   gloss: s.gloss,
   meaning: s.meaning,
   category_id: s.category_id,
@@ -133,16 +133,17 @@ const mappedSigns = fullSigns.map(s => ({
 }));
 
 const lessons = [
+  // 1. Clinical & Emergency Triage
   {
     id: 'lesson-clinical-triage',
     slug: 'clinical-triage',
     code: 'CLN-101',
     title: 'Emergency Triage & Vital Symptoms',
-    summary: 'Master critical clinical signs for fever, trauma injury, acute pain, physician call and emergency response.',
+    summary: 'Master critical clinical signs for fever, trauma injury, acute pain, physician call and nurse alert.',
     category_id: 'clinical',
     duration_minutes: 15,
     difficulty: 'beginner',
-    sign_ids: ['fever', 'injury', 'pain', 'doctor', 'nurse', 'medicine', 'blood', 'emergency', 'help', 'hospital'],
+    sign_ids: ['fever', 'injury', 'pain', 'doctor', 'nurse'],
     thumbnail_tone: 'primary',
     captions: [
       { at: 0, text: 'Clinical triage requires rapid assessment of body temperature, acute pain and injury sites.' },
@@ -179,20 +180,52 @@ const lessons = [
     ]
   },
   {
+    id: 'lesson-clinical-acute',
+    slug: 'clinical-acute',
+    code: 'CLN-102',
+    title: 'Hospitalization & Acute Care Response',
+    summary: 'Essential signs for medication dispensing, hematology blood draws, urgent emergency response, and hospital wards.',
+    category_id: 'clinical',
+    duration_minutes: 12,
+    difficulty: 'intermediate',
+    sign_ids: ['medicine', 'blood', 'emergency', 'help', 'hospital'],
+    thumbnail_tone: 'primary',
+    captions: [
+      { at: 0, text: 'Acute care communication ensures prompt delivery of medications and urgent clinical help.' },
+      { at: 5, text: 'Use EMERGENCY with an alert posture to mobilize rapid response teams.' },
+    ],
+    quiz: [
+      {
+        id: 'q-cln-3',
+        prompt: 'Which sign indicates urgent emergency assistance needed in the ward?',
+        kind: 'multiple_choice',
+        options: [
+          'EMERGENCY: rapid shaking of E-handshape at chest level',
+          'Pinching fingertips together at chin',
+          'Touching back of hand to forehead',
+          'Tracing cross on the upper arm'
+        ],
+        answer: 'EMERGENCY: rapid shaking of E-handshape at chest level',
+        hint: 'An urgent, rapid vibration gesture.'
+      }
+    ]
+  },
+
+  // 2. Clinical Greetings & Patient Intake
+  {
     id: 'lesson-greetings-intake',
     slug: 'greetings-intake',
-    code: 'GRT-102',
-    title: 'Patient Intake & Bedside Communication',
-    summary: 'Welcome patients warmly, confirm names, provide clear procedural instructions (come, drink, clean, close, switch, still).',
+    code: 'GRT-101',
+    title: 'Patient Intake & Welcoming Communication',
+    summary: 'Welcome patients warmly, confirm names, acknowledge greetings, and establish positive clinical rapport.',
     category_id: 'greetings',
     duration_minutes: 12,
     difficulty: 'beginner',
-    sign_ids: ['hello', 'good-morning', 'good-afternoon', 'thank-you', 'what-is-your-name', 'come', 'give', 'drink', 'clean', 'close', 'switch', 'busy', 'wrong', 'maybe', 'still', 'yes', 'no'],
+    sign_ids: ['hello', 'good morning', 'good afternoon', 'thank you', 'what is your name', 'yes', 'no'],
     thumbnail_tone: 'teal',
     captions: [
       { at: 0, text: 'Clear and respectful greetings build immediate trust with Deaf patients entering clinical areas.' },
       { at: 4, text: 'Always verify identity using WHAT IS YOUR NAME before administering treatments.' },
-      { at: 8, text: 'Use STILL when instructing patients to remain motionless during radiologic imaging.' },
     ],
     quiz: [
       {
@@ -211,15 +244,48 @@ const lessons = [
     ]
   },
   {
+    id: 'lesson-bedside-cues',
+    slug: 'bedside-cues',
+    code: 'GRT-102',
+    title: 'Bedside Instructions & Examination Guidance',
+    summary: 'Guide patients during examinations: calling into room, hydration, wound cleaning, curtains, and holding still.',
+    category_id: 'greetings',
+    duration_minutes: 14,
+    difficulty: 'intermediate',
+    sign_ids: ['come', 'give', 'drink', 'clean', 'close', 'switch', 'busy', 'wrong', 'maybe', 'still'],
+    thumbnail_tone: 'teal',
+    captions: [
+      { at: 0, text: 'Bedside instructions guide patient movement, hygiene, and positioning during diagnostics.' },
+      { at: 5, text: 'Sign STILL firmly when instructing patients during X-ray or MRI acquisition.' },
+    ],
+    quiz: [
+      {
+        id: 'q-grt-2',
+        prompt: 'Which sign instructs a patient to remain completely motionless during a scan?',
+        kind: 'multiple_choice',
+        options: [
+          'STILL: downward pressing Y-handshapes moved smoothly forward',
+          'Waving hand inward',
+          'Tapping wrist twice',
+          'Rubbing knuckles under chin'
+        ],
+        answer: 'STILL: downward pressing Y-handshapes moved smoothly forward',
+        hint: 'A steady downward motion signifying holding steady.'
+      }
+    ]
+  },
+
+  // 3. Dietary Care & Patient Nutrition
+  {
     id: 'lesson-diet-nutrition',
     slug: 'diet-nutrition',
-    code: 'NUT-103',
+    code: 'NUT-101',
     title: 'Dietary Counseling & Hospital Nutrition',
-    summary: 'Instruct patients on therapeutic diets, diabetic food choices, vegetable nutrition, hydration and hot beverages.',
+    summary: 'Instruct patients on therapeutic diets, diabetic food choices, hydration, citrus vitamins, and allergen restrictions.',
     category_id: 'nutrition',
     duration_minutes: 14,
     difficulty: 'intermediate',
-    sign_ids: ['tea', 'cook', 'pour', 'vegetables', 'carrot', 'cabbage', 'cauliflower', 'onion', 'radish', 'lemon', 'brinjal', 'chilli', 'cucumber'],
+    sign_ids: ['tea', 'cook', 'pour', 'lemon', 'chilli', 'cucumber'],
     thumbnail_tone: 'gold',
     captions: [
       { at: 0, text: 'Dietary guidance is critical for managing postoperative recovery, diabetes, and hypertension.' },
@@ -242,15 +308,47 @@ const lessons = [
     ]
   },
   {
+    id: 'lesson-diet-vegetables',
+    slug: 'diet-vegetables',
+    code: 'NUT-102',
+    title: 'Therapeutic Vegetable Nutrition & Meal Plans',
+    summary: 'High-fiber recovery foods, diabetic meal planning with vegetables, carrots, cabbage, cauliflower, and onions.',
+    category_id: 'nutrition',
+    duration_minutes: 12,
+    difficulty: 'intermediate',
+    sign_ids: ['vegetables', 'carrot', 'cabbage', 'cauliflower', 'onion', 'radish', 'brinjal'],
+    thumbnail_tone: 'gold',
+    captions: [
+      { at: 0, text: 'Educating patients on specific dietary vegetables promotes recovery and healthy blood glucose.' },
+    ],
+    quiz: [
+      {
+        id: 'q-nut-2',
+        prompt: 'Which sign is used to identify fresh high-fiber vegetables in hospital dietary planning?',
+        kind: 'multiple_choice',
+        options: [
+          'VEGETABLES: V-handshape twisting at the cheek with chewing expression',
+          'Flipping hands like spatula',
+          'Tapping wrist radial pulse',
+          'Crossing arms over chest'
+        ],
+        answer: 'VEGETABLES: V-handshape twisting at the cheek with chewing expression',
+        hint: 'V for vegetables twisting at the cheek.'
+      }
+    ]
+  },
+
+  // 4. Pediatric Comfort & Reassurance
+  {
     id: 'lesson-pediatric-care',
     slug: 'pediatric-care',
-    code: 'PED-104',
-    title: 'Pediatric Comfort & Play Therapy',
-    summary: 'Calm frightened children, ease procedure anxiety, and build rapport using interactive reassurance and animal signs.',
+    code: 'PED-101',
+    title: 'Pediatric Comfort & Anxiety Reduction',
+    summary: 'Calm frightened children, ease procedure anxiety, identify tears, and reward bravery during clinical treatments.',
     category_id: 'pediatric',
     duration_minutes: 16,
     difficulty: 'beginner',
-    sign_ids: ['hug', 'cry', 'jump', 'umbrella', 'bear', 'deer', 'elephant', 'giraffe', 'lion', 'monkey', 'peacock', 'pigeon', 'sparrow', 'tiger', 'turtle', 'crocodile'],
+    sign_ids: ['hug', 'cry', 'jump', 'umbrella', 'bear', 'lion', 'crocodile'],
     thumbnail_tone: 'gold',
     captions: [
       { at: 0, text: 'Pediatric encounters require engaging visual signs to distract young patients during examinations.' },
@@ -273,15 +371,47 @@ const lessons = [
     ]
   },
   {
+    id: 'lesson-pediatric-animals',
+    slug: 'pediatric-animals',
+    code: 'PED-102',
+    title: 'Play Therapy & Pediatric Visual Distraction',
+    summary: 'Interactive animal signs used in pediatric play therapy, eye chart checks, and motor mobility assessments.',
+    category_id: 'pediatric',
+    duration_minutes: 15,
+    difficulty: 'beginner',
+    sign_ids: ['deer', 'elephant', 'giraffe', 'monkey', 'peacock', 'pigeon', 'sparrow', 'tiger', 'turtle'],
+    thumbnail_tone: 'gold',
+    captions: [
+      { at: 0, text: 'Play therapy signs provide playful visual distractions during pediatric blood draws and scans.' },
+    ],
+    quiz: [
+      {
+        id: 'q-ped-2',
+        prompt: 'How is ELEPHANT signed in Indian Sign Language for pediatric engagement?',
+        kind: 'multiple_choice',
+        options: [
+          'Back of hand touching nose, undulating downward in a long trunk curve',
+          'Scratching armpits playfully',
+          'Fanning tail feathers behind back',
+          'Crossing arms in self-hug'
+        ],
+        answer: 'Back of hand touching nose, undulating downward in a long trunk curve',
+        hint: 'Tracing a long trunk.'
+      }
+    ]
+  },
+
+  // 5. Hospital Administration & Consent
+  {
     id: 'lesson-admin-intake',
     slug: 'admin-intake',
-    code: 'ADM-105',
-    title: 'Hospital Administration & Consent',
-    summary: 'Coordinate admission billing, next-of-kin documentation, ward locker keys, and clinical interviews.',
+    code: 'ADM-101',
+    title: 'Hospital Billing, Insurance & Patient Consent',
+    summary: 'Coordinate admission billing, diagnostic exams, next-of-kin documentation, dosage calculations, and intake anamnesis.',
     category_id: 'administration',
     duration_minutes: 15,
     difficulty: 'intermediate',
-    sign_ids: ['budget', 'interview', 'exam', 'maths', 'writer', 'wife', 'uncle', 'key', 'knife', 'break', 'fedup', 'karnataka', 'temple', 'volcano', 'man'],
+    sign_ids: ['budget', 'interview', 'exam', 'maths', 'writer', 'wife', 'uncle'],
     thumbnail_tone: 'success',
     captions: [
       { at: 0, text: 'Hospital administrative transparency ensures patients and families understand treatment plans.' },
@@ -300,6 +430,36 @@ const lessons = [
         ],
         answer: 'BUDGET: rubbing thumb and index like banknotes over open palm',
         hint: 'It mimics counting rupee notes.'
+      }
+    ]
+  },
+  {
+    id: 'lesson-ward-logistics',
+    slug: 'ward-logistics',
+    code: 'ADM-102',
+    title: 'Ward Logistics, Safety Protocols & Navigation',
+    summary: 'Facility navigation, narcotics locker keys, sharps disposal safety, duty shift relief, and hospital sanctuary care.',
+    category_id: 'administration',
+    duration_minutes: 14,
+    difficulty: 'intermediate',
+    sign_ids: ['key', 'knife', 'break', 'fedup', 'karnataka', 'temple', 'volcano', 'man'],
+    thumbnail_tone: 'success',
+    captions: [
+      { at: 0, text: 'Hospital facility navigation and safety signs ensure smooth operation across clinical wards.' },
+    ],
+    quiz: [
+      {
+        id: 'q-adm-2',
+        prompt: 'Which sign is used to reference the medicine locker or pharmacy access key?',
+        kind: 'multiple_choice',
+        options: [
+          'KEY: bent index finger knuckle twisting in open palm like turning a lock',
+          'Sliding hand along forearm',
+          'Two fists breaking imaginary stick',
+          'Touching back of hand to forehead'
+        ],
+        answer: 'KEY: bent index finger knuckle twisting in open palm like turning a lock',
+        hint: 'Turning a key in a lock.'
       }
     ]
   }
@@ -322,7 +482,7 @@ import type {
   SignCategory,
   StaffMember,
   UserProgressSummary,
-} from \"@/types\";
+} from "@/types";
 
 export const categories: SignCategory[] = ${JSON.stringify(categories, null, 2)};
 
@@ -332,34 +492,34 @@ export const lessons: Lesson[] = ${JSON.stringify(lessons, null, 2)};
 
 export const achievements: Achievement[] = [
   {
-    id: \"first-lesson\",
-    name: \"First Step\",
-    description: \"Completed your very first healthcare ISL lesson.\",
-    icon: \"GraduationCap\",
+    id: "first-lesson",
+    name: "First Step",
+    description: "Completed your very first healthcare ISL lesson.",
+    icon: "GraduationCap",
     earned: true,
-    earned_at: \"2026-03-01T10:00:00Z\",
+    earned_at: "2026-03-01T10:00:00Z",
   },
   {
-    id: \"streak-3\",
-    name: \"3-Day Streak\",
-    description: \"Practiced 3 days in a row without breaking your learning streak.\",
-    icon: \"Flame\",
+    id: "streak-3",
+    name: "3-Day Streak",
+    description: "Practiced 3 days in a row without breaking your learning streak.",
+    icon: "Flame",
     earned: true,
-    earned_at: \"2026-03-03T11:30:00Z\",
+    earned_at: "2026-03-03T11:30:00Z",
   },
   {
-    id: \"clinical-mastery\",
-    name: \"Clinical ISL Specialist\",
-    description: \"Mastered emergency triage and clinical symptom signs with 90%+ accuracy.\",
-    icon: \"Stethoscope\",
+    id: "clinical-mastery",
+    name: "Clinical ISL Specialist",
+    description: "Mastered emergency triage and clinical symptom signs with 90%+ accuracy.",
+    icon: "Stethoscope",
     earned: false,
     earned_at: null,
   },
   {
-    id: \"gold-certified\",
-    name: \"Certified Healthcare Communicator\",
-    description: \"Achieved verified Gold Certification on the ISL Setu national standard.\",
-    icon: \"Sparkles\",
+    id: "gold-certified",
+    name: "Certified Healthcare Communicator",
+    description: "Achieved verified Gold Certification on the ISL Setu national standard.",
+    icon: "Sparkles",
     earned: false,
     earned_at: null,
   },
@@ -367,127 +527,127 @@ export const achievements: Achievement[] = [
 
 export const progressSummary: UserProgressSummary = {
   overall_percent: 68,
-  level: \"bronze\",
+  level: "bronze",
   streak_days: 5,
   accuracy_percent: 88,
   daily_goal_minutes: 15,
   daily_goal_done_minutes: 12,
   signs_learned: 24,
   weekly: [
-    { day: \"Mon\", minutes: 15, accuracy: 85 },
-    { day: \"Tue\", minutes: 20, accuracy: 92 },
-    { day: \"Wed\", minutes: 12, accuracy: 80 },
-    { day: \"Thu\", minutes: 18, accuracy: 90 },
-    { day: \"Fri\", minutes: 15, accuracy: 88 },
-    { day: \"Sat\", minutes: 10, accuracy: 84 },
-    { day: \"Sun\", minutes: 22, accuracy: 94 },
+    { day: "Mon", minutes: 15, accuracy: 85 },
+    { day: "Tue", minutes: 20, accuracy: 92 },
+    { day: "Wed", minutes: 12, accuracy: 80 },
+    { day: "Thu", minutes: 18, accuracy: 90 },
+    { day: "Fri", minutes: 15, accuracy: 88 },
+    { day: "Sat", minutes: 10, accuracy: 84 },
+    { day: "Sun", minutes: 22, accuracy: 94 },
   ],
 };
 
 export const lessonProgress: LessonProgress[] = [
   {
-    lesson_id: \"lesson-clinical-triage\",
-    user_id: \"demo-user\",
+    lesson_id: "lesson-clinical-triage",
+    user_id: "demo-user",
     percent: 100,
     completed: true,
-    last_opened_at: \"2026-08-14T10:00:00Z\",
+    last_opened_at: "2026-08-14T10:00:00Z",
   },
   {
-    lesson_id: \"lesson-greetings-intake\",
-    user_id: \"demo-user\",
+    lesson_id: "lesson-greetings-intake",
+    user_id: "demo-user",
     percent: 75,
     completed: false,
-    last_opened_at: \"2026-08-14T11:30:00Z\",
+    last_opened_at: "2026-08-14T11:30:00Z",
   },
 ];
 
 export const activity: ActivityItem[] = [
   {
-    id: \"act-1\",
-    kind: \"lesson\",
-    title: \"Completed Emergency Triage\",
-    detail: \"Scored 100% on the quiz and practiced 10 triage signs.\",
-    at: \"2 hours ago\",
+    id: "act-1",
+    kind: "lesson",
+    title: "Completed Emergency Triage",
+    detail: "Scored 100% on the quiz and practiced 10 triage signs.",
+    at: "2 hours ago",
   },
   {
-    id: \"act-2\",
-    kind: \"practice\",
-    title: \"AI Camera Practice Session\",
-    detail: \"Recognized FEVER and INJURY with 95% landmark confidence.\",
-    at: \"Yesterday\",
+    id: "act-2",
+    kind: "practice",
+    title: "AI Camera Practice Session",
+    detail: "Recognized FEVER and INJURY with 95% landmark confidence.",
+    at: "Yesterday",
   },
 ];
 
 export const bronzeAssessment: Assessment = {
-  id: \"assess-bronze\",
-  tier: \"bronze\",
-  title: \"Healthcare ISL Foundations Assessment\",
+  id: "assess-bronze",
+  tier: "bronze",
+  title: "Healthcare ISL Foundations Assessment",
   duration_minutes: 10,
   pass_percent: 75,
   questions: [
     {
-      id: \"q-assess-1\",
-      prompt: \"Which gesture indicates high body temperature / pyrexia in ISL?\",
-      kind: \"multiple_choice\",
+      id: "q-assess-1",
+      prompt: "Which gesture indicates high body temperature / pyrexia in ISL?",
+      kind: "multiple_choice",
       options: [
-        \"Back of flat hand touching forehead with concern\",
-        \"Tapping wrist radial pulse\",
-        \"Fanning chest with two hands\",
-        \"Curling fingers like claws\"
+        "Back of flat hand touching forehead with concern",
+        "Tapping wrist radial pulse",
+        "Fanning chest with two hands",
+        "Curling fingers like claws"
       ],
-      answer: \"Back of flat hand touching forehead with concern\",
-      hint: \"Forehead temperature check.\"
+      answer: "Back of flat hand touching forehead with concern",
+      hint: "Forehead temperature check."
     },
     {
-      id: \"q-assess-2\",
-      prompt: \"How is DOCTOR represented in Indian Sign Language?\",
-      kind: \"multiple_choice\",
+      id: "q-assess-2",
+      prompt: "How is DOCTOR represented in Indian Sign Language?",
+      kind: "multiple_choice",
       options: [
-        \"Two-finger radial pulse check on opposite wrist\",
-        \"Holding imaginary stethoscope\",
-        \"Sweeping hand across chin\",
-        \"Crossed arms over chest\"
+        "Two-finger radial pulse check on opposite wrist",
+        "Holding imaginary stethoscope",
+        "Sweeping hand across chin",
+        "Crossed arms over chest"
       ],
-      answer: \"Two-finger radial pulse check on opposite wrist\",
-      hint: \"Checking wrist pulse.\"
+      answer: "Two-finger radial pulse check on opposite wrist",
+      hint: "Checking wrist pulse."
     }
   ],
 };
 
 export const certificates: Certificate[] = [
   {
-    id: \"cert-bronze-sample\",
-    tier: \"bronze\",
-    title: \"Bronze ISL Healthcare Certificate\",
-    subtitle: \"Foundational Clinical Sign Language Competency\",
-    requirements: [\"Complete 2 healthcare modules\", \"Pass Bronze Assessment >= 75%\", \"Recognize 10 signs via camera\"],
+    id: "cert-bronze-sample",
+    tier: "bronze",
+    title: "Bronze ISL Healthcare Certificate",
+    subtitle: "Foundational Clinical Sign Language Competency",
+    requirements: ["Complete 2 healthcare modules", "Pass Bronze Assessment >= 75%", "Recognize 10 signs via camera"],
     signs_required: 10,
     signs_completed: 10,
-    status: \"completed\",
-    issued_at: \"2026-08-14T12:00:00Z\",
-    credential_id: \"ISL-SETU-BRZ-2026-8891\",
+    status: "completed",
+    issued_at: "2026-08-14T12:00:00Z",
+    credential_id: "ISL-SETU-BRZ-2026-8891",
   },
   {
-    id: \"cert-silver-sample\",
-    tier: \"silver\",
-    title: \"Silver ISL Healthcare Certificate\",
-    subtitle: \"Intermediate Clinical & Patient Intake Fluency\",
-    requirements: [\"Complete 4 healthcare modules\", \"Pass Silver Assessment >= 80%\", \"Recognize 25 signs via camera\"],
+    id: "cert-silver-sample",
+    tier: "silver",
+    title: "Silver ISL Healthcare Certificate",
+    subtitle: "Intermediate Clinical & Patient Intake Fluency",
+    requirements: ["Complete 4 healthcare modules", "Pass Silver Assessment >= 80%", "Recognize 25 signs via camera"],
     signs_required: 25,
     signs_completed: 18,
-    status: \"in_progress\",
+    status: "in_progress",
     issued_at: null,
     credential_id: null,
   },
   {
-    id: \"cert-gold-sample\",
-    tier: \"gold\",
-    title: \"Gold ISL Healthcare Master Certificate\",
-    subtitle: \"Advanced Clinical Triage & Specialized Hospital Care\",
-    requirements: [\"Complete all modules\", \"Pass Gold Assessment >= 85%\", \"Recognize 50+ signs via camera\"],
+    id: "cert-gold-sample",
+    tier: "gold",
+    title: "Gold ISL Healthcare Master Certificate",
+    subtitle: "Advanced Clinical Triage & Specialized Hospital Care",
+    requirements: ["Complete all modules", "Pass Gold Assessment >= 85%", "Recognize 50+ signs via camera"],
     signs_required: 50,
     signs_completed: 24,
-    status: \"locked\",
+    status: "locked",
     issued_at: null,
     credential_id: null,
   },
@@ -495,68 +655,68 @@ export const certificates: Certificate[] = [
 
 export const staff: StaffMember[] = [
   {
-    id: \"staff-1\",
-    full_name: \"Staff Nurse Ananya Sharma\",
-    role: \"nurse\",
-    department: \"Emergency & Trauma\",
-    certification: \"silver\",
+    id: "staff-1",
+    full_name: "Staff Nurse Ananya Sharma",
+    role: "nurse",
+    department: "Emergency & Trauma",
+    certification: "silver",
     progress_percent: 85,
-    status: \"active\",
+    status: "active",
   },
   {
-    id: \"staff-2\",
-    full_name: \"Dr. Rajesh Varma\",
-    role: \"doctor\",
-    department: \"Outpatient & Internal Medicine\",
-    certification: \"gold\",
+    id: "staff-2",
+    full_name: "Dr. Rajesh Varma",
+    role: "doctor",
+    department: "Outpatient & Internal Medicine",
+    certification: "gold",
     progress_percent: 100,
-    status: \"active\",
+    status: "active",
   },
   {
-    id: \"staff-3\",
-    full_name: \"Priya Sundaram\",
-    role: \"receptionist\",
-    department: \"Patient Registration & Intake\",
-    certification: \"bronze\",
+    id: "staff-3",
+    full_name: "Priya Sundaram",
+    role: "receptionist",
+    department: "Patient Registration & Intake",
+    certification: "bronze",
     progress_percent: 60,
-    status: \"training\",
+    status: "training",
   },
 ];
 
 export const hospital: Hospital = {
-  id: \"hosp-apollo-delhi\",
-  name: \"Apollo Indraprastha Medical Center\",
-  city: \"New Delhi\",
-  state: \"Delhi NCR\",
-  readiness: \"isl_ready\",
+  id: "hosp-apollo-delhi",
+  name: "Apollo Indraprastha Medical Center",
+  city: "New Delhi",
+  state: "Delhi NCR",
+  readiness: "isl_ready",
   departments_covered: 8,
   departments_total: 10,
-  last_training_at: \"2026-08-14T09:00:00Z\",
+  last_training_at: "2026-08-14T09:00:00Z",
 };
 
 export const hospitalAnalytics: HospitalAnalytics = {
   certification_progress: [
-    { month: \"Jan\", bronze: 10, silver: 4, gold: 2 },
-    { month: \"Feb\", bronze: 18, silver: 8, gold: 4 },
-    { month: \"Mar\", bronze: 25, silver: 15, gold: 7 },
-    { month: \"Apr\", bronze: 32, silver: 22, gold: 12 },
-    { month: \"May\", bronze: 42, silver: 28, gold: 18 },
+    { month: "Jan", bronze: 10, silver: 4, gold: 2 },
+    { month: "Feb", bronze: 18, silver: 8, gold: 4 },
+    { month: "Mar", bronze: 25, silver: 15, gold: 7 },
+    { month: "Apr", bronze: 32, silver: 22, gold: 12 },
+    { month: "May", bronze: 42, silver: 28, gold: 18 },
   ],
   department_coverage: [
-    { department: \"Emergency & Trauma\", covered: 94 },
-    { department: \"Pediatrics & NICU\", covered: 88 },
-    { department: \"Outpatient & Intake\", covered: 82 },
-    { department: \"Pharmacy & Lab\", covered: 76 },
+    { department: "Emergency & Trauma", covered: 94 },
+    { department: "Pediatrics & NICU", covered: 88 },
+    { department: "Outpatient & Intake", covered: 82 },
+    { department: "Pharmacy & Lab", covered: 76 },
   ],
   monthly_training: [
-    { month: \"Jan\", hours: 35 },
-    { month: \"Feb\", hours: 48 },
-    { month: \"Mar\", hours: 62 },
-    { month: \"Apr\", hours: 78 },
-    { month: \"May\", hours: 94 },
+    { month: "Jan", hours: 35 },
+    { month: "Feb", hours: 48 },
+    { month: "Mar", hours: 62 },
+    { month: "Apr", hours: 78 },
+    { month: "May", hours: 94 },
   ],
 };
 `;
 
 fs.writeFileSync('src/services/mock/data.ts', mockDataContent, 'utf8');
-console.log('Successfully generated src/services/mock/data.ts with all 71 signs, lessons, quizzes, and exports!');
+console.log('Successfully generated src/services/mock/data.ts with all 71 signs, 10 lessons, quizzes, and exports!');

@@ -1058,7 +1058,7 @@ export const lessons: Lesson[] = [
     "slug": "clinical-triage",
     "code": "CLN-101",
     "title": "Emergency Triage & Vital Symptoms",
-    "summary": "Master critical clinical signs for fever, trauma injury, acute pain, physician call and emergency response.",
+    "summary": "Master critical clinical signs for fever, trauma injury, acute pain, physician call and nurse alert.",
     "category_id": "clinical",
     "duration_minutes": 15,
     "difficulty": "beginner",
@@ -1067,12 +1067,7 @@ export const lessons: Lesson[] = [
       "injury",
       "pain",
       "doctor",
-      "nurse",
-      "medicine",
-      "blood",
-      "emergency",
-      "help",
-      "hospital"
+      "nurse"
     ],
     "thumbnail_tone": "primary",
     "captions": [
@@ -1119,30 +1114,63 @@ export const lessons: Lesson[] = [
     ]
   },
   {
+    "id": "lesson-clinical-acute",
+    "slug": "clinical-acute",
+    "code": "CLN-102",
+    "title": "Hospitalization & Acute Care Response",
+    "summary": "Essential signs for medication dispensing, hematology blood draws, urgent emergency response, and hospital wards.",
+    "category_id": "clinical",
+    "duration_minutes": 12,
+    "difficulty": "intermediate",
+    "sign_ids": [
+      "medicine",
+      "blood",
+      "emergency",
+      "help",
+      "hospital"
+    ],
+    "thumbnail_tone": "primary",
+    "captions": [
+      {
+        "at": 0,
+        "text": "Acute care communication ensures prompt delivery of medications and urgent clinical help."
+      },
+      {
+        "at": 5,
+        "text": "Use EMERGENCY with an alert posture to mobilize rapid response teams."
+      }
+    ],
+    "quiz": [
+      {
+        "id": "q-cln-3",
+        "prompt": "Which sign indicates urgent emergency assistance needed in the ward?",
+        "kind": "multiple_choice",
+        "options": [
+          "EMERGENCY: rapid shaking of E-handshape at chest level",
+          "Pinching fingertips together at chin",
+          "Touching back of hand to forehead",
+          "Tracing cross on the upper arm"
+        ],
+        "answer": "EMERGENCY: rapid shaking of E-handshape at chest level",
+        "hint": "An urgent, rapid vibration gesture."
+      }
+    ]
+  },
+  {
     "id": "lesson-greetings-intake",
     "slug": "greetings-intake",
-    "code": "GRT-102",
-    "title": "Patient Intake & Bedside Communication",
-    "summary": "Welcome patients warmly, confirm names, provide clear procedural instructions (come, drink, clean, close, switch, still).",
+    "code": "GRT-101",
+    "title": "Patient Intake & Welcoming Communication",
+    "summary": "Welcome patients warmly, confirm names, acknowledge greetings, and establish positive clinical rapport.",
     "category_id": "greetings",
     "duration_minutes": 12,
     "difficulty": "beginner",
     "sign_ids": [
       "hello",
-      "good-morning",
-      "good-afternoon",
-      "thank-you",
-      "what-is-your-name",
-      "come",
-      "give",
-      "drink",
-      "clean",
-      "close",
-      "switch",
-      "busy",
-      "wrong",
-      "maybe",
-      "still",
+      "good morning",
+      "good afternoon",
+      "thank you",
+      "what is your name",
       "yes",
       "no"
     ],
@@ -1155,10 +1183,6 @@ export const lessons: Lesson[] = [
       {
         "at": 4,
         "text": "Always verify identity using WHAT IS YOUR NAME before administering treatments."
-      },
-      {
-        "at": 8,
-        "text": "Use STILL when instructing patients to remain motionless during radiologic imaging."
       }
     ],
     "quiz": [
@@ -1178,11 +1202,59 @@ export const lessons: Lesson[] = [
     ]
   },
   {
+    "id": "lesson-bedside-cues",
+    "slug": "bedside-cues",
+    "code": "GRT-102",
+    "title": "Bedside Instructions & Examination Guidance",
+    "summary": "Guide patients during examinations: calling into room, hydration, wound cleaning, curtains, and holding still.",
+    "category_id": "greetings",
+    "duration_minutes": 14,
+    "difficulty": "intermediate",
+    "sign_ids": [
+      "come",
+      "give",
+      "drink",
+      "clean",
+      "close",
+      "switch",
+      "busy",
+      "wrong",
+      "maybe",
+      "still"
+    ],
+    "thumbnail_tone": "teal",
+    "captions": [
+      {
+        "at": 0,
+        "text": "Bedside instructions guide patient movement, hygiene, and positioning during diagnostics."
+      },
+      {
+        "at": 5,
+        "text": "Sign STILL firmly when instructing patients during X-ray or MRI acquisition."
+      }
+    ],
+    "quiz": [
+      {
+        "id": "q-grt-2",
+        "prompt": "Which sign instructs a patient to remain completely motionless during a scan?",
+        "kind": "multiple_choice",
+        "options": [
+          "STILL: downward pressing Y-handshapes moved smoothly forward",
+          "Waving hand inward",
+          "Tapping wrist twice",
+          "Rubbing knuckles under chin"
+        ],
+        "answer": "STILL: downward pressing Y-handshapes moved smoothly forward",
+        "hint": "A steady downward motion signifying holding steady."
+      }
+    ]
+  },
+  {
     "id": "lesson-diet-nutrition",
     "slug": "diet-nutrition",
-    "code": "NUT-103",
+    "code": "NUT-101",
     "title": "Dietary Counseling & Hospital Nutrition",
-    "summary": "Instruct patients on therapeutic diets, diabetic food choices, vegetable nutrition, hydration and hot beverages.",
+    "summary": "Instruct patients on therapeutic diets, diabetic food choices, hydration, citrus vitamins, and allergen restrictions.",
     "category_id": "nutrition",
     "duration_minutes": 14,
     "difficulty": "intermediate",
@@ -1190,14 +1262,7 @@ export const lessons: Lesson[] = [
       "tea",
       "cook",
       "pour",
-      "vegetables",
-      "carrot",
-      "cabbage",
-      "cauliflower",
-      "onion",
-      "radish",
       "lemon",
-      "brinjal",
       "chilli",
       "cucumber"
     ],
@@ -1229,11 +1294,52 @@ export const lessons: Lesson[] = [
     ]
   },
   {
+    "id": "lesson-diet-vegetables",
+    "slug": "diet-vegetables",
+    "code": "NUT-102",
+    "title": "Therapeutic Vegetable Nutrition & Meal Plans",
+    "summary": "High-fiber recovery foods, diabetic meal planning with vegetables, carrots, cabbage, cauliflower, and onions.",
+    "category_id": "nutrition",
+    "duration_minutes": 12,
+    "difficulty": "intermediate",
+    "sign_ids": [
+      "vegetables",
+      "carrot",
+      "cabbage",
+      "cauliflower",
+      "onion",
+      "radish",
+      "brinjal"
+    ],
+    "thumbnail_tone": "gold",
+    "captions": [
+      {
+        "at": 0,
+        "text": "Educating patients on specific dietary vegetables promotes recovery and healthy blood glucose."
+      }
+    ],
+    "quiz": [
+      {
+        "id": "q-nut-2",
+        "prompt": "Which sign is used to identify fresh high-fiber vegetables in hospital dietary planning?",
+        "kind": "multiple_choice",
+        "options": [
+          "VEGETABLES: V-handshape twisting at the cheek with chewing expression",
+          "Flipping hands like spatula",
+          "Tapping wrist radial pulse",
+          "Crossing arms over chest"
+        ],
+        "answer": "VEGETABLES: V-handshape twisting at the cheek with chewing expression",
+        "hint": "V for vegetables twisting at the cheek."
+      }
+    ]
+  },
+  {
     "id": "lesson-pediatric-care",
     "slug": "pediatric-care",
-    "code": "PED-104",
-    "title": "Pediatric Comfort & Play Therapy",
-    "summary": "Calm frightened children, ease procedure anxiety, and build rapport using interactive reassurance and animal signs.",
+    "code": "PED-101",
+    "title": "Pediatric Comfort & Anxiety Reduction",
+    "summary": "Calm frightened children, ease procedure anxiety, identify tears, and reward bravery during clinical treatments.",
     "category_id": "pediatric",
     "duration_minutes": 16,
     "difficulty": "beginner",
@@ -1243,16 +1349,7 @@ export const lessons: Lesson[] = [
       "jump",
       "umbrella",
       "bear",
-      "deer",
-      "elephant",
-      "giraffe",
       "lion",
-      "monkey",
-      "peacock",
-      "pigeon",
-      "sparrow",
-      "tiger",
-      "turtle",
       "crocodile"
     ],
     "thumbnail_tone": "gold",
@@ -1283,11 +1380,54 @@ export const lessons: Lesson[] = [
     ]
   },
   {
+    "id": "lesson-pediatric-animals",
+    "slug": "pediatric-animals",
+    "code": "PED-102",
+    "title": "Play Therapy & Pediatric Visual Distraction",
+    "summary": "Interactive animal signs used in pediatric play therapy, eye chart checks, and motor mobility assessments.",
+    "category_id": "pediatric",
+    "duration_minutes": 15,
+    "difficulty": "beginner",
+    "sign_ids": [
+      "deer",
+      "elephant",
+      "giraffe",
+      "monkey",
+      "peacock",
+      "pigeon",
+      "sparrow",
+      "tiger",
+      "turtle"
+    ],
+    "thumbnail_tone": "gold",
+    "captions": [
+      {
+        "at": 0,
+        "text": "Play therapy signs provide playful visual distractions during pediatric blood draws and scans."
+      }
+    ],
+    "quiz": [
+      {
+        "id": "q-ped-2",
+        "prompt": "How is ELEPHANT signed in Indian Sign Language for pediatric engagement?",
+        "kind": "multiple_choice",
+        "options": [
+          "Back of hand touching nose, undulating downward in a long trunk curve",
+          "Scratching armpits playfully",
+          "Fanning tail feathers behind back",
+          "Crossing arms in self-hug"
+        ],
+        "answer": "Back of hand touching nose, undulating downward in a long trunk curve",
+        "hint": "Tracing a long trunk."
+      }
+    ]
+  },
+  {
     "id": "lesson-admin-intake",
     "slug": "admin-intake",
-    "code": "ADM-105",
-    "title": "Hospital Administration & Consent",
-    "summary": "Coordinate admission billing, next-of-kin documentation, ward locker keys, and clinical interviews.",
+    "code": "ADM-101",
+    "title": "Hospital Billing, Insurance & Patient Consent",
+    "summary": "Coordinate admission billing, diagnostic exams, next-of-kin documentation, dosage calculations, and intake anamnesis.",
     "category_id": "administration",
     "duration_minutes": 15,
     "difficulty": "intermediate",
@@ -1298,15 +1438,7 @@ export const lessons: Lesson[] = [
       "maths",
       "writer",
       "wife",
-      "uncle",
-      "key",
-      "knife",
-      "break",
-      "fedup",
-      "karnataka",
-      "temple",
-      "volcano",
-      "man"
+      "uncle"
     ],
     "thumbnail_tone": "success",
     "captions": [
@@ -1332,6 +1464,48 @@ export const lessons: Lesson[] = [
         ],
         "answer": "BUDGET: rubbing thumb and index like banknotes over open palm",
         "hint": "It mimics counting rupee notes."
+      }
+    ]
+  },
+  {
+    "id": "lesson-ward-logistics",
+    "slug": "ward-logistics",
+    "code": "ADM-102",
+    "title": "Ward Logistics, Safety Protocols & Navigation",
+    "summary": "Facility navigation, narcotics locker keys, sharps disposal safety, duty shift relief, and hospital sanctuary care.",
+    "category_id": "administration",
+    "duration_minutes": 14,
+    "difficulty": "intermediate",
+    "sign_ids": [
+      "key",
+      "knife",
+      "break",
+      "fedup",
+      "karnataka",
+      "temple",
+      "volcano",
+      "man"
+    ],
+    "thumbnail_tone": "success",
+    "captions": [
+      {
+        "at": 0,
+        "text": "Hospital facility navigation and safety signs ensure smooth operation across clinical wards."
+      }
+    ],
+    "quiz": [
+      {
+        "id": "q-adm-2",
+        "prompt": "Which sign is used to reference the medicine locker or pharmacy access key?",
+        "kind": "multiple_choice",
+        "options": [
+          "KEY: bent index finger knuckle twisting in open palm like turning a lock",
+          "Sliding hand along forearm",
+          "Two fists breaking imaginary stick",
+          "Touching back of hand to forehead"
+        ],
+        "answer": "KEY: bent index finger knuckle twisting in open palm like turning a lock",
+        "hint": "Turning a key in a lock."
       }
     ]
   }

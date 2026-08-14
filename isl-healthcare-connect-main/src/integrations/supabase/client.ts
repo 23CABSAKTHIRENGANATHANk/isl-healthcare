@@ -62,6 +62,10 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
  * NOTE: If you see 'never' type errors in service files, use the `from()`
  * re-export below which bypasses Supabase JS v2's strict type inference.
  */
+export const isSupabaseConfigured = Boolean(
+  SUPABASE_URL && SUPABASE_KEY && !SUPABASE_URL.includes("placeholder") && !SUPABASE_KEY.includes("placeholder"),
+);
+
 export const supabase = createClient<Database>(
   SUPABASE_URL || "https://placeholder.supabase.co",
   SUPABASE_KEY || "placeholder",

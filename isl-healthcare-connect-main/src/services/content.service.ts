@@ -21,7 +21,7 @@ export async function listLessons(): Promise<Lesson[]> {
 
     if (!error && data && data.length > 0) {
       console.log("[ContentService] Loaded lessons from Supabase:", data.length);
-      return data.map((row: any) => ({
+      const dbLessons = data.map((row: any) => ({
         id: row.id,
         slug: row.slug,
         code: row.code,
@@ -38,15 +38,15 @@ export async function listLessons(): Promise<Lesson[]> {
         }[],
         quiz: (Array.isArray(row.quiz) ? row.quiz : []) as QuizQuestion[],
       }));
-    } else if (error) {
-      console.warn("[ContentService] Supabase error - using mock data:", error.message);
-    } else {
-      console.log("[ContentService] No Supabase data - using mock lessons");
+
+      // Combine with mockLessons so all 5 categories are always fully populated
+      const existingSlugs = new Set(dbLessons.map((l: Lesson) => l.slug));
+      const missingMock = mockLessons.filter((ml) => !existingSlugs.has(ml.slug));
+      return [...dbLessons, ...clone(missingMock)];
     }
   } catch (err) {
     console.warn("[ContentService] Supabase listLessons exception:", err);
   }
-  console.log("[ContentService] Returning mock lessons - count:", mockLessons.length);
   return clone(mockLessons);
 }
 
@@ -54,10 +54,15 @@ export async function listLessonsByCategory(): Promise<
   { category: SignCategory; lessons: Lesson[] }[]
 > {
   const allLessons = await listLessons();
-  return categories.map((category) => ({
-    category,
-    lessons: allLessons.filter((lesson) => lesson.category_id === category.id),
-  }));
+  return categories.map((category) => {
+    const matching = allLessons.filter((lesson) => lesson.category_id === category.id);
+    // If a category somehow has 0 matching, fallback to mockLessons for that category
+    if (matching.length === 0) {
+      const fallback = mockLessons.filter((l) => l.category_id === category.id);
+      return { category, lessons: clone(fallback) };
+    }
+    return { category, lessons: matching };
+  });
 }
 
 export async function getLesson(slug: string): Promise<Lesson | null> {
@@ -101,8 +106,7 @@ export async function listSigns(): Promise<Sign[]> {
     const { data, error } = await dbFrom("signs").select("*").eq("is_published", true);
 
     if (!error && data && data.length > 0) {
-      console.log("[ContentService] Loaded signs from Supabase:", data.length);
-      return data.map((row: any) => ({
+      const dbSigns = data.map((row: any) => ({
         id: row.id,
         gloss: row.gloss,
         meaning: row.meaning,
@@ -112,15 +116,14 @@ export async function listSigns(): Promise<Sign[]> {
         video_url: row.video_url,
         steps: (Array.isArray(row.steps) ? row.steps : []) as string[],
       }));
-    } else if (error) {
-      console.warn("[ContentService] Supabase error - using mock data:", error.message);
-    } else {
-      console.log("[ContentService] No Supabase data - using mock signs");
+      // Merge with mock signs so all 71 signs are always available
+      const existingIds = new Set(dbSigns.map((s: Sign) => s.id.toLowerCase()));
+      const missingMock = mockSigns.filter((ms) => !existingIds.has(ms.id.toLowerCase()));
+      return [...dbSigns, ...clone(missingMock)];
     }
   } catch (err) {
     console.warn("[ContentService] Supabase listSigns exception:", err);
   }
-  console.log("[ContentService] Returning mock signs - count:", mockSigns.length);
   return clone(mockSigns);
 }
 
@@ -131,7 +134,19 @@ export async function listSignsByCategory(categoryId: string): Promise<Sign[]> {
 
 export async function getSignsForLesson(lesson: Lesson): Promise<Sign[]> {
   const allSigns = await listSigns();
-  return lesson.sign_ids.map((id) => allSigns.find((s) => s.id === id)).filter(Boolean) as Sign[];
+  return (lesson.sign_ids || []).map((id) => {
+    const clean = id.trim().toLowerCase();
+    const withSpace = clean.replace(/-/g, " ");
+    const withHyphen = clean.replace(/\s+/g, "-");
+    return allSigns.find(
+      (s) =>
+        s.id.toLowerCase() === clean ||
+        s.id.toLowerCase() === withSpace ||
+        s.id.toLowerCase() === withHyphen ||
+        s.gloss.toLowerCase() === clean ||
+        s.gloss.toLowerCase() === withSpace,
+    );
+  }).filter(Boolean) as Sign[];
 }
 
 export async function listSignsForLesson(lessonId: string): Promise<Sign[]> {
