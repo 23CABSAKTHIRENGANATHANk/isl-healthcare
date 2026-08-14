@@ -91,7 +91,7 @@ export const signs: Sign[] = [
     "category_id": "clinical",
     "difficulty": "beginner",
     "region_note": "Location follows painful anatomical area",
-    "video_url": null,
+    "video_url": "/videos/signs/Injury.mp4",
     "steps": [
       "Index fingers point toward each other a short distance apart.",
       "Twist wrists inward with tense, sympathetic facial expression.",
@@ -105,7 +105,7 @@ export const signs: Sign[] = [
     "category_id": "clinical",
     "difficulty": "beginner",
     "region_note": "Two accepted variants in North and South India",
-    "video_url": null,
+    "video_url": "/videos/signs/Interview.mp4",
     "steps": [
       "Index and middle fingers touch inside of opposite wrist.",
       "Tap twice as if checking radial pulse rate.",
@@ -119,7 +119,7 @@ export const signs: Sign[] = [
     "category_id": "clinical",
     "difficulty": "beginner",
     "region_note": "Pulse tap followed by forehead sweep",
-    "video_url": null,
+    "video_url": "/videos/signs/Clean.mp4",
     "steps": [
       "Two fingers tap the wrist as for DOCTOR.",
       "Follow with flat hand brushing across forehead like cap edge.",
@@ -133,7 +133,7 @@ export const signs: Sign[] = [
     "category_id": "clinical",
     "difficulty": "beginner",
     "region_note": "Widely consistent across all states",
-    "video_url": null,
+    "video_url": "/videos/signs/Drink.mp4",
     "steps": [
       "Middle finger touches open palm of opposite hand.",
       "Rotate finger in small circular grinding motion.",
@@ -147,7 +147,7 @@ export const signs: Sign[] = [
     "category_id": "clinical",
     "difficulty": "intermediate",
     "region_note": "Consistent across major Indian hospitals",
-    "video_url": null,
+    "video_url": "/videos/signs/Injury.mp4",
     "steps": [
       "Index finger touches lips indicating red color.",
       "Open both hands and let fingers trickle downward gently.",
@@ -161,7 +161,7 @@ export const signs: Sign[] = [
     "category_id": "clinical",
     "difficulty": "advanced",
     "region_note": "Fast repetitive shake for urgency",
-    "video_url": null,
+    "video_url": "/videos/signs/Break.mp4",
     "steps": [
       "Form E-handshape with dominant hand.",
       "Shake side to side rapidly at chest level.",
@@ -175,7 +175,7 @@ export const signs: Sign[] = [
     "category_id": "clinical",
     "difficulty": "beginner",
     "region_note": "Support hand lifting working hand",
-    "video_url": null,
+    "video_url": "/videos/signs/Give.mp4",
     "steps": [
       "Closed fist with thumb up rests on open palm of non-dominant hand.",
       "Lift both hands upward together smoothly.",
@@ -189,7 +189,7 @@ export const signs: Sign[] = [
     "category_id": "clinical",
     "difficulty": "beginner",
     "region_note": "Cross sign on upper arm or chest",
-    "video_url": null,
+    "video_url": "/videos/signs/Temple.mp4",
     "steps": [
       "Index and middle fingers trace cross on opposite upper arm.",
       "Vertical stroke first, followed by horizontal stroke.",
@@ -413,7 +413,7 @@ export const signs: Sign[] = [
     "category_id": "greetings",
     "difficulty": "beginner",
     "region_note": "Nodding fist motion",
-    "video_url": null,
+    "video_url": "/videos/signs/Thank you.mp4",
     "steps": [
       "Make a loose fist with dominant hand.",
       "Bend wrist up and down twice like a nodding head.",
@@ -427,7 +427,7 @@ export const signs: Sign[] = [
     "category_id": "greetings",
     "difficulty": "beginner",
     "region_note": "Two fingers snapping shut on thumb",
-    "video_url": null,
+    "video_url": "/videos/signs/Wrong.mp4",
     "steps": [
       "Extend index and middle finger with thumb open.",
       "Close the two fingers firmly onto the thumb in one motion.",
