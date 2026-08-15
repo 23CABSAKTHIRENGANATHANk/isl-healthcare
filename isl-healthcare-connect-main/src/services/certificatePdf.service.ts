@@ -1,7 +1,7 @@
 /**
- * ISL Setu — High-Definition Client-Side Professional Certificate Generator
- * Generates an ultra-premium, gold-embossed, 300 DPI printable healthcare certificate.
- * Operates 100% client-side with zero network dependencies for flawless offline & Vercel production reliability.
+ * ISL Setu — Ultra-Premium Client-Side Professional Certificate Generator
+ * Generates an exquisitely colorful, gold-embossed, 300 DPI printable healthcare credential.
+ * Uses institutional authority seals with balanced geometric alignment (no personal names).
  */
 
 import logoImg from "@/assets/isl-setu-logo.png";
@@ -34,67 +34,99 @@ export async function generateProfessionalCertificateBlob(
     throw new Error("Could not initialize 2D canvas context.");
   }
 
-  // 1. Background (Royal Rich Dark Slate with Deep Navy Parchment)
+  // 1. Vibrant Multi-layer Gradient Background (Royal Deep Indigo with Emerald/Gold Ambient Glow)
   const bgGrad = ctx.createLinearGradient(0, 0, width, height);
-  bgGrad.addColorStop(0, "#0a0f1d");
-  bgGrad.addColorStop(0.5, "#0d1527");
-  bgGrad.addColorStop(1, "#070b14");
+  bgGrad.addColorStop(0, "#060b18");
+  bgGrad.addColorStop(0.35, "#0b152d");
+  bgGrad.addColorStop(0.7, "#081b2a");
+  bgGrad.addColorStop(1, "#040711");
   ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, width, height);
 
-  // 2. Outer Ornamental Gold Borders
-  const tierColor =
-    certificate.tier === "gold"
-      ? "#f59e0b"
-      : certificate.tier === "silver"
-      ? "#94a3b8"
-      : "#cd7f32";
+  // Ambient Radial Glow in the center
+  const radialGlow = ctx.createRadialGradient(width / 2, height / 2 - 100, 100, width / 2, height / 2, 1400);
+  radialGlow.addColorStop(0, "rgba(56, 189, 248, 0.08)");
+  radialGlow.addColorStop(0.4, "rgba(212, 175, 55, 0.06)");
+  radialGlow.addColorStop(0.8, "rgba(16, 185, 129, 0.03)");
+  radialGlow.addColorStop(1, "transparent");
+  ctx.fillStyle = radialGlow;
+  ctx.fillRect(0, 0, width, height);
 
-  const goldGrad = ctx.createLinearGradient(100, 100, width - 100, height - 100);
-  goldGrad.addColorStop(0, "#d4af37");
-  goldGrad.addColorStop(0.25, "#fff2a1");
-  goldGrad.addColorStop(0.5, "#d4af37");
-  goldGrad.addColorStop(0.75, "#aa771c");
-  goldGrad.addColorStop(1, "#d4af37");
+  // 2. High-Luminance Gold Gradient Palette
+  const goldGrad = ctx.createLinearGradient(120, 120, width - 120, height - 120);
+  goldGrad.addColorStop(0, "#eab308");
+  goldGrad.addColorStop(0.2, "#fde047");
+  goldGrad.addColorStop(0.4, "#ca8a04");
+  goldGrad.addColorStop(0.6, "#fef08a");
+  goldGrad.addColorStop(0.8, "#d97706");
+  goldGrad.addColorStop(1, "#eab308");
 
-  // Outer Border
-  ctx.lineWidth = 14;
+  // Emerald Highlight Gradient
+  const emeraldGrad = ctx.createLinearGradient(0, 0, width, 0);
+  emeraldGrad.addColorStop(0, "#10b981");
+  emeraldGrad.addColorStop(0.5, "#34d399");
+  emeraldGrad.addColorStop(1, "#059669");
+
+  // Cyan Highlight Gradient
+  const cyanGrad = ctx.createLinearGradient(0, 0, width, 0);
+  cyanGrad.addColorStop(0, "#0ea5e9");
+  cyanGrad.addColorStop(0.5, "#38bdf8");
+  cyanGrad.addColorStop(1, "#0284c7");
+
+  // 3. Intricate Double Gold Ornamental Borders
+  ctx.lineWidth = 16;
   ctx.strokeStyle = goldGrad;
-  ctx.strokeRect(100, 100, width - 200, height - 200);
+  ctx.strokeRect(90, 90, width - 180, height - 180);
 
-  // Inner Thin Border
+  // Secondary Neon Cyan Border
   ctx.lineWidth = 3;
-  ctx.strokeStyle = "rgba(212, 175, 55, 0.4)";
-  ctx.strokeRect(130, 130, width - 260, height - 260);
+  ctx.strokeStyle = "rgba(56, 189, 248, 0.5)";
+  ctx.strokeRect(125, 125, width - 250, height - 250);
 
-  // Corner Ornaments
-  const cornerSize = 120;
+  // Tertiary Gold Dashed Border
+  ctx.save();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "rgba(250, 204, 21, 0.4)";
+  ctx.setLineDash([16, 10]);
+  ctx.strokeRect(145, 145, width - 290, height - 290);
+  ctx.restore();
+
+  // Corner Rosettes
   const corners = [
-    [100, 100],
-    [width - 100, 100],
-    [100, height - 100],
-    [width - 100, height - 100],
+    [90, 90],
+    [width - 90, 90],
+    [90, height - 90],
+    [width - 90, height - 90],
   ];
-
-  ctx.fillStyle = goldGrad;
   for (const [cx, cy] of corners) {
+    ctx.fillStyle = goldGrad;
     ctx.beginPath();
-    ctx.arc(cx, cy, 24, 0, Math.PI * 2);
+    ctx.arc(cx, cy, 28, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#0f172a";
+    ctx.beginPath();
+    ctx.arc(cx, cy, 14, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#38bdf8";
+    ctx.beginPath();
+    ctx.arc(cx, cy, 6, 0, Math.PI * 2);
     ctx.fill();
   }
 
-  // 3. Security Watermark Guilloche Pattern in Background
+  // 4. Subtle Geometric Guilloche Security Pattern
   ctx.save();
-  ctx.strokeStyle = "rgba(212, 175, 55, 0.03)";
+  ctx.strokeStyle = "rgba(212, 175, 55, 0.04)";
   ctx.lineWidth = 2;
-  for (let i = 0; i < 36; i++) {
+  for (let i = 0; i < 40; i++) {
     ctx.beginPath();
-    ctx.ellipse(width / 2, height / 2 + 100, 1100, 500, (i * Math.PI) / 18, 0, Math.PI * 2);
+    ctx.ellipse(width / 2, height / 2 + 60, 1150, 520, (i * Math.PI) / 20, 0, Math.PI * 2);
     ctx.stroke();
   }
   ctx.restore();
 
-  // 4. Logo / Top Emblem
+  // 5. Logo / Top Emblem
   try {
     const img = new Image();
     img.crossOrigin = "anonymous";
@@ -104,75 +136,98 @@ export async function generateProfessionalCertificateBlob(
       img.onerror = resolve;
     });
     if (img.width > 0) {
-      const logoW = 280;
+      const logoW = 300;
       const logoH = (img.height / img.width) * logoW;
-      ctx.drawImage(img, width / 2 - logoW / 2, 220, logoW, logoH);
+      ctx.drawImage(img, width / 2 - logoW / 2, 210, logoW, logoH);
     }
   } catch {}
 
-  // 5. Header Texts
+  // 6. Header Typography
   ctx.textAlign = "center";
-  ctx.fillStyle = "#94a3b8";
-  ctx.font = "600 36px 'Plus Jakarta Sans', sans-serif";
-  ctx.letterSpacing = "6px";
-  ctx.fillText("NATIONAL HEALTHCARE COMMUNICATION & ACCESSIBILITY COUNCIL", width / 2, 430);
-
-  ctx.fillStyle = "#d4af37";
-  ctx.font = "800 68px 'Plus Jakarta Sans', sans-serif";
-  ctx.letterSpacing = "4px";
-  ctx.fillText("CERTIFICATE OF CLINICAL COMPETENCY", width / 2, 530);
-
   ctx.fillStyle = "#38bdf8";
-  ctx.font = "600 38px 'Plus Jakarta Sans', sans-serif";
-  ctx.letterSpacing = "2px";
-  ctx.fillText(
-    `INDIAN SIGN LANGUAGE (ISL) — ${certificate.tier.toUpperCase()} HEALTHCARE TIER`,
-    width / 2,
-    600
-  );
+  ctx.font = "700 32px 'Plus Jakarta Sans', sans-serif";
+  ctx.letterSpacing = "8px";
+  ctx.fillText("NATIONAL HEALTHCARE ACCESSIBILITY & CLINICAL ISL COUNCIL", width / 2, 420);
 
-  // 6. Presentation Lead
+  ctx.fillStyle = goldGrad;
+  ctx.font = "900 70px 'Plus Jakarta Sans', sans-serif";
+  ctx.letterSpacing = "4px";
+  ctx.fillText("OFFICIAL CERTIFICATE OF ACHIEVEMENT", width / 2, 515);
+
+  // Tier Banner Ribbon
+  const tierName = `${certificate.tier.toUpperCase()} CLINICAL HEALTHCARE TIER`;
+  const ribbonW = 1200;
+  const ribbonH = 64;
+  const ribbonX = width / 2 - ribbonW / 2;
+  const ribbonY = 560;
+
+  const ribbonGrad = ctx.createLinearGradient(ribbonX, 0, ribbonX + ribbonW, 0);
+  if (certificate.tier === "gold") {
+    ribbonGrad.addColorStop(0, "rgba(234, 179, 8, 0.2)");
+    ribbonGrad.addColorStop(0.5, "rgba(234, 179, 8, 0.45)");
+    ribbonGrad.addColorStop(1, "rgba(234, 179, 8, 0.2)");
+  } else if (certificate.tier === "silver") {
+    ribbonGrad.addColorStop(0, "rgba(148, 163, 184, 0.2)");
+    ribbonGrad.addColorStop(0.5, "rgba(148, 163, 184, 0.45)");
+    ribbonGrad.addColorStop(1, "rgba(148, 163, 184, 0.2)");
+  } else {
+    ribbonGrad.addColorStop(0, "rgba(249, 115, 22, 0.2)");
+    ribbonGrad.addColorStop(0.5, "rgba(245, 158, 11, 0.45)");
+    ribbonGrad.addColorStop(1, "rgba(249, 115, 22, 0.2)");
+  }
+
+  ctx.fillStyle = ribbonGrad;
+  ctx.beginPath();
+  ctx.roundRect(ribbonX, ribbonY, ribbonW, ribbonH, 32);
+  ctx.fill();
+
+  ctx.fillStyle = "#fef08a";
+  ctx.font = "800 32px 'Plus Jakarta Sans', sans-serif";
+  ctx.letterSpacing = "3px";
+  ctx.fillText(`★ ${tierName} • CLINICAL TRIAGE & PATIENT INTAKE ★`, width / 2, ribbonY + 44);
+
+  // 7. Presentation Lead
   ctx.fillStyle = "#cbd5e1";
-  ctx.font = "400 38px 'Inter', sans-serif";
+  ctx.font = "500 38px 'Inter', sans-serif";
   ctx.letterSpacing = "1px";
-  ctx.fillText("This is to officially certify that", width / 2, 750);
+  ctx.fillText("This credential is proud to officially certify that", width / 2, 730);
 
-  // 7. Candidate Name (Prominent & Elegant)
+  // 8. Candidate Full Name (Ultra-Prominent, Glowing White with Gold Accent)
   const candidateName = (user.full_name || "Healthcare Professional").toUpperCase();
   ctx.fillStyle = "#ffffff";
-  ctx.font = "800 84px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText(candidateName, width / 2, 870);
+  ctx.font = "900 86px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText(candidateName, width / 2, 850);
 
-  // Gold underline under candidate name
+  // Underline bar under candidate name
   const nameWidth = ctx.measureText(candidateName).width;
   ctx.fillStyle = goldGrad;
-  ctx.fillRect(width / 2 - nameWidth / 2 - 40, 910, nameWidth + 80, 6);
+  ctx.fillRect(width / 2 - nameWidth / 2 - 50, 890, nameWidth + 100, 8);
 
-  // 8. Citation / Qualification Statement
+  // 9. Qualification Citation
   ctx.fillStyle = "#94a3b8";
   ctx.font = "400 38px 'Inter', sans-serif";
   ctx.fillText(
-    `has demonstrated clinical proficiency in Indian Sign Language (ISL) healthcare triage,`,
+    "has successfully demonstrated required clinical mastery in Indian Sign Language (ISL) communication,",
     width / 2,
-    1010
+    985
   );
   ctx.fillText(
-    `patient intake reception, and emergency medical communication for ${certificate.subtitle}.`,
+    `patient reception, and healthcare barrier elimination for ${certificate.subtitle}.`,
     width / 2,
-    1075
+    1050
   );
 
-  // 9. Central Credential & Verification Box
-  const boxW = 2600;
-  const boxH = 240;
+  // 10. Central Credential & Verification Box (High-Contrast Glassmorphism)
+  const boxW = 2640;
+  const boxH = 230;
   const boxX = width / 2 - boxW / 2;
-  const boxY = 1200;
+  const boxY = 1170;
 
-  ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
-  ctx.strokeStyle = "rgba(212, 175, 55, 0.4)";
-  ctx.lineWidth = 2;
+  ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
+  ctx.strokeStyle = "rgba(212, 175, 55, 0.5)";
+  ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.roundRect(boxX, boxY, boxW, boxH, 20);
+  ctx.roundRect(boxX, boxY, boxW, boxH, 24);
   ctx.fill();
   ctx.stroke();
 
@@ -191,40 +246,70 @@ export async function generateProfessionalCertificateBlob(
 
   ctx.textAlign = "left";
   // Col 1: Credential ID
-  ctx.fillStyle = "#64748b";
-  ctx.font = "600 28px 'Inter', sans-serif";
-  ctx.fillText("CREDENTIAL IDENTIFIER", boxX + 100, boxY + 80);
   ctx.fillStyle = "#38bdf8";
-  ctx.font = "700 42px 'JetBrains Mono', monospace";
-  ctx.fillText(credId, boxX + 100, boxY + 145);
+  ctx.font = "700 24px 'Plus Jakarta Sans', sans-serif";
+  ctx.letterSpacing = "2px";
+  ctx.fillText("CREDENTIAL IDENTIFIER", boxX + 110, boxY + 75);
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "800 42px 'JetBrains Mono', monospace";
+  ctx.fillText(credId, boxX + 110, boxY + 145);
 
-  // Col 2: Issue Date
-  ctx.fillStyle = "#64748b";
-  ctx.font = "600 28px 'Inter', sans-serif";
-  ctx.fillText("DATE OF ISSUANCE", boxX + 1000, boxY + 80);
+  // Col 2: Date of Issuance
+  ctx.fillStyle = "#fbbf24";
+  ctx.font = "700 24px 'Plus Jakarta Sans', sans-serif";
+  ctx.letterSpacing = "2px";
+  ctx.fillText("DATE OF ISSUANCE", boxX + 1020, boxY + 75);
   ctx.fillStyle = "#f8fafc";
   ctx.font = "700 38px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText(issueDate, boxX + 1000, boxY + 145);
+  ctx.fillText(issueDate, boxX + 1020, boxY + 145);
 
-  // Col 3: Assessment Score
-  ctx.fillStyle = "#64748b";
-  ctx.font = "600 28px 'Inter', sans-serif";
-  ctx.fillText("CLINICAL SCORE", boxX + 1850, boxY + 80);
+  // Col 3: Verified Assessment Score
+  ctx.fillStyle = "#34d399";
+  ctx.font = "700 24px 'Plus Jakarta Sans', sans-serif";
+  ctx.letterSpacing = "2px";
+  ctx.fillText("CLINICAL EVALUATION", boxX + 1880, boxY + 75);
   ctx.fillStyle = "#34d399";
   ctx.font = "800 42px 'JetBrains Mono', monospace";
-  ctx.fillText(`${score}% (VERIFIED)`, boxX + 1850, boxY + 145);
+  ctx.fillText(`${score}% (PASSED)`, boxX + 1880, boxY + 145);
 
-  // 10. Official Gold Medal Seal (Left Bottom)
-  const sealX = boxX + 280;
-  const sealY = 1780;
-  const sealRadius = 140;
+  // 11. Symmetrical Bottom Alignment: Left Board | Center Seal | Right Directorate
+  const bottomY = 1750;
 
-  // Starburst outer seal
+  // --- Left Column: ISL Training & Certification Board ---
+  const leftColX = boxX + 400;
+  ctx.textAlign = "center";
+
+  // Decorative signature baseline
+  ctx.strokeStyle = "rgba(56, 189, 248, 0.6)";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(leftColX - 260, bottomY);
+  ctx.lineTo(leftColX + 260, bottomY);
+  ctx.stroke();
+
+  ctx.fillStyle = "#38bdf8";
+  ctx.font = "800 32px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText("ISL Training & Certification Board", leftColX, bottomY - 30);
+
+  ctx.fillStyle = "#94a3b8";
+  ctx.font = "600 24px 'Inter', sans-serif";
+  ctx.fillText("National Clinical Evaluation Panel", leftColX, bottomY + 45);
+
+  ctx.fillStyle = "#64748b";
+  ctx.font = "500 20px 'Inter', sans-serif";
+  ctx.fillText("Healthcare Communication Standards", leftColX, bottomY + 80);
+
+  // --- Center Column: Official Gold Medallion Seal ---
+  const sealX = width / 2;
+  const sealY = bottomY - 10;
+  const sealRadius = 150;
+
+  // Outer Gold Sunburst
   ctx.fillStyle = goldGrad;
   ctx.beginPath();
-  for (let i = 0; i < 32; i++) {
-    const angle = (i * Math.PI) / 16;
-    const r = i % 2 === 0 ? sealRadius + 25 : sealRadius - 10;
+  for (let i = 0; i < 36; i++) {
+    const angle = (i * Math.PI) / 18;
+    const r = i % 2 === 0 ? sealRadius + 28 : sealRadius - 12;
     const x = sealX + Math.cos(angle) * r;
     const y = sealY + Math.sin(angle) * r;
     if (i === 0) ctx.moveTo(x, y);
@@ -233,68 +318,66 @@ export async function generateProfessionalCertificateBlob(
   ctx.closePath();
   ctx.fill();
 
-  // Seal inner circle
-  ctx.fillStyle = "#0f172a";
+  // Seal inner body
+  ctx.fillStyle = "#070e20";
   ctx.beginPath();
   ctx.arc(sealX, sealY, sealRadius - 20, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.textAlign = "center";
-  ctx.fillStyle = "#d4af37";
-  ctx.font = "800 26px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText("ISL SETU", sealX, sealY - 30);
-  ctx.font = "700 22px 'Inter', sans-serif";
-  ctx.fillText("OFFICIAL", sealX, sealY + 5);
-  ctx.fillText("SEAL", sealX, sealY + 35);
-  ctx.font = "600 18px 'Inter', sans-serif";
-  ctx.fillStyle = "#94a3b8";
-  ctx.fillText("HEALTHCARE", sealX, sealY + 65);
+  // Seal Golden Ring
+  ctx.strokeStyle = goldGrad;
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.arc(sealX, sealY, sealRadius - 28, 0, Math.PI * 2);
+  ctx.stroke();
 
-  // 11. Signatures
-  // Signature 1: Deaf Master Trainer
-  const sig1X = width / 2;
-  const sigY = 1760;
-  ctx.textAlign = "center";
-  ctx.strokeStyle = "rgba(212, 175, 55, 0.5)";
+  // Seal Text
+  ctx.fillStyle = "#fde047";
+  ctx.font = "900 26px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText("★ ISL SETU ★", sealX, sealY - 45);
+
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "800 22px 'Inter', sans-serif";
+  ctx.fillText("OFFICIAL", sealX, sealY - 12);
+  ctx.fillText("CLINICAL", sealX, sealY + 16);
+
+  ctx.fillStyle = "#34d399";
+  ctx.font = "700 20px 'Inter', sans-serif";
+  ctx.fillText("VERIFIED", sealX, sealY + 45);
+
+  ctx.fillStyle = "#94a3b8";
+  ctx.font = "600 16px 'JetBrains Mono', monospace";
+  ctx.fillText("SECURITY SEAL", sealX, sealY + 75);
+
+  // --- Right Column: Directorate of Healthcare Accessibility ---
+  const rightColX = boxX + boxW - 400;
+
+  // Decorative signature baseline
+  ctx.strokeStyle = "rgba(16, 185, 129, 0.6)";
   ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.moveTo(sig1X - 250, sigY);
-  ctx.lineTo(sig1X + 250, sigY);
+  ctx.moveTo(rightColX - 260, bottomY);
+  ctx.lineTo(rightColX + 260, bottomY);
   ctx.stroke();
 
-  ctx.fillStyle = "#f8fafc";
-  ctx.font = "italic 44px 'Georgia', serif";
-  ctx.fillText("Dr. K. Sakthivel, Ph.D.", sig1X, sigY - 25);
-  ctx.font = "600 28px 'Inter', sans-serif";
+  ctx.fillStyle = "#34d399";
+  ctx.font = "800 32px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText("Directorate of Healthcare Accessibility", rightColX, bottomY - 30);
+
   ctx.fillStyle = "#94a3b8";
-  ctx.fillText("Certified Deaf ISL Master Trainer", sig1X, sigY + 45);
-  ctx.font = "400 22px 'Inter', sans-serif";
+  ctx.font = "600 24px 'Inter', sans-serif";
+  ctx.fillText("Medical Communication Authority", rightColX, bottomY + 45);
+
   ctx.fillStyle = "#64748b";
-  ctx.fillText("ISL Setu National Clinical Panel", sig1X, sigY + 80);
+  ctx.font = "500 20px 'Inter', sans-serif";
+  ctx.fillText("Digitally Verified & Authenticated", rightColX, bottomY + 80);
 
-  // Signature 2: Hospital Accessibility Director
-  const sig2X = boxX + boxW - 350;
-  ctx.beginPath();
-  ctx.moveTo(sig2X - 250, sigY);
-  ctx.lineTo(sig2X + 250, sigY);
-  ctx.stroke();
-
-  ctx.fillStyle = "#f8fafc";
-  ctx.font = "italic 44px 'Georgia', serif";
-  ctx.fillText("R. Priya Lakshmi, MD", sig2X, sigY - 25);
-  ctx.font = "600 28px 'Inter', sans-serif";
-  ctx.fillStyle = "#94a3b8";
-  ctx.fillText("Director of Clinical Accessibility", sig2X, sigY + 45);
-  ctx.font = "400 22px 'Inter', sans-serif";
-  ctx.fillStyle = "#64748b";
-  ctx.fillText("Healthcare Communication Board", sig2X, sigY + 80);
-
-  // 12. Footer Security & Verification Notice
+  // 12. Bottom Security & Verification Watermark
   ctx.textAlign = "center";
-  ctx.fillStyle = "#64748b";
-  ctx.font = "400 22px 'Inter', sans-serif";
+  ctx.fillStyle = "#475569";
+  ctx.font = "500 22px 'Inter', sans-serif";
   ctx.fillText(
-    "Verify online at https://isl-healthcare.vercel.app/certification • Tamper-evident digital credential issued by ISL Setu Platform.",
+    "Tamper-Evident Digital Healthcare Credential • Verify online at https://isl-healthcare.vercel.app/certification",
     width / 2,
     height - 140
   );
