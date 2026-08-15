@@ -594,7 +594,8 @@ function VoiceBridgePage() {
               videoRef={videoRef}
               status={status}
               message={message}
-              phase={phase}
+              phase={currentSign ? "detected" : phase}
+              targetSign={currentSign || undefined}
               onStart={() => start()}
               className="w-full"
               landmarks={liveLandmarks}
