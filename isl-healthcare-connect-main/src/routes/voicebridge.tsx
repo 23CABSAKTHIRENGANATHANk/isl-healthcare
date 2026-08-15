@@ -292,7 +292,9 @@ function VoiceBridgePage() {
     ]);
   };
 
-  // Continuous Camera Vision Loop
+  const consecutiveSignRef = useRef<{ sign: string; count: number }>({ sign: "", count: 0 });
+
+  // Continuous Camera Vision Loop with Instant Auto-Voice Trigger
   useEffect(() => {
     let isActive = true;
 
@@ -328,31 +330,51 @@ function VoiceBridgePage() {
             setLiveLandmarks(raw);
 
             // Auto-detect gesture trigger
-            if (autoDetect && !capturing) {
-              const currentTime = Date.now();
-              if (currentTime - lastSpeechTimeRef.current > 1200) {
-                void predictSign(videoRef.current, { mode, landmarks: raw, targetSign: "AUTO" }).then((prediction) => {
-                  if (prediction.success && prediction.sign && prediction.confidence >= 0.80) {
-                    const stabilized = stabilizerRef.current.add(prediction.sign, prediction.confidence);
-                    if (stabilized) {
-                      setCurrentSign(stabilized);
-                      setSigns((prev) => [...prev, stabilized]);
-                      setLastConfidence(prediction.confidence);
-                      lastSpokenSignRef.current = stabilized;
-                      lastSpeechTimeRef.current = Date.now();
-                      void speakSignPhrase(stabilized, selectedLang);
+            if (autoDetect && !capturing && raw[0] && raw[0].length >= 21) {
+              const kinEval = evaluateLandmarksKinematics(raw[0], "AUTO", "balanced");
+              if (kinEval.fingerStates) {
+                setLiveFingerStates(kinEval.fingerStates);
+              }
+              if (kinEval.extendedCount !== undefined) {
+                setLiveExtendedCount(kinEval.extendedCount);
+              }
 
-                      if (stabilized === "HELP" || stabilized === "EMERGENCY") {
-                        handleTriggerSOS(stabilized);
-                      }
+              if (kinEval.success && kinEval.sign && kinEval.sign !== "UNKNOWN") {
+                const detectedSign = kinEval.sign;
+
+                if (consecutiveSignRef.current.sign === detectedSign) {
+                  consecutiveSignRef.current.count += 1;
+                } else {
+                  consecutiveSignRef.current = { sign: detectedSign, count: 1 };
+                }
+
+                // If held steady for 2 consecutive frames (~150ms)
+                if (consecutiveSignRef.current.count >= 2) {
+                  const nowMs = Date.now();
+                  const isNewSign = detectedSign !== lastSpokenSignRef.current;
+                  const isCooldownElapsed = nowMs - lastSpeechTimeRef.current > 2500;
+
+                  if (isNewSign || isCooldownElapsed) {
+                    lastSpokenSignRef.current = detectedSign;
+                    lastSpeechTimeRef.current = nowMs;
+                    setCurrentSign(detectedSign);
+                    setSigns((prev) => [...prev, detectedSign]);
+                    setLastConfidence(kinEval.confidence || 0.95);
+                    void speakSignPhrase(detectedSign, selectedLang);
+
+                    if (detectedSign === "HELP" || detectedSign === "EMERGENCY") {
+                      handleTriggerSOS(detectedSign);
                     }
                   }
-                });
+                }
+              } else {
+                consecutiveSignRef.current = { sign: "", count: 0 };
               }
             }
           } else {
             latestLandmarksRef.current = [];
             setLiveLandmarks([]);
+            consecutiveSignRef.current = { sign: "", count: 0 };
           }
         } catch {}
 
