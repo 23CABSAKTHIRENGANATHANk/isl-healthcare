@@ -131,7 +131,7 @@ export function CameraPreview({
   message,
   phase,
   onStart,
-  targetSign = "HELLO",
+  targetSign,
   className,
   children,
   devices = [],
@@ -289,7 +289,7 @@ export function CameraPreview({
 
             <div className="flex items-center gap-1.5 rounded-xl bg-primary/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary border border-primary/30">
               <Crosshair className="size-3.5" />
-              Target: {targetSign}
+              {targetSign ? `Target: ${targetSign}` : "Mode: Open Recognition"}
             </div>
           </div>
         </div>

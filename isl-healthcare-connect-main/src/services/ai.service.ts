@@ -256,46 +256,46 @@ export async function getClientHandLandmarker() {
     try {
       const { FilesetResolver, HandLandmarker } = await import("@mediapipe/tasks-vision");
       const wasmFileset = await FilesetResolver.forVisionTasks(
-        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
+        "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm"
       );
 
-      const landmarker = await HandLandmarker.createFromOptions(wasmFileset, {
-        baseOptions: {
-          modelAssetPath: "/models/hand_landmarker.task",
-          delegate: "GPU",
-        },
-        runningMode: "VIDEO",
-        numHands: 2,
-        minHandDetectionConfidence: 0.20,
-        minHandPresenceConfidence: 0.20,
-        minTrackingConfidence: 0.20,
-      });
+      // Model asset URLs to try in order (local first, then official Google Storage CDN)
+      const modelCandidates = [
+        "/models/hand_landmarker.task",
+        "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+      ];
 
-      console.log("[MediaPipe Client] Browser HandLandmarker successfully initialized.");
-      return landmarker;
-    } catch (err) {
-      console.warn("[MediaPipe Client] Could not load local model, attempting CDN fallback:", err);
-      try {
-        const { FilesetResolver, HandLandmarker } = await import("@mediapipe/tasks-vision");
-        const wasmFileset = await FilesetResolver.forVisionTasks(
-          "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm"
-        );
-        const landmarker = await HandLandmarker.createFromOptions(wasmFileset, {
-          baseOptions: {
-            modelAssetPath:
-              "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
-            delegate: "GPU",
-          },
-          runningMode: "VIDEO",
-          numHands: 2,
-          minHandDetectionConfidence: 0.20,
-          minHandPresenceConfidence: 0.20,
-        });
-        return landmarker;
-      } catch (fallbackErr) {
-        console.warn("[MediaPipe Client] Fallback load error:", fallbackErr);
-        return null;
+      for (const modelPath of modelCandidates) {
+        // Try GPU delegate first, fallback to CPU delegate
+        for (const delegate of ["GPU", "CPU"] as const) {
+          try {
+            const landmarker = await HandLandmarker.createFromOptions(wasmFileset, {
+              baseOptions: {
+                modelAssetPath: modelPath,
+                delegate,
+              },
+              runningMode: "VIDEO",
+              numHands: 2,
+              minHandDetectionConfidence: 0.20,
+              minHandPresenceConfidence: 0.20,
+              minTrackingConfidence: 0.20,
+            });
+
+            console.log(`[MediaPipe Client] HandLandmarker initialized (${delegate} delegate via ${modelPath})`);
+            return landmarker;
+          } catch (initErr) {
+            console.warn(`[MediaPipe Client] Init failed (${delegate} / ${modelPath}):`, initErr);
+          }
+        }
       }
+
+      console.warn("[MediaPipe Client] All candidate initializations exhausted.");
+      clientLandmarkerPromise = null;
+      return null;
+    } catch (err) {
+      console.warn("[MediaPipe Client] Fatal loader error:", err);
+      clientLandmarkerPromise = null;
+      return null;
     }
   })();
 
