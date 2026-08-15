@@ -117,7 +117,7 @@ function VoiceBridgePage() {
     const langObj = SUPPORTED_LANGUAGES.find((l) => l.code === langCode) || currentLangConfig;
     
     setIsPlayingAudio(true);
-    const speechResult = speak(spokenPhrase, langObj.voiceLang);
+    const speechResult = speak(spokenPhrase, langObj.voiceLang, signName);
     if (!speechResult.ok) {
       setVoiceNotice(`Audio notice: ${speechResult.reason || "Audio voice unavailable. Showing text."}`);
     }

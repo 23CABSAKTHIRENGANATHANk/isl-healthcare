@@ -756,15 +756,42 @@ export async function logPracticeAttempt(params: {
   }
 }
 
+export const TAMIL_PHONETIC_PHRASES: Record<string, string> = {
+  HELP: "Enakku udaniyaaga udhavi thevai.",
+  EMERGENCY: "Idhu oru avasara maruthuva nilai.",
+  DOCTOR: "Dayavu seidhu maruthuvarai azhaikkavum.",
+  NURSE: "Dayavu seidhu seviliyarai azhaikkavum.",
+  WATER: "Dayavu seidhu kudineer kodungal.",
+  PAIN: "Enakku kadumaiyaana vali ulladhu.",
+  FEVER: "Enakku kadumaiyaana kaaichal ulladhu.",
+  MEDICINE: "Dayavu seidhu marundhu kodungal.",
+  INJURY: "Kaayam yerpattulladhu.",
+  HELLO: "Vanakkam, maruthuvamanaikku nalvaravu.",
+  "THANK YOU": "Ungal udhavikku mikka nandri.",
+  "GOOD MORNING": "Kaalai vanakkam.",
+  FOOD: "Enakku unavu vendum.",
+  STOP: "Dayavu seidhu niruthungal.",
+  COME: "Dayavu seidhu ulle vaarungal.",
+};
+
 /**
  * Multilingual speech output with direct high-clarity native audio stream
  * and browser SpeechSynthesis fallback for 100% reliability in Tamil and other Indian languages.
  */
+let cachedVoices: SpeechSynthesisVoice[] = [];
+if (typeof window !== "undefined" && "speechSynthesis" in window) {
+  cachedVoices = window.speechSynthesis.getVoices();
+  window.speechSynthesis.onvoiceschanged = () => {
+    cachedVoices = window.speechSynthesis.getVoices();
+  };
+}
+
 let activeAudioElement: HTMLAudioElement | null = null;
 
 export function speak(
   text: string,
-  langCode = "ta-IN"
+  langCode = "ta-IN",
+  signKey?: string
 ): { ok: boolean; reason?: string } {
   if (typeof window === "undefined") {
     return { ok: false, reason: "Window undefined" };
@@ -786,7 +813,7 @@ export function speak(
 
   const cleanLang = langCode.split("-")[0].toLowerCase(); // e.g. "ta", "hi", "en", "te"
 
-  // Primary Method: High-clarity native audio stream (Guaranteed natural Tamil speech on Windows/Mac/Android/iOS)
+  // Primary Method: High-clarity native audio stream (Guaranteed natural Tamil speech)
   try {
     const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${cleanLang}&q=${encodeURIComponent(text)}`;
     const audio = new Audio(audioUrl);
@@ -797,7 +824,7 @@ export function speak(
     if (playPromise !== undefined) {
       playPromise.catch(() => {
         // Fallback to browser SpeechSynthesis if Audio element is blocked
-        fallbackSpeechSynthesis(text, langCode);
+        fallbackSpeechSynthesis(text, langCode, signKey);
       });
       return { ok: true };
     }
@@ -805,10 +832,14 @@ export function speak(
     // Fallback to SpeechSynthesis
   }
 
-  return fallbackSpeechSynthesis(text, langCode);
+  return fallbackSpeechSynthesis(text, langCode, signKey);
 }
 
-function fallbackSpeechSynthesis(text: string, langCode: string): { ok: boolean; reason?: string } {
+function fallbackSpeechSynthesis(
+  text: string,
+  langCode: string,
+  signKey?: string
+): { ok: boolean; reason?: string } {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) {
     return { ok: false, reason: "Voice output is not supported in this browser." };
   }
@@ -820,23 +851,41 @@ function fallbackSpeechSynthesis(text: string, langCode: string): { ok: boolean;
       synth.resume();
     }
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = langCode;
-    utterance.rate = 0.90;
+    const voices = cachedVoices.length > 0 ? cachedVoices : synth.getVoices();
+    const cleanPrefix = langCode.split("-")[0].toLowerCase();
+
+    // Look for dedicated native voice (e.g. Google தமிழ் / Microsoft Tamil)
+    const nativeVoice = voices.find(
+      (v) =>
+        v.lang.toLowerCase().startsWith(cleanPrefix) ||
+        v.name.toLowerCase().includes("tamil") ||
+        v.name.toLowerCase().includes("ta-in")
+    );
+
+    let textToSpeak = text;
+    let voiceToUse = nativeVoice;
+    let targetLang = langCode;
+
+    // If no native Tamil voice exists in browser/OS, speak phonetic Tamil with Indian English voice
+    if (!nativeVoice && cleanPrefix === "ta") {
+      const upper = signKey?.toUpperCase().trim() || "";
+      textToSpeak = TAMIL_PHONETIC_PHRASES[upper] || "Enakku udhavi thevai.";
+      targetLang = "en-IN";
+      const indianVoice = voices.find(
+        (v) => v.lang.toLowerCase().includes("in") || v.name.toLowerCase().includes("india")
+      );
+      if (indianVoice) {
+        voiceToUse = indianVoice;
+      }
+    }
+
+    const utterance = new SpeechSynthesisUtterance(textToSpeak);
+    utterance.lang = targetLang;
+    utterance.rate = cleanPrefix === "ta" ? 0.88 : 0.95;
     utterance.pitch = 1.0;
 
-    const voices = synth.getVoices();
-    if (voices && voices.length > 0) {
-      const cleanPrefix = langCode.split("-")[0].toLowerCase();
-      const match = voices.find(
-        (v) =>
-          v.lang.toLowerCase().startsWith(cleanPrefix) ||
-          v.name.toLowerCase().includes("tamil") ||
-          v.name.toLowerCase().includes("ta-in")
-      );
-      if (match) {
-        utterance.voice = match;
-      }
+    if (voiceToUse) {
+      utterance.voice = voiceToUse;
     }
 
     utterance.onstart = () => {
