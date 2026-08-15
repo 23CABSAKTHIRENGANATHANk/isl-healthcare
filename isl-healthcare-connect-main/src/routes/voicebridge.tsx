@@ -55,13 +55,13 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/voicebridge")({
   head: () => ({
     meta: [
-      { title: "VoiceBridge — 2-Way Doctor-Patient Clinical Translator | ISL Setu" },
+      { title: "VoiceBridge — Sign to Voice & Doctor Speech to Sign | ISL Setu" },
       {
         name: "description",
         content:
-          "2-Way Healthcare Translation: Convert Indian Sign Language into natural spoken voice and convert doctor speech into verified ISL sign videos in real-time.",
+          "Dedicated two-way clinical communication: Patient Sign to Voice, Doctor Speech to ISL Sign, and Live 2-Way Telehealth Consultation.",
       },
-      { property: "og:title", content: "VoiceBridge — 2-Way Doctor-Patient Clinical Translator" },
+      { property: "og:title", content: "VoiceBridge — Clinical Sign & Speech Translator" },
       {
         property: "og:description",
         content: "Two-way medical speech-to-sign and sign-to-voice communication bridge for hospitals.",
@@ -99,7 +99,10 @@ interface ConsultationMessage {
   language: string;
 }
 
+type TabMode = "patient_sign" | "doctor_speech" | "telehealth_2way";
+
 function VoiceBridgePage() {
+  const [activeTab, setActiveTab] = useState<TabMode>("patient_sign");
   const [signs, setSigns] = useState<string[]>([]);
   const [currentSign, setCurrentSign] = useState<string | null>(null);
   const [mode, setMode] = useState<"ai" | "demo">("ai");
@@ -436,9 +439,9 @@ function VoiceBridgePage() {
     <PageShell>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <PageHeader
-          eyebrow="Clinical Telehealth Bridge"
-          title="2-Way Doctor ⇄ Deaf Patient Communication"
-          description="Interactive bidirectional translation: Doctor speaks in Tamil/English/Hindi → Instant ISL Sign Video for patient. Patient signs on camera → Instant Multilingual Voice for doctor."
+          eyebrow="Clinical VoiceBridge"
+          title="Clinical Communication & Translation Portal"
+          description="Dedicated modules for Deaf Patient Sign-to-Voice, Doctor Speech-to-Sign Demonstration, and Live 2-Way Telehealth."
         />
 
         <div className="flex flex-wrap items-center gap-2">
@@ -470,6 +473,48 @@ function VoiceBridgePage() {
             <span>Reset</span>
           </Button>
         </div>
+      </div>
+
+      {/* 🌟 3-Page Feature Tab Navigation Bar */}
+      <div className="mt-6 flex items-center justify-center p-1.5 rounded-2xl bg-card border border-border/80 shadow-soft max-w-2xl mx-auto">
+        <button
+          type="button"
+          onClick={() => setActiveTab("patient_sign")}
+          className={`flex-1 flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+            activeTab === "patient_sign"
+              ? "bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-md scale-[1.02]"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+          }`}
+        >
+          <Hand className="size-4" />
+          <span>✋ 1. Patient (Sign ➔ Voice)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("doctor_speech")}
+          className={`flex-1 flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+            activeTab === "doctor_speech"
+              ? "bg-gradient-to-r from-primary to-indigo-600 text-white shadow-md scale-[1.02]"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+          }`}
+        >
+          <Mic className="size-4" />
+          <span>🎙️ 2. Doctor (Speech ➔ Sign)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("telehealth_2way")}
+          className={`flex-1 flex items-center justify-center gap-2 py-3 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all ${
+            activeTab === "telehealth_2way"
+              ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-md scale-[1.02]"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+          }`}
+        >
+          <PhoneCall className="size-4" />
+          <span>🏥 3. Live 2-Way Room</span>
+        </button>
       </div>
 
       {/* Language Selector Bar */}
@@ -515,97 +560,222 @@ function VoiceBridgePage() {
         </Button>
       </div>
 
-      {/* Main 2-Way Telehealth Consultation Grid */}
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        {/* LEFT PANEL: Doctor Consultation Station */}
-        <Card className="rounded-3xl border-2 border-primary/40 bg-card/95 shadow-soft flex flex-col justify-between overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between border-b border-border/60 bg-primary/10 pb-3">
-            <div className="flex items-center gap-2.5">
-              <div className="size-8 rounded-xl bg-primary flex items-center justify-center text-primary-foreground">
-                <Stethoscope className="size-4.5" />
+      {/* ========================================================================= */}
+      {/* PAGE 1: DEAF PATIENT SIGN-TO-VOICE MODULE                                 */}
+      {/* ========================================================================= */}
+      {activeTab === "patient_sign" && (
+        <div className="mt-6 grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2 space-y-4">
+            <CameraPreview
+              videoRef={videoRef}
+              status={status}
+              message={message}
+              phase={phase}
+              onStart={() => start()}
+              className="w-full"
+              landmarks={liveLandmarks}
+              fingerStates={liveFingerStates}
+              extendedCount={liveExtendedCount}
+              fps={fps}
+              showMesh={true}
+              autoDetect={autoDetect}
+              onToggleAutoDetect={() => setAutoDetect((v) => !v)}
+            />
+
+            {/* Quick Healthcare Sign Ribbon */}
+            <div className="rounded-2xl border border-teal-500/30 bg-teal-500/5 p-3.5">
+              <div className="flex items-center justify-between pb-2 px-1 text-xs font-bold text-teal-400">
+                <span className="flex items-center gap-1.5">
+                  <Zap className="size-3.5" />
+                  Quick Healthcare Signs (Tap to Speak in {currentLangConfig.nativeName}):
+                </span>
               </div>
-              <div>
-                <CardTitle className="text-base font-bold text-foreground">
-                  Doctor's Station (Speech ➔ Sign)
-                </CardTitle>
-                <p className="text-[11px] text-muted-foreground">Doctor speaks → Video shown to deaf patient</p>
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none touch-pan-x">
+                {CORE_HEALTHCARE_SIGNS.map(({ sign, label, icon }) => (
+                  <button
+                    key={sign}
+                    type="button"
+                    onClick={() => handleQuickSign(sign)}
+                    className="flex shrink-0 items-center gap-1.5 rounded-xl bg-card border border-border/80 px-3.5 py-2 text-xs font-bold text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all shadow-sm active:scale-95"
+                  >
+                    <span>{icon}</span>
+                    <span>{label}</span>
+                  </button>
+                ))}
               </div>
             </div>
-            <Badge variant={isDoctorListening ? "default" : "outline"} className={`gap-1 text-xs ${isDoctorListening ? "bg-emerald-500 text-white animate-pulse" : ""}`}>
-              {isDoctorListening ? "🎙️ Doctor Mic LIVE" : "Mic Standby"}
-            </Badge>
-          </CardHeader>
 
-          <CardContent className="p-5 space-y-4 flex-1 flex flex-col justify-between">
-            {/* Doctor Speech Input Controls */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="hero"
-                  onClick={toggleDoctorSpeech}
-                  className={`flex-1 gap-2.5 rounded-2xl h-12 font-bold shadow-md ${
-                    isDoctorListening
-                      ? "bg-rose-500 hover:bg-rose-600 text-white shadow-rose-500/25"
-                      : "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 text-white"
-                  }`}
-                >
-                  {isDoctorListening ? <MicOff className="size-5" /> : <Mic className="size-5" />}
-                  <span>{isDoctorListening ? "Stop Doctor Microphone" : "🎙️ Start Doctor Voice (பேசத் தொடங்கவும்)"}</span>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-2xl bg-card border border-border/80 shadow-soft">
+              <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+                <Button variant="hero" onClick={capture} disabled={capturing} className="w-full sm:w-auto gap-2 justify-center shadow-md">
+                  <Hand className="size-4" />
+                  {capturing ? "Extracting Landmarks…" : "Capture Sign (Spacebar)"}
                 </Button>
+                {currentSign && (
+                  <Button
+                    variant="teal"
+                    onClick={() => speakSignPhrase(currentSign, selectedLang)}
+                    className="flex-1 sm:flex-none gap-2 justify-center"
+                  >
+                    <Volume2 className="size-4" />
+                    Repeat in {currentLangConfig.nativeName}
+                  </Button>
+                )}
               </div>
+              <div className="flex items-center gap-2 self-end sm:self-center">
+                <Badge variant="outline" className="text-xs text-emerald-400 border-emerald-500/40">
+                  Auto-Detect: {autoDetect ? "ON" : "OFF"}
+                </Badge>
+              </div>
+            </div>
+          </div>
 
-              {/* Doctor Spoken Transcript Card */}
-              <div className="rounded-2xl border border-primary/30 bg-primary/5 p-3.5 min-h-20 flex flex-col justify-center">
+          {/* Right Sidebar: Spoken Voice Banner */}
+          <div className="space-y-6">
+            <Card className="rounded-3xl border-2 border-teal-500/40 bg-card shadow-soft p-5 space-y-4">
+              <CardHeader className="p-0 pb-3 border-b border-border/60">
+                <CardTitle className="text-base font-bold flex items-center justify-between">
+                  <span>Patient's Spoken Voice Output</span>
+                  <Badge className="bg-teal-500/20 text-teal-300 border-teal-500/40 text-xs">
+                    {currentLangConfig.nativeName}
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0 space-y-4">
+                <div className="min-h-36 rounded-2xl bg-gradient-to-br from-teal-500/10 via-card to-card p-5 border border-teal-500/30 flex flex-col justify-center">
+                  {activePhrase ? (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/40 text-xs font-bold px-2.5 py-0.5">
+                          ✓ {currentSign}
+                        </Badge>
+                        {lastConfidence !== null && (
+                          <span className="text-xs font-mono text-emerald-400 font-bold">
+                            {Math.round(lastConfidence * 100)}% Confidence
+                          </span>
+                        )}
+                      </div>
+                      <p className="font-display text-2xl font-extrabold text-foreground leading-snug">
+                        "{activePhrase}"
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Show an ISL sign in front of the camera (or tap any sign above). Spoken audio in <strong className="text-foreground">{currentLangConfig.nativeName}</strong> will play automatically!
+                    </p>
+                  )}
+                </div>
+
+                {signs.length > 0 && (
+                  <div className="space-y-2 pt-2 border-t border-border/40">
+                    <span className="text-xs font-bold text-muted-foreground block">Session Gestures:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {Array.from(new Set(signs.filter((s) => s !== "AUTO" && s !== "UNKNOWN"))).map((s, idx) => (
+                        <Badge key={idx} variant="secondary" className="text-xs font-bold bg-teal-500/20 text-teal-400 border border-teal-500/40 px-2.5 py-1">
+                          {s}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* PAGE 2: DOCTOR SPEECH-TO-SIGN TRANSLATOR                                  */}
+      {/* ========================================================================= */}
+      {activeTab === "doctor_speech" && (
+        <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          {/* Doctor Microphone & Controls */}
+          <Card className="rounded-3xl border-2 border-primary/40 bg-card p-6 shadow-soft space-y-5">
+            <CardHeader className="p-0 pb-3 border-b border-border/60 flex flex-row items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="size-8 rounded-xl bg-primary flex items-center justify-center text-primary-foreground">
+                  <Stethoscope className="size-4.5" />
+                </div>
+                <div>
+                  <CardTitle className="text-base font-bold text-foreground">
+                    Doctor Speech Input
+                  </CardTitle>
+                  <p className="text-[11px] text-muted-foreground">Doctor speaks in {currentLangConfig.nativeName} → ISL Sign Video</p>
+                </div>
+              </div>
+              <Badge variant={isDoctorListening ? "default" : "outline"} className={`gap-1 text-xs ${isDoctorListening ? "bg-emerald-500 text-white animate-pulse" : ""}`}>
+                {isDoctorListening ? "🎙️ Mic Active" : "Mic Standby"}
+              </Badge>
+            </CardHeader>
+
+            <CardContent className="p-0 space-y-4">
+              <Button
+                variant="hero"
+                onClick={toggleDoctorSpeech}
+                className={`w-full gap-2.5 rounded-2xl h-14 text-base font-bold shadow-lg ${
+                  isDoctorListening
+                    ? "bg-rose-500 hover:bg-rose-600 text-white shadow-rose-500/25 animate-pulse"
+                    : "bg-gradient-to-r from-primary to-indigo-600 text-white"
+                }`}
+              >
+                {isDoctorListening ? <MicOff className="size-6" /> : <Mic className="size-6" />}
+                <span>{isDoctorListening ? "Stop Doctor Microphone" : `🎙️ Start Doctor Voice (${currentLangConfig.nativeName} பேசவும்)`}</span>
+              </Button>
+
+              <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 min-h-24 flex flex-col justify-center">
                 <p className="text-[11px] font-bold uppercase tracking-wider text-primary mb-1">
-                  Doctor's Spoken Words:
+                  Doctor's Live Spoken Words:
                 </p>
-                <p className="text-base font-bold text-foreground leading-relaxed">
-                  {doctorTranscript ? `"${doctorTranscript}"` : "Press Start Microphone and speak clinical instructions (e.g. 'மருந்து சாப்பிடுங்கள்', 'எங்கே வலிக்கிறது?')."}
+                <p className="text-lg font-bold text-foreground leading-relaxed">
+                  {doctorTranscript ? `"${doctorTranscript}"` : `Press the mic button and speak instructions in ${currentLangConfig.nativeName} (e.g. 'மருந்து சாப்பிடுங்கள்', 'காய்ச்சல் இருக்கிறதா?').`}
                 </p>
               </div>
 
-              {/* Doctor Quick Clinical Presets */}
-              <div className="space-y-1.5">
-                <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Quick Clinical Questions:
+              {/* Quick Preset Buttons */}
+              <div className="space-y-2 pt-2">
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Quick Doctor Presets (One-Click Sign Demonstration):
                 </p>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {[
-                    { text: "மருந்து சாப்பிடுங்கள்", gloss: "MEDICINE", icon: "💊" },
-                    { text: "காய்ச்சல் இருக்கிறதா?", gloss: "FEVER", icon: "🤒" },
-                    { text: "எங்கே வலிக்கிறது?", gloss: "PAIN", icon: "🩺" },
-                    { text: "தண்ணீர் குடியுங்கள்", gloss: "WATER", icon: "💧" },
-                    { text: "உள்ளே வாருங்கள்", gloss: "COME", icon: "🚪" },
+                    { text: "மருந்து சாப்பிடுங்கள் (Take Medicine)", gloss: "MEDICINE", icon: "💊" },
+                    { text: "காய்ச்சல் இருக்கிறதா? (Have Fever?)", gloss: "FEVER", icon: "🤒" },
+                    { text: "எங்கே வலிக்கிறது? (Where is Pain?)", gloss: "PAIN", icon: "🩺" },
+                    { text: "தண்ணீர் குடியுங்கள் (Drink Water)", gloss: "WATER", icon: "💧" },
+                    { text: "உள்ளே வாருங்கள் (Please Come In)", gloss: "COME", icon: "🚪" },
+                    { text: "இரத்தப் பரிசோதனை (Blood Test)", gloss: "BLOOD", icon: "🩸" },
                   ].map((preset, idx) => (
                     <button
                       key={idx}
                       type="button"
                       onClick={() => handleDoctorPresetPhrase(preset.text, preset.gloss)}
-                      className="flex items-center gap-1 text-xs font-semibold px-3 py-1.5 rounded-xl border border-border bg-muted/60 hover:bg-primary/20 hover:border-primary/40 transition-all"
+                      className="flex items-center gap-2 text-xs font-semibold p-2.5 rounded-xl border border-border bg-muted/60 hover:bg-primary/20 hover:border-primary/40 transition-all text-left"
                     >
-                      <span>{preset.icon}</span>
+                      <span className="text-base">{preset.icon}</span>
                       <span>{preset.text}</span>
                     </button>
                   ))}
                 </div>
               </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            {/* Patient Video Display Area (Generated from Doctor Speech) */}
-            <div className="space-y-2 pt-3 border-t border-border/40">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-teal-400 flex items-center gap-1.5">
-                  <Video className="size-3.5" />
-                  ISL Sign Shown to Deaf Patient:
-                </span>
-                {doctorActiveSignMatch && (
-                  <Badge className="bg-teal-500/20 text-teal-300 border-teal-500/40 text-xs font-mono font-bold">
-                    {doctorActiveSignMatch.signGloss} ({doctorActiveSignMatch.tamilMeaning})
-                  </Badge>
-                )}
-              </div>
+          {/* ISL Demonstration Video Shown to Deaf Patient */}
+          <Card className="rounded-3xl border-2 border-teal-500/40 bg-card p-6 shadow-soft flex flex-col justify-between">
+            <CardHeader className="p-0 pb-3 border-b border-border/60 flex flex-row items-center justify-between">
+              <CardTitle className="text-base font-bold flex items-center gap-2">
+                <Video className="size-5 text-teal-400" />
+                <span>ISL Sign Demonstration Shown to Patient</span>
+              </CardTitle>
+              {doctorActiveSignMatch && (
+                <Badge className="bg-teal-500/20 text-teal-300 border-teal-500/40 text-xs font-mono font-bold">
+                  {doctorActiveSignMatch.signGloss} ({doctorActiveSignMatch.tamilMeaning})
+                </Badge>
+              )}
+            </CardHeader>
 
-              <div className="overflow-hidden rounded-2xl bg-black aspect-video relative flex items-center justify-center border border-white/10 shadow-lg">
+            <CardContent className="p-0 pt-4 flex-1 flex flex-col justify-center">
+              <div className="overflow-hidden rounded-2xl bg-black aspect-video relative flex items-center justify-center border border-white/10 shadow-2xl">
                 {doctorActiveSignMatch ? (
                   <video
                     key={doctorActiveSignMatch.videoUrl}
@@ -624,176 +794,159 @@ function VoiceBridgePage() {
                     }}
                   />
                 ) : (
-                  <div className="text-center p-4 text-muted-foreground text-xs space-y-1.5">
-                    <Hand className="size-8 mx-auto text-primary/60 animate-pulse" />
-                    <p className="font-semibold text-foreground">Sign Demonstration Screen</p>
-                    <p>When doctor speaks, matching ISL sign animation will play here.</p>
+                  <div className="text-center p-6 text-muted-foreground text-xs space-y-2">
+                    <Hand className="size-10 mx-auto text-primary/60 animate-pulse" />
+                    <p className="font-semibold text-foreground text-sm">Sign Video Screen</p>
+                    <p>Speak into the microphone or click a preset question to play the ISL sign demonstration video here.</p>
                   </div>
                 )}
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
-        {/* RIGHT PANEL: Deaf Patient Vision & Sign Station */}
-        <Card className="rounded-3xl border-2 border-teal-500/40 bg-card/95 shadow-soft flex flex-col justify-between overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between border-b border-border/60 bg-teal-500/10 pb-3">
-            <div className="flex items-center gap-2.5">
-              <div className="size-8 rounded-xl bg-teal-500 flex items-center justify-center text-white">
-                <User className="size-4.5" />
-              </div>
-              <div>
-                <CardTitle className="text-base font-bold text-foreground">
-                  Deaf Patient's Station (Sign ➔ Voice)
-                </CardTitle>
-                <p className="text-[11px] text-muted-foreground">Patient signs → Spoken voice output to doctor</p>
-              </div>
-            </div>
-            <Badge variant="outline" className="text-xs text-emerald-400 border-emerald-500/40 bg-emerald-500/10">
-              ⚡ Auto-Detect Vision LIVE
-            </Badge>
-          </CardHeader>
-
-          <CardContent className="p-5 space-y-4 flex-1 flex flex-col justify-between">
-            {/* Patient Camera Stream */}
-            <div className="space-y-3">
-              <CameraPreview
-                videoRef={videoRef}
-                status={status}
-                message={message}
-                phase={phase}
-                onStart={() => start()}
-                className="w-full"
-                landmarks={liveLandmarks}
-                fingerStates={liveFingerStates}
-                extendedCount={liveExtendedCount}
-                fps={fps}
-                showMesh={true}
-                autoDetect={autoDetect}
-                onToggleAutoDetect={() => setAutoDetect((v) => !v)}
-              />
-
-              {/* Patient Quick Signs Ribbon */}
-              <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none touch-pan-x">
-                {CORE_HEALTHCARE_SIGNS.map(({ sign, label, icon }) => (
-                  <button
-                    key={sign}
-                    type="button"
-                    onClick={() => handleQuickSign(sign)}
-                    className="flex shrink-0 items-center gap-1 rounded-xl bg-card border border-border/80 px-2.5 py-1.5 text-xs font-bold text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all shadow-sm active:scale-95"
-                  >
-                    <span>{icon}</span>
-                    <span>{label}</span>
-                  </button>
-                ))}
+      {/* ========================================================================= */}
+      {/* PAGE 3: 2-WAY TELEHEALTH SPLIT-SCREEN CONSULTATION ROOM                   */}
+      {/* ========================================================================= */}
+      {activeTab === "telehealth_2way" && (
+        <div className="mt-6 space-y-6">
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* LEFT: Doctor Station */}
+            <Card className="rounded-3xl border-2 border-primary/40 bg-card/95 p-5 shadow-soft flex flex-col justify-between">
+              <div className="flex items-center justify-between border-b border-border/60 pb-3 mb-4">
+                <span className="font-bold text-sm text-foreground flex items-center gap-2">
+                  <Stethoscope className="size-4 text-primary" />
+                  Doctor's Speech Station
+                </span>
+                <Badge variant={isDoctorListening ? "default" : "outline"} className="text-xs">
+                  {isDoctorListening ? "🎙️ LIVE" : "Standby"}
+                </Badge>
               </div>
 
-              {/* Patient Capture Action Deck */}
-              <div className="flex items-center justify-between gap-2">
+              <div className="space-y-3">
                 <Button
                   variant="hero"
-                  onClick={capture}
-                  disabled={capturing}
-                  className="flex-1 gap-2 rounded-2xl h-11 font-bold shadow-md justify-center"
+                  onClick={toggleDoctorSpeech}
+                  className="w-full gap-2 rounded-2xl h-11 font-bold text-xs"
                 >
-                  <Hand className="size-4" />
-                  {capturing ? "Recognizing..." : "Capture Sign (Spacebar)"}
+                  {isDoctorListening ? <MicOff className="size-4" /> : <Mic className="size-4" />}
+                  <span>{isDoctorListening ? "Stop Microphone" : "Start Doctor Voice"}</span>
                 </Button>
-                {currentSign && (
-                  <Button
-                    variant="outline"
-                    onClick={() => speakSignPhrase(currentSign, selectedLang)}
-                    className="gap-1.5 rounded-2xl h-11 border-primary/40 text-primary font-bold text-xs"
-                  >
-                    <Volume2 className="size-4" />
-                    Repeat Voice
-                  </Button>
-                )}
-              </div>
-            </div>
 
-            {/* Patient Recognized Sign Output Banner */}
-            <div className="rounded-2xl border border-teal-500/30 bg-teal-500/5 p-4 min-h-24 flex flex-col justify-center">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-teal-400 mb-1">
-                Patient's Spoken Output to Doctor ({currentLangConfig.nativeName}):
-              </p>
-              {activePhrase ? (
-                <div>
-                  <p className="text-xl font-extrabold text-white leading-snug">
-                    "{activePhrase}"
-                  </p>
-                  <p className="text-xs text-teal-300 font-mono mt-1 font-bold">
-                    ✓ Sign Verified: {currentSign} ({Math.round((lastConfidence || 0.95) * 100)}% Confidence)
-                  </p>
+                <div className="overflow-hidden rounded-2xl bg-black aspect-video relative flex items-center justify-center border border-white/10">
+                  {doctorActiveSignMatch && (
+                    <video
+                      key={doctorActiveSignMatch.videoUrl}
+                      src={doctorActiveSignMatch.videoUrl}
+                      className="size-full object-contain"
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                    />
+                  )}
                 </div>
-              ) : (
-                <p className="text-xs text-muted-foreground">
-                  Patient signs (e.g. Help, Doctor, Pain, Water) will be translated and spoken in <strong className="text-foreground">{currentLangConfig.nativeName}</strong>.
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Live Consultation Transcript Feed */}
-      <div className="mt-8 rounded-3xl border border-border/80 bg-card/90 p-6 shadow-soft space-y-4">
-        <div className="flex items-center justify-between border-b border-border/60 pb-3">
-          <div className="flex items-center gap-2">
-            <FileText className="size-5 text-primary" />
-            <h3 className="font-display text-base font-bold text-foreground">
-              Live Clinical Consultation Log (மருத்துவ உரையாடல் பதிவு)
-            </h3>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              const textContent = consultationLog
-                .map((m) => `[${m.timestamp}] ${m.sender.toUpperCase()}: ${m.text} ${m.signGloss ? `(Sign: ${m.signGloss})` : ""}`)
-                .join("\n");
-              const blob = new Blob([textContent], { type: "text/plain" });
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = `ISL-Setu-Consultation-${Date.now()}.txt`;
-              a.click();
-              URL.revokeObjectURL(url);
-              toast.success("Consultation log exported successfully!");
-            }}
-            className="gap-1.5 text-xs rounded-xl"
-          >
-            <Download className="size-3.5" />
-            Export Log (.txt)
-          </Button>
-        </div>
-
-        <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
-          {consultationLog.map((item) => (
-            <div
-              key={item.id}
-              className={`flex gap-3 p-3.5 rounded-2xl text-xs leading-relaxed border ${
-                item.sender === "doctor"
-                  ? "bg-primary/10 border-primary/30 text-foreground ml-0 mr-12"
-                  : "bg-teal-500/10 border-teal-500/30 text-foreground ml-12 mr-0"
-              }`}
-            >
-              <span className="shrink-0 font-bold px-2 py-0.5 rounded-lg bg-card border border-border text-[10px] uppercase">
-                {item.sender === "doctor" ? "🩺 Doctor" : "✋ Patient"}
-              </span>
-              <div className="flex-1">
-                <p className="font-medium text-sm text-foreground">{item.text}</p>
-                {item.signGloss && (
-                  <span className="text-[10px] font-mono text-teal-400 font-bold block mt-1">
-                    Matched ISL Sign: {item.signGloss}
-                  </span>
-                )}
               </div>
-              <span className="text-[10px] text-muted-foreground shrink-0">{item.timestamp}</span>
+            </Card>
+
+            {/* RIGHT: Patient Station */}
+            <Card className="rounded-3xl border-2 border-teal-500/40 bg-card/95 p-5 shadow-soft flex flex-col justify-between">
+              <div className="flex items-center justify-between border-b border-border/60 pb-3 mb-4">
+                <span className="font-bold text-sm text-foreground flex items-center gap-2">
+                  <User className="size-4 text-teal-400" />
+                  Deaf Patient's Camera Station
+                </span>
+                <Badge variant="outline" className="text-xs text-emerald-400 border-emerald-500/40">
+                  ⚡ Auto-Detect
+                </Badge>
+              </div>
+
+              <div className="space-y-3">
+                <CameraPreview
+                  videoRef={videoRef}
+                  status={status}
+                  message={message}
+                  phase={phase}
+                  onStart={() => start()}
+                  className="w-full"
+                  landmarks={liveLandmarks}
+                  fingerStates={liveFingerStates}
+                  extendedCount={liveExtendedCount}
+                  fps={fps}
+                  showMesh={true}
+                  autoDetect={autoDetect}
+                  onToggleAutoDetect={() => setAutoDetect((v) => !v)}
+                />
+
+                <Button variant="hero" onClick={capture} disabled={capturing} className="w-full gap-2 rounded-2xl h-11 font-bold text-xs">
+                  <Hand className="size-4" />
+                  Capture Sign (Spacebar)
+                </Button>
+              </div>
+            </Card>
+          </div>
+
+          {/* Consultation Transcript Feed */}
+          <div className="rounded-3xl border border-border/80 bg-card p-6 shadow-soft space-y-4">
+            <div className="flex items-center justify-between border-b border-border/60 pb-3">
+              <div className="flex items-center gap-2">
+                <FileText className="size-5 text-primary" />
+                <h3 className="font-display text-base font-bold text-foreground">
+                  Live Clinical Consultation Log (மருத்துவ உரையாடல் பதிவு)
+                </h3>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const textContent = consultationLog
+                    .map((m) => `[${m.timestamp}] ${m.sender.toUpperCase()}: ${m.text} ${m.signGloss ? `(Sign: ${m.signGloss})` : ""}`)
+                    .join("\n");
+                  const blob = new Blob([textContent], { type: "text/plain" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `ISL-Setu-Consultation-${Date.now()}.txt`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                  toast.success("Consultation log exported successfully!");
+                }}
+                className="gap-1.5 text-xs rounded-xl"
+              >
+                <Download className="size-3.5" />
+                Export Log (.txt)
+              </Button>
             </div>
-          ))}
+
+            <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
+              {consultationLog.map((item) => (
+                <div
+                  key={item.id}
+                  className={`flex gap-3 p-3.5 rounded-2xl text-xs leading-relaxed border ${
+                    item.sender === "doctor"
+                      ? "bg-primary/10 border-primary/30 text-foreground ml-0 mr-12"
+                      : "bg-teal-500/10 border-teal-500/30 text-foreground ml-12 mr-0"
+                  }`}
+                >
+                  <span className="shrink-0 font-bold px-2 py-0.5 rounded-lg bg-card border border-border text-[10px] uppercase">
+                    {item.sender === "doctor" ? "🩺 Doctor" : "✋ Patient"}
+                  </span>
+                  <div className="flex-1">
+                    <p className="font-medium text-sm text-foreground">{item.text}</p>
+                    {item.signGloss && (
+                      <span className="text-[10px] font-mono text-teal-400 font-bold block mt-1">
+                        Matched ISL Sign: {item.signGloss}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-muted-foreground shrink-0">{item.timestamp}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </PageShell>
   );
 }
