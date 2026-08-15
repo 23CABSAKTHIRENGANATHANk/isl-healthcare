@@ -358,7 +358,7 @@ function VoiceBridgePage() {
                 if (consecutiveSignRef.current.count >= 2) {
                   const nowMs = Date.now();
                   const isNewSign = detectedSign !== lastSpokenSignRef.current;
-                  const isCooldownElapsed = nowMs - lastSpeechTimeRef.current > 2500;
+                  const isCooldownElapsed = nowMs - lastSpeechTimeRef.current > 2200;
 
                   if (isNewSign || isCooldownElapsed) {
                     lastSpokenSignRef.current = detectedSign;
@@ -367,10 +367,6 @@ function VoiceBridgePage() {
                     setSigns((prev) => [...prev, detectedSign]);
                     setLastConfidence(kinEval.confidence || 0.96);
                     void speakSignPhraseRef.current(detectedSign, selectedLangRef.current);
-
-                    if (detectedSign === "HELP" || detectedSign === "EMERGENCY") {
-                      handleTriggerSOS(detectedSign);
-                    }
                   }
                 }
               } else {
@@ -396,7 +392,7 @@ function VoiceBridgePage() {
       isActive = false;
       if (animationFrameIdRef.current) cancelAnimationFrame(animationFrameIdRef.current);
     };
-  }, [isLive, autoDetect, capturing, mode, handleTriggerSOS]);
+  }, [isLive, autoDetect, capturing, mode]);
 
   // Main Capture Action
   const capture = useCallback(async () => {
