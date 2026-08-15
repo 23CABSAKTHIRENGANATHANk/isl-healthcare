@@ -299,6 +299,7 @@ function VoiceBridgePage() {
   speakSignPhraseRef.current = speakSignPhrase;
 
   const consecutiveSignRef = useRef<{ sign: string; count: number }>({ sign: "", count: 0 });
+  const lastStateUpdateRef = useRef<number>(0);
 
   // Continuous Camera Vision Loop with Instant Auto-Voice Trigger
   useEffect(() => {
@@ -333,16 +334,22 @@ function VoiceBridgePage() {
           if (results.landmarks && results.landmarks.length > 0) {
             const raw = results.landmarks as LandmarkPoint[][];
             latestLandmarksRef.current = raw;
-            setLiveLandmarks(raw);
 
-            // Auto-detect gesture trigger
+            // Throttle visual landmark mesh updates to ~20 FPS for peak React performance
+            if (now - lastStateUpdateRef.current > 50) {
+              setLiveLandmarks(raw);
+              lastStateUpdateRef.current = now;
+            }
+
+            // Auto-detect gesture trigger (evaluated every frame with 0 latency)
             if (autoDetect && !capturing && raw[0] && raw[0].length >= 21) {
               const kinEval = evaluateLandmarksKinematics(raw[0], "AUTO", "balanced");
-              if (kinEval.fingerStates) {
+
+              if (kinEval.fingerStates && now - lastStateUpdateRef.current > 50) {
                 setLiveFingerStates(kinEval.fingerStates);
-              }
-              if (kinEval.extendedCount !== undefined) {
-                setLiveExtendedCount(kinEval.extendedCount);
+                if (kinEval.extendedCount !== undefined) {
+                  setLiveExtendedCount(kinEval.extendedCount);
+                }
               }
 
               if (kinEval.success && kinEval.sign && kinEval.sign !== "UNKNOWN") {
@@ -354,11 +361,11 @@ function VoiceBridgePage() {
                   consecutiveSignRef.current = { sign: detectedSign, count: 1 };
                 }
 
-                // If held steady for 2 consecutive frames (~80ms)
+                // If held steady for 2 consecutive frames (~60ms)
                 if (consecutiveSignRef.current.count >= 2) {
                   const nowMs = Date.now();
                   const isNewSign = detectedSign !== lastSpokenSignRef.current;
-                  const isCooldownElapsed = nowMs - lastSpeechTimeRef.current > 2200;
+                  const isCooldownElapsed = nowMs - lastSpeechTimeRef.current > 2000;
 
                   if (isNewSign || isCooldownElapsed) {
                     lastSpokenSignRef.current = detectedSign;
@@ -375,7 +382,10 @@ function VoiceBridgePage() {
             }
           } else {
             latestLandmarksRef.current = [];
-            setLiveLandmarks([]);
+            if (now - lastStateUpdateRef.current > 100) {
+              setLiveLandmarks([]);
+              lastStateUpdateRef.current = now;
+            }
             consecutiveSignRef.current = { sign: "", count: 0 };
           }
         } catch {}
