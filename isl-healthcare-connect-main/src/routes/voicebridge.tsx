@@ -253,8 +253,6 @@ function VoiceBridgePage() {
     setVoiceNotice(null);
 
     try {
-      setPhase("scanning");
-      await new Promise((r) => setTimeout(r, 80));
       setPhase("recognising");
 
       const video = videoRef.current;

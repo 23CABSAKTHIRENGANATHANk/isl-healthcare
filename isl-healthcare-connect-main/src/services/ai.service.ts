@@ -241,6 +241,10 @@ const getBackendUrl = (): string => {
   if (typeof import.meta !== "undefined" && import.meta.env?.VITE_AI_API_URL) {
     return import.meta.env.VITE_AI_API_URL as string;
   }
+  if (typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+    // On production HTTPS, do not attempt http://localhost:8000
+    return "";
+  }
   return "http://localhost:8000";
 };
 
@@ -641,7 +645,22 @@ export async function predictSign(
     }
   }
 
-  // Phase 2: Request FastAPI Backend
+  // Phase 2: Instant Client Evaluation or FastAPI Backend
+  const backendUrl = getBackendUrl();
+  if (!backendUrl) {
+    if (options.landmarks && options.landmarks.length > 0) {
+      return evaluateLandmarksKinematics(options.landmarks[0], targetSign, strictness);
+    }
+    return {
+      success: false,
+      sign: "UNKNOWN",
+      confidence: 0.15,
+      mode: "ai",
+      model_version: "isl_client_kinematics_v2",
+      message: "Show your hand clearly inside the camera frame.",
+    };
+  }
+
   const base64Data = extractBase64FromInput(imageInput);
   if (!base64Data) {
     return {
@@ -654,9 +673,8 @@ export async function predictSign(
     };
   }
 
-  const backendUrl = getBackendUrl();
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 4000);
+  const timeoutId = setTimeout(() => controller.abort(), 1200);
 
   try {
     const response = await fetch(`${backendUrl}/predict-sign`, {
@@ -699,14 +717,12 @@ export async function predictSign(
     };
   } catch (error) {
     clearTimeout(timeoutId);
-    console.warn("[AI Service] Backend call fallback:", error);
 
     // Fallback: If client video frame landmarks are available, evaluate kinematics
     if (options.landmarks && options.landmarks.length > 0) {
       return evaluateLandmarksKinematics(options.landmarks[0], targetSign, strictness);
     }
 
-    // Default graceful truthful response
     return {
       success: false,
       sign: "UNKNOWN",
