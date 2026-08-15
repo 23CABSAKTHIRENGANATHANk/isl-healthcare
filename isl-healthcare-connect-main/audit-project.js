@@ -38,6 +38,17 @@ const VIDEOS_TO_AUDIT = [
   '/videos/signs/Emergency.mp4',
 ];
 
+const AUDIOS_TO_AUDIT = [
+  '/audio/ta/HELP.mp3',
+  '/audio/ta/DOCTOR.mp3',
+  '/audio/ta/NURSE.mp3',
+  '/audio/ta/WATER.mp3',
+  '/audio/ta/PAIN.mp3',
+  '/audio/ta/FEVER.mp3',
+  '/audio/ta/MEDICINE.mp3',
+  '/audio/ta/EMERGENCY.mp3',
+];
+
 async function checkUrl(path) {
   return new Promise((resolve) => {
     const url = new URL(path, BASE_URL);
@@ -89,8 +100,22 @@ async function runAudit() {
     else videosFailed++;
   }
 
+  let audiosPassed = 0;
+  let audiosFailed = 0;
+
   console.log('\n--------------------------------------------------');
-  console.log('3. AUDITING BACKEND PYTHON PYTEST SUITE');
+  console.log('3. AUDITING TAMIL NATURAL AUDIO ASSETS');
+  console.log('--------------------------------------------------');
+  for (const audio of AUDIOS_TO_AUDIT) {
+    const res = await checkUrl(audio);
+    const icon = res.passed ? '✅' : '❌';
+    console.log(`${icon} ${audio.padEnd(35)} -> ${res.statusCode} (${res.size} bytes)`);
+    if (res.passed) audiosPassed++;
+    else audiosFailed++;
+  }
+
+  console.log('\n--------------------------------------------------');
+  console.log('4. AUDITING BACKEND PYTHON PYTEST SUITE');
   console.log('--------------------------------------------------');
   try {
     const pytestOut = execSync('python -m pytest backend/tests/ -v', { encoding: 'utf-8' });
@@ -104,8 +129,9 @@ async function runAudit() {
   console.log('--------------------------------------------------');
   console.log(`Frontend Routes: ${routesPassed} Passed / ${routesFailed} Failed`);
   console.log(`Video Assets:    ${videosPassed} Passed / ${videosFailed} Failed`);
-  const total = routesPassed + videosPassed;
-  const totalFail = routesFailed + videosFailed;
+  console.log(`Audio Assets:    ${audiosPassed} Passed / ${audiosFailed} Failed`);
+  const total = routesPassed + videosPassed + audiosPassed;
+  const totalFail = routesFailed + videosFailed + audiosFailed;
   console.log(`Pass Rate:       ${((total / (total + totalFail)) * 100).toFixed(1)}%`);
 
   if (totalFail === 0) {
