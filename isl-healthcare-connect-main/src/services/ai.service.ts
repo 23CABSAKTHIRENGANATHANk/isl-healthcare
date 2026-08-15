@@ -302,6 +302,14 @@ export async function getClientHandLandmarker() {
   return clientLandmarkerPromise;
 }
 
+// Warm up MediaPipe Vision AI in the background during browser idle
+if (typeof window !== "undefined") {
+  const scheduleWarmup = (window as any).requestIdleCallback || ((cb: () => void) => setTimeout(cb, 1500));
+  scheduleWarmup(() => {
+    getClientHandLandmarker().catch(() => {});
+  });
+}
+
 /**
  * Evaluates 21 MediaPipe hand landmarks against target ISL gesture kinematics.
  */

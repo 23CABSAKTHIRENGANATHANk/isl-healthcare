@@ -19,14 +19,37 @@ export default defineConfig({
   },
   build: {
     outDir: "dist",
+    target: "esnext",
+    minify: "esbuild",
+    cssMinify: true,
+    cssCodeSplit: true,
+    chunkSizeWarningLimit: 600,
     rollupOptions: {
       output: {
         manualChunks: (id: string): string | undefined => {
-          if (id.includes("node_modules/recharts")) {
-            return "recharts";
+          if (id.includes("node_modules/@mediapipe/tasks-vision")) {
+            return "vendor-mediapipe";
+          }
+          if (id.includes("node_modules/recharts") || id.includes("node_modules/d3")) {
+            return "vendor-charts";
           }
           if (id.includes("node_modules/@radix-ui")) {
-            return "radix";
+            return "vendor-radix";
+          }
+          if (id.includes("node_modules/lucide-react")) {
+            return "vendor-icons";
+          }
+          if (id.includes("node_modules/framer-motion")) {
+            return "vendor-motion";
+          }
+          if (id.includes("node_modules/@supabase")) {
+            return "vendor-supabase";
+          }
+          if (id.includes("node_modules/react") || id.includes("node_modules/react-dom")) {
+            return "vendor-react";
+          }
+          if (id.includes("node_modules/@tanstack")) {
+            return "vendor-tanstack";
           }
           return undefined;
         },
@@ -43,4 +66,3 @@ export default defineConfig({
     tailwindcss(),
   ],
 });
-
