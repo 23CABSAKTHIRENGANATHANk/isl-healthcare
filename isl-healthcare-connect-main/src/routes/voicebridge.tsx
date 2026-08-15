@@ -292,6 +292,12 @@ function VoiceBridgePage() {
     ]);
   };
 
+  const selectedLangRef = useRef(selectedLang);
+  selectedLangRef.current = selectedLang;
+
+  const speakSignPhraseRef = useRef(speakSignPhrase);
+  speakSignPhraseRef.current = speakSignPhrase;
+
   const consecutiveSignRef = useRef<{ sign: string; count: number }>({ sign: "", count: 0 });
 
   // Continuous Camera Vision Loop with Instant Auto-Voice Trigger
@@ -348,7 +354,7 @@ function VoiceBridgePage() {
                   consecutiveSignRef.current = { sign: detectedSign, count: 1 };
                 }
 
-                // If held steady for 2 consecutive frames (~150ms)
+                // If held steady for 2 consecutive frames (~80ms)
                 if (consecutiveSignRef.current.count >= 2) {
                   const nowMs = Date.now();
                   const isNewSign = detectedSign !== lastSpokenSignRef.current;
@@ -359,8 +365,8 @@ function VoiceBridgePage() {
                     lastSpeechTimeRef.current = nowMs;
                     setCurrentSign(detectedSign);
                     setSigns((prev) => [...prev, detectedSign]);
-                    setLastConfidence(kinEval.confidence || 0.95);
-                    void speakSignPhrase(detectedSign, selectedLang);
+                    setLastConfidence(kinEval.confidence || 0.96);
+                    void speakSignPhraseRef.current(detectedSign, selectedLangRef.current);
 
                     if (detectedSign === "HELP" || detectedSign === "EMERGENCY") {
                       handleTriggerSOS(detectedSign);
@@ -390,7 +396,7 @@ function VoiceBridgePage() {
       isActive = false;
       if (animationFrameIdRef.current) cancelAnimationFrame(animationFrameIdRef.current);
     };
-  }, [isLive, autoDetect, capturing, mode, selectedLang, speakSignPhrase, handleTriggerSOS]);
+  }, [isLive, autoDetect, capturing, mode, handleTriggerSOS]);
 
   // Main Capture Action
   const capture = useCallback(async () => {

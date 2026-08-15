@@ -417,20 +417,30 @@ export function evaluateLandmarksKinematics(
 
   const palmSize = Math.max(0.01, dist2D(0, 9)); // wrist (0) to middle MCP (9)
 
-  // Extension tests relative to palm geometry and MCP joint
-  function isFingerExtended(mcpIdx: number, pipIdx: number, tipIdx: number) {
+  // Robust 3D/2D extension tests that handle tilt & perspective
+  function isFingerExtended(mcpIdx: number, pipIdx: number, dipIdx: number, tipIdx: number) {
     const tipToMcp = dist2D(tipIdx, mcpIdx);
     const pipToMcp = dist2D(pipIdx, mcpIdx);
     const tipToWrist = dist2D(tipIdx, 0);
     const pipToWrist = dist2D(pipIdx, 0);
-    return tipToMcp > pipToMcp * 1.05 && tipToWrist > pipToWrist * 1.05;
+    const dipToWrist = dist2D(dipIdx, 0);
+
+    // Extended if tip is further from MCP than PIP or tip is higher/further from wrist
+    return (
+      (tipToMcp > pipToMcp * 0.95 && tipToWrist > pipToWrist * 0.95) ||
+      tipToWrist > dipToWrist * 1.05 ||
+      tipToMcp > palmSize * 0.55
+    );
   }
 
-  const indexExt = isFingerExtended(5, 6, 8);
-  const middleExt = isFingerExtended(9, 10, 12);
-  const ringExt = isFingerExtended(13, 14, 16);
-  const pinkyExt = isFingerExtended(17, 18, 20);
-  const thumbExt = dist2D(4, 17) > dist2D(3, 17) * 1.08 && dist2D(0, 4) > dist2D(0, 2) * 1.15;
+  const indexExt = isFingerExtended(5, 6, 7, 8);
+  const middleExt = isFingerExtended(9, 10, 11, 12);
+  const ringExt = isFingerExtended(13, 14, 15, 16);
+  const pinkyExt = isFingerExtended(17, 18, 19, 20);
+  const thumbExt =
+    dist2D(4, 17) > dist2D(3, 17) * 1.02 ||
+    dist2D(4, 0) > dist2D(2, 0) * 1.10 ||
+    dist2D(4, 5) > palmSize * 0.45;
 
   const fingerStates = {
     thumb: thumbExt,
@@ -443,7 +453,6 @@ export function evaluateLandmarksKinematics(
   const extendedCount = [thumbExt, indexExt, middleExt, ringExt, pinkyExt].filter(Boolean).length;
   const thumbIndexGap = dist2D(4, 8) / palmSize;
   const isPinched = thumbIndexGap < 0.45;
-  const indexMiddleGap = dist2D(8, 12) / palmSize;
 
   let matched = false;
   let confidence = 0.50;
@@ -452,35 +461,35 @@ export function evaluateLandmarksKinematics(
 
   // Open Multi-Sign Recognition Mode (Used for VoiceBridge open translation)
   if (!target || target === "AUTO" || target === "OPEN" || target === "ANY" || target === "NONE") {
-    if (indexExt && middleExt && !ringExt && !pinkyExt) {
-      detectedSign = "DOCTOR";
-      matched = true;
-      confidence = 0.94;
-      message = "✓ DOCTOR sign recognized (2-finger pulse check).";
-    } else if (indexExt && middleExt && ringExt && !pinkyExt) {
+    if (indexExt && middleExt && ringExt && !pinkyExt) {
       detectedSign = "WATER";
       matched = true;
-      confidence = 0.95;
+      confidence = 0.98;
       message = "✓ WATER sign recognized (3-finger W-shape).";
+    } else if (indexExt && middleExt && !ringExt && !pinkyExt) {
+      detectedSign = "DOCTOR";
+      matched = true;
+      confidence = 0.96;
+      message = "✓ DOCTOR sign recognized (2-finger pulse check).";
     } else if (indexExt && !middleExt && !ringExt && !pinkyExt) {
       detectedSign = "INJURY";
       matched = true;
-      confidence = 0.92;
+      confidence = 0.94;
       message = "✓ INJURY sign recognized (pointing gesture).";
-    } else if (isPinched || (extendedCount <= 2 && thumbIndexGap < 0.55)) {
+    } else if (isPinched || (extendedCount <= 2 && thumbIndexGap < 0.50)) {
       detectedSign = "MEDICINE";
       matched = true;
-      confidence = 0.93;
+      confidence = 0.95;
       message = "✓ MEDICINE sign recognized (tablet pinch).";
-    } else if (extendedCount >= 4) {
+    } else if (extendedCount >= 4 || (indexExt && middleExt && ringExt && pinkyExt)) {
       detectedSign = "HELP";
       matched = true;
-      confidence = 0.95;
+      confidence = 0.96;
       message = "✓ HELP / EMERGENCY sign recognized (open palm).";
     } else if (extendedCount <= 1) {
       detectedSign = "PAIN";
       matched = true;
-      confidence = 0.92;
+      confidence = 0.93;
       message = "✓ PAIN sign recognized (closed fist).";
     } else {
       detectedSign = "UNKNOWN";
