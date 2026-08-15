@@ -673,7 +673,7 @@ function PracticePage() {
                     <X className="size-3" />
                   </button>
                 </div>
-                <div className="aspect-video w-full bg-black">
+                <div className="aspect-video w-full bg-black relative flex items-center justify-center">
                   {(() => {
                     const glossLower = target.gloss.toLowerCase().trim();
                     const idLower = target.id.toLowerCase().trim();
@@ -692,12 +692,32 @@ function PracticePage() {
                         loop
                         muted
                         playsInline
+                        preload="auto"
+                        ref={(el) => {
+                          if (el) {
+                            el.muted = true;
+                            el.defaultMuted = true;
+                            el.playsInline = true;
+                            el.play().catch(() => {});
+                          }
+                        }}
+                        onLoadedMetadata={(e) => {
+                          const el = e.currentTarget;
+                          el.muted = true;
+                          el.play().catch(() => {});
+                        }}
                         onError={(e) => {
                           const targetEl = e.currentTarget;
                           const gloss = target.gloss;
                           const capital = `/videos/signs/${gloss.charAt(0).toUpperCase() + gloss.slice(1).toLowerCase()}.mp4`;
-                          if (targetEl.src !== capital && !targetEl.src.endsWith(capital)) {
+                          const allCaps = `/videos/signs/${gloss.toUpperCase()}.mp4`;
+                          const lower = `/videos/signs/${gloss.toLowerCase()}.mp4`;
+                          if (!targetEl.src.endsWith(capital)) {
                             targetEl.src = capital;
+                          } else if (!targetEl.src.endsWith(allCaps)) {
+                            targetEl.src = allCaps;
+                          } else if (!targetEl.src.endsWith(lower)) {
+                            targetEl.src = lower;
                           }
                         }}
                       />
@@ -1105,19 +1125,26 @@ function PracticePage() {
                     autoPlay
                     loop
                     playsInline
+                    preload="auto"
+                    ref={(el) => {
+                      if (el) {
+                        el.playbackRate = videoSpeed;
+                        el.play().catch(() => {});
+                      }
+                    }}
                     onError={(e) => {
                       const targetEl = e.currentTarget;
                       const gloss = target.gloss;
                       const capital = `/videos/signs/${gloss.charAt(0).toUpperCase() + gloss.slice(1).toLowerCase()}.mp4`;
                       const allCaps = `/videos/signs/${gloss.toUpperCase()}.mp4`;
-                      if (targetEl.src !== capital && !targetEl.src.endsWith(capital)) {
+                      const lower = `/videos/signs/${gloss.toLowerCase()}.mp4`;
+                      if (!targetEl.src.endsWith(capital)) {
                         targetEl.src = capital;
-                      } else if (targetEl.src !== allCaps && !targetEl.src.endsWith(allCaps)) {
+                      } else if (!targetEl.src.endsWith(allCaps)) {
                         targetEl.src = allCaps;
+                      } else if (!targetEl.src.endsWith(lower)) {
+                        targetEl.src = lower;
                       }
-                    }}
-                    ref={(el) => {
-                      if (el) el.playbackRate = videoSpeed;
                     }}
                   />
                 );
