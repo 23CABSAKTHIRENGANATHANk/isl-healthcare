@@ -1,7 +1,7 @@
 /**
  * ISL Setu — Ultra-Premium Client-Side Professional Certificate Generator
  * Generates an exquisitely colorful, gold-embossed, 300 DPI printable healthcare credential.
- * Uses institutional authority seals with balanced geometric alignment (no personal names).
+ * Perfectly spaced, high-contrast typography, crisp illuminated logo, and institutional authority seals.
  */
 
 import logoImg from "@/assets/isl-setu-logo.png";
@@ -45,9 +45,9 @@ export async function generateProfessionalCertificateBlob(
 
   // Ambient Radial Glow in the center
   const radialGlow = ctx.createRadialGradient(width / 2, height / 2 - 100, 100, width / 2, height / 2, 1400);
-  radialGlow.addColorStop(0, "rgba(56, 189, 248, 0.08)");
-  radialGlow.addColorStop(0.4, "rgba(212, 175, 55, 0.06)");
-  radialGlow.addColorStop(0.8, "rgba(16, 185, 129, 0.03)");
+  radialGlow.addColorStop(0, "rgba(56, 189, 248, 0.10)");
+  radialGlow.addColorStop(0.4, "rgba(212, 175, 55, 0.08)");
+  radialGlow.addColorStop(0.8, "rgba(16, 185, 129, 0.04)");
   radialGlow.addColorStop(1, "transparent");
   ctx.fillStyle = radialGlow;
   ctx.fillRect(0, 0, width, height);
@@ -61,18 +61,6 @@ export async function generateProfessionalCertificateBlob(
   goldGrad.addColorStop(0.8, "#d97706");
   goldGrad.addColorStop(1, "#eab308");
 
-  // Emerald Highlight Gradient
-  const emeraldGrad = ctx.createLinearGradient(0, 0, width, 0);
-  emeraldGrad.addColorStop(0, "#10b981");
-  emeraldGrad.addColorStop(0.5, "#34d399");
-  emeraldGrad.addColorStop(1, "#059669");
-
-  // Cyan Highlight Gradient
-  const cyanGrad = ctx.createLinearGradient(0, 0, width, 0);
-  cyanGrad.addColorStop(0, "#0ea5e9");
-  cyanGrad.addColorStop(0.5, "#38bdf8");
-  cyanGrad.addColorStop(1, "#0284c7");
-
   // 3. Intricate Double Gold Ornamental Borders
   ctx.lineWidth = 16;
   ctx.strokeStyle = goldGrad;
@@ -80,7 +68,7 @@ export async function generateProfessionalCertificateBlob(
 
   // Secondary Neon Cyan Border
   ctx.lineWidth = 3;
-  ctx.strokeStyle = "rgba(56, 189, 248, 0.5)";
+  ctx.strokeStyle = "rgba(56, 189, 248, 0.55)";
   ctx.strokeRect(125, 125, width - 250, height - 250);
 
   // Tertiary Gold Dashed Border
@@ -126,7 +114,21 @@ export async function generateProfessionalCertificateBlob(
   }
   ctx.restore();
 
-  // 5. Logo / Top Emblem
+  // 5. Crisp Illuminated Logo Emblem with Backdrop Pill
+  const logoBoxW = 420;
+  const logoBoxH = 130;
+  const logoBoxX = width / 2 - logoBoxW / 2;
+  const logoBoxY = 160;
+
+  // Luminous background badge for logo visibility
+  ctx.fillStyle = "rgba(15, 23, 42, 0.75)";
+  ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(logoBoxX, logoBoxY, logoBoxW, logoBoxH, 24);
+  ctx.fill();
+  ctx.stroke();
+
   try {
     const img = new Image();
     img.crossOrigin = "anonymous";
@@ -136,72 +138,72 @@ export async function generateProfessionalCertificateBlob(
       img.onerror = resolve;
     });
     if (img.width > 0) {
-      const logoW = 300;
+      const logoW = 320;
       const logoH = (img.height / img.width) * logoW;
-      ctx.drawImage(img, width / 2 - logoW / 2, 210, logoW, logoH);
+      ctx.drawImage(img, width / 2 - logoW / 2, logoBoxY + (logoBoxH - logoH) / 2, logoW, logoH);
     }
   } catch {}
 
-  // 6. Header Typography
+  // 6. Header Typography (Generously Spaced & Perfectly Aligned)
   ctx.textAlign = "center";
   ctx.fillStyle = "#38bdf8";
   ctx.font = "700 32px 'Plus Jakarta Sans', sans-serif";
   ctx.letterSpacing = "8px";
-  ctx.fillText("NATIONAL HEALTHCARE ACCESSIBILITY & CLINICAL ISL COUNCIL", width / 2, 420);
+  ctx.fillText("NATIONAL HEALTHCARE ACCESSIBILITY & CLINICAL ISL COUNCIL", width / 2, 360);
 
   ctx.fillStyle = goldGrad;
   ctx.font = "900 70px 'Plus Jakarta Sans', sans-serif";
   ctx.letterSpacing = "4px";
-  ctx.fillText("OFFICIAL CERTIFICATE OF ACHIEVEMENT", width / 2, 515);
+  ctx.fillText("OFFICIAL CERTIFICATE OF ACHIEVEMENT", width / 2, 455);
 
   // Tier Banner Ribbon
   const tierName = `${certificate.tier.toUpperCase()} CLINICAL HEALTHCARE TIER`;
-  const ribbonW = 1200;
-  const ribbonH = 64;
+  const ribbonW = 1450;
+  const ribbonH = 66;
   const ribbonX = width / 2 - ribbonW / 2;
-  const ribbonY = 560;
+  const ribbonY = 515;
 
   const ribbonGrad = ctx.createLinearGradient(ribbonX, 0, ribbonX + ribbonW, 0);
   if (certificate.tier === "gold") {
-    ribbonGrad.addColorStop(0, "rgba(234, 179, 8, 0.2)");
-    ribbonGrad.addColorStop(0.5, "rgba(234, 179, 8, 0.45)");
-    ribbonGrad.addColorStop(1, "rgba(234, 179, 8, 0.2)");
+    ribbonGrad.addColorStop(0, "rgba(234, 179, 8, 0.25)");
+    ribbonGrad.addColorStop(0.5, "rgba(234, 179, 8, 0.55)");
+    ribbonGrad.addColorStop(1, "rgba(234, 179, 8, 0.25)");
   } else if (certificate.tier === "silver") {
-    ribbonGrad.addColorStop(0, "rgba(148, 163, 184, 0.2)");
-    ribbonGrad.addColorStop(0.5, "rgba(148, 163, 184, 0.45)");
-    ribbonGrad.addColorStop(1, "rgba(148, 163, 184, 0.2)");
+    ribbonGrad.addColorStop(0, "rgba(148, 163, 184, 0.25)");
+    ribbonGrad.addColorStop(0.5, "rgba(148, 163, 184, 0.55)");
+    ribbonGrad.addColorStop(1, "rgba(148, 163, 184, 0.25)");
   } else {
-    ribbonGrad.addColorStop(0, "rgba(249, 115, 22, 0.2)");
-    ribbonGrad.addColorStop(0.5, "rgba(245, 158, 11, 0.45)");
-    ribbonGrad.addColorStop(1, "rgba(249, 115, 22, 0.2)");
+    ribbonGrad.addColorStop(0, "rgba(249, 115, 22, 0.25)");
+    ribbonGrad.addColorStop(0.5, "rgba(245, 158, 11, 0.55)");
+    ribbonGrad.addColorStop(1, "rgba(249, 115, 22, 0.25)");
   }
 
   ctx.fillStyle = ribbonGrad;
   ctx.beginPath();
-  ctx.roundRect(ribbonX, ribbonY, ribbonW, ribbonH, 32);
+  ctx.roundRect(ribbonX, ribbonY, ribbonW, ribbonH, 33);
   ctx.fill();
 
   ctx.fillStyle = "#fef08a";
   ctx.font = "800 32px 'Plus Jakarta Sans', sans-serif";
   ctx.letterSpacing = "3px";
-  ctx.fillText(`★ ${tierName} • CLINICAL TRIAGE & PATIENT INTAKE ★`, width / 2, ribbonY + 44);
+  ctx.fillText(`★ ${tierName} • CLINICAL TRIAGE & PATIENT INTAKE ★`, width / 2, ribbonY + 45);
 
   // 7. Presentation Lead
   ctx.fillStyle = "#cbd5e1";
-  ctx.font = "500 38px 'Inter', sans-serif";
+  ctx.font = "500 36px 'Inter', sans-serif";
   ctx.letterSpacing = "1px";
-  ctx.fillText("This credential is proud to officially certify that", width / 2, 730);
+  ctx.fillText("This credential is proud to officially certify that", width / 2, 675);
 
   // 8. Candidate Full Name (Ultra-Prominent, Glowing White with Gold Accent)
   const candidateName = (user.full_name || "Healthcare Professional").toUpperCase();
   ctx.fillStyle = "#ffffff";
   ctx.font = "900 86px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText(candidateName, width / 2, 850);
+  ctx.fillText(candidateName, width / 2, 790);
 
   // Underline bar under candidate name
   const nameWidth = ctx.measureText(candidateName).width;
   ctx.fillStyle = goldGrad;
-  ctx.fillRect(width / 2 - nameWidth / 2 - 50, 890, nameWidth + 100, 8);
+  ctx.fillRect(width / 2 - nameWidth / 2 - 50, 830, nameWidth + 100, 8);
 
   // 9. Qualification Citation
   ctx.fillStyle = "#94a3b8";
@@ -209,19 +211,19 @@ export async function generateProfessionalCertificateBlob(
   ctx.fillText(
     "has successfully demonstrated required clinical mastery in Indian Sign Language (ISL) communication,",
     width / 2,
-    985
+    920
   );
   ctx.fillText(
     `patient reception, and healthcare barrier elimination for ${certificate.subtitle}.`,
     width / 2,
-    1050
+    985
   );
 
   // 10. Central Credential & Verification Box (High-Contrast Glassmorphism)
   const boxW = 2640;
   const boxH = 230;
   const boxX = width / 2 - boxW / 2;
-  const boxY = 1170;
+  const boxY = 1100;
 
   ctx.fillStyle = "rgba(15, 23, 42, 0.92)";
   ctx.strokeStyle = "rgba(212, 175, 55, 0.5)";
@@ -273,7 +275,7 @@ export async function generateProfessionalCertificateBlob(
   ctx.fillText(`${score}% (PASSED)`, boxX + 1880, boxY + 145);
 
   // 11. Symmetrical Bottom Alignment: Left Board | Center Seal | Right Directorate
-  const bottomY = 1750;
+  const bottomY = 1680;
 
   // --- Left Column: ISL Training & Certification Board ---
   const leftColX = boxX + 400;
