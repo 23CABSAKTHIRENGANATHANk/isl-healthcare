@@ -100,6 +100,7 @@ function VoiceBridgePage() {
 
   const lastSpokenSignRef = useRef<string | null>(null);
   const lastSpeechTimeRef = useRef<number>(0);
+  const lastVideoTimestampRef = useRef<number>(0);
   const stabilizerRef = useRef(new PredictionStabilizer({ windowSize: 5, minStableMatches: 3, cooldownDurationMs: 1200 }));
   const animationFrameIdRef = useRef<number | null>(null);
   const lastFrameTimeRef = useRef<number>(performance.now());
@@ -110,6 +111,8 @@ function VoiceBridgePage() {
 
   // Helper to vocalize a recognized sign
   const speakSignPhrase = useCallback((signName: string, langCode: string) => {
+    if (!signName || signName === "AUTO" || signName === "UNKNOWN") return;
+
     const spokenPhrase = getSpokenPhrase(signName, langCode);
     const langObj = SUPPORTED_LANGUAGES.find((l) => l.code === langCode) || currentLangConfig;
     
@@ -118,7 +121,7 @@ function VoiceBridgePage() {
     if (!speechResult.ok) {
       setVoiceNotice(`Audio notice: ${speechResult.reason || "Audio voice unavailable. Showing text."}`);
     }
-    setTimeout(() => setIsPlayingAudio(false), 2000);
+    setTimeout(() => setIsPlayingAudio(false), 2200);
   }, [currentLangConfig]);
 
   // Stop any active speech
@@ -136,6 +139,7 @@ function VoiceBridgePage() {
 
   // Handle direct quick sign click (Instant clinical tap)
   const handleQuickSign = (signName: string) => {
+    if (!signName || signName === "AUTO") return;
     setCurrentSign(signName);
     setSigns((prev) => [...prev, signName]);
     setLastConfidence(0.96);
@@ -158,14 +162,19 @@ function VoiceBridgePage() {
         try {
           const landmarker = await getClientHandLandmarker();
           if (landmarker && !isCancelled) {
-            const now = performance.now();
-            const result = landmarker.detectForVideo(video, now);
+            let timestamp = performance.now();
+            if (timestamp <= lastVideoTimestampRef.current) {
+              timestamp = lastVideoTimestampRef.current + 1;
+            }
+            lastVideoTimestampRef.current = timestamp;
+
+            const result = landmarker.detectForVideo(video, timestamp);
 
             // FPS calculation
-            const elapsed = now - lastFrameTimeRef.current;
+            const elapsed = timestamp - lastFrameTimeRef.current;
             if (elapsed >= 1000) {
               setFps(Math.round(1000 / Math.max(1, elapsed)));
-              lastFrameTimeRef.current = now;
+              lastFrameTimeRef.current = timestamp;
             }
 
             if (result && result.landmarks && result.landmarks.length > 0) {
@@ -188,12 +197,11 @@ function VoiceBridgePage() {
               }
 
               // Run prediction through temporal stabilizer
-              if (autoDetect && pred.success && pred.sign && pred.sign !== "UNKNOWN") {
+              if (autoDetect && pred.success && pred.sign && pred.sign !== "UNKNOWN" && pred.sign !== "AUTO") {
                 const stabilized = stabilizerRef.current.processFrame(pred);
-                if (stabilized.isStable && stabilized.sign) {
+                if (stabilized.isStable && stabilized.sign && stabilized.sign !== "AUTO" && stabilized.sign !== "UNKNOWN") {
                   const nowTime = Date.now();
 
-                  // PREVENT DUPLICATE REPEATED SPEECH:
                   // Only speak and append if it is a NEW sign or after hand re-entry
                   if (stabilized.sign !== lastSpokenSignRef.current && (nowTime - lastSpeechTimeRef.current > 1500)) {
                     lastSpokenSignRef.current = stabilized.sign;
@@ -215,8 +223,8 @@ function VoiceBridgePage() {
               lastSpokenSignRef.current = null;
             }
           }
-        } catch {
-          // Keep loop resilient
+        } catch (err) {
+          console.warn("[VoiceBridge Vision Loop]", err);
         }
       }
 
@@ -257,7 +265,7 @@ function VoiceBridgePage() {
         targetSign: "AUTO",
       });
 
-      if (prediction.success && prediction.sign && prediction.sign !== "UNKNOWN") {
+      if (prediction.success && prediction.sign && prediction.sign !== "UNKNOWN" && prediction.sign !== "AUTO") {
         setCurrentSign(prediction.sign);
         setSigns((words) => [...words, prediction.sign as string]);
         setLastConfidence(prediction.confidence);
@@ -278,8 +286,8 @@ function VoiceBridgePage() {
   }
 
   // Active current spoken phrase
-  const activePhrase = currentSign ? getSpokenPhrase(currentSign, selectedLang) : null;
-  const activeEnglishPhrase = currentSign ? getSpokenPhrase(currentSign, "en") : null;
+  const activePhrase = currentSign && currentSign !== "AUTO" ? getSpokenPhrase(currentSign, selectedLang) : null;
+  const activeEnglishPhrase = currentSign && currentSign !== "AUTO" ? getSpokenPhrase(currentSign, "en") : null;
 
   return (
     <PageShell>
@@ -327,7 +335,7 @@ function VoiceBridgePage() {
                 type="button"
                 onClick={() => {
                   setSelectedLang(lang.code);
-                  if (currentSign) {
+                  if (currentSign && currentSign !== "AUTO") {
                     speakSignPhrase(currentSign, lang.code);
                   }
                 }}
@@ -402,7 +410,7 @@ function VoiceBridgePage() {
                 <Hand aria-hidden="true" className="size-4" />
                 {capturing ? "Extracting Landmarks…" : "Capture Sign"}
               </Button>
-              {currentSign && (
+              {currentSign && currentSign !== "AUTO" && (
                 <Button
                   variant="teal"
                   onClick={() => speakSignPhrase(currentSign, selectedLang)}
@@ -469,7 +477,7 @@ function VoiceBridgePage() {
             </CardHeader>
             <CardContent aria-live="polite" className="space-y-4">
               <div className="min-h-32 rounded-2xl bg-gradient-to-br from-primary/10 via-card to-surface p-4 leading-relaxed border border-primary/20 shadow-inner flex flex-col justify-center">
-                {activePhrase ? (
+                {activePhrase && currentSign ? (
                   <div className="space-y-2.5">
                     <div className="flex items-center gap-2">
                       <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/40 text-xs font-bold px-2.5 py-0.5">
@@ -502,7 +510,7 @@ function VoiceBridgePage() {
                 <div className="space-y-2 pt-2 border-t border-border/40">
                   <span className="text-xs font-bold text-muted-foreground block">Session Gestures:</span>
                   <div className="flex flex-wrap gap-1.5">
-                    {Array.from(new Set(signs)).map((s, idx) => (
+                    {Array.from(new Set(signs.filter((s) => s !== "AUTO" && s !== "UNKNOWN"))).map((s, idx) => (
                       <Badge key={idx} variant="secondary" className="text-xs font-bold bg-teal-500/20 text-teal-400 border border-teal-500/40 px-2.5 py-1">
                         {s}
                       </Badge>

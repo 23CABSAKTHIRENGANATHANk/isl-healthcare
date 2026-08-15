@@ -612,15 +612,16 @@ export async function predictSign(
   if (mode === "demo") {
     await new Promise((r) => setTimeout(r, 400));
     const randomConfidence = Number((0.85 + Math.random() * 0.12).toFixed(2));
+    const demoSign = (!targetSign || targetSign === "AUTO" || targetSign === "OPEN") ? "DOCTOR" : targetSign;
 
     return {
       success: true,
-      sign: targetSign,
+      sign: demoSign,
       confidence: randomConfidence,
-      phrase: CONTROLLED_PHRASES[targetSign] || `${targetSign}.`,
+      phrase: CONTROLLED_PHRASES[demoSign] || `${demoSign}.`,
       mode: "demo",
       model_version: "demo_simulator_v2",
-      message: `Demo simulation: ${targetSign} verified.`,
+      message: `Demo simulation: ${demoSign} verified.`,
     };
   }
 
@@ -692,20 +693,19 @@ export async function predictSign(
     clearTimeout(timeoutId);
     console.warn("[AI Service] Backend call fallback:", error);
 
-    // Fallback: If client video frame is available, try client-side kinematics evaluation
+    // Fallback: If client video frame landmarks are available, evaluate kinematics
     if (options.landmarks && options.landmarks.length > 0) {
       return evaluateLandmarksKinematics(options.landmarks[0], targetSign, strictness);
     }
 
-    // Default graceful fallback
+    // Default graceful truthful response
     return {
-      success: true,
-      sign: targetSign,
-      confidence: 0.92,
-      phrase: CONTROLLED_PHRASES[targetSign] || `${targetSign}.`,
-      mode: "demo",
+      success: false,
+      sign: "UNKNOWN",
+      confidence: 0.15,
+      mode: "ai",
       model_version: "isl_client_fallback_v2",
-      message: `Camera gesture evaluated: ${targetSign} verified.`,
+      message: "Show your hand clearly inside the camera frame.",
     };
   }
 }
