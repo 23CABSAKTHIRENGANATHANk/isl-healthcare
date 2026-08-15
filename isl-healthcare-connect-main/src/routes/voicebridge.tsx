@@ -345,7 +345,7 @@ function VoiceBridgePage() {
             if (autoDetect && !capturing && raw[0] && raw[0].length >= 21) {
               const kinEval = evaluateLandmarksKinematics(raw[0], "AUTO", "balanced");
 
-              if (kinEval.fingerStates && now - lastStateUpdateRef.current > 50) {
+              if (kinEval.fingerStates) {
                 setLiveFingerStates(kinEval.fingerStates);
                 if (kinEval.extendedCount !== undefined) {
                   setLiveExtendedCount(kinEval.extendedCount);
@@ -370,9 +370,11 @@ function VoiceBridgePage() {
                   if (isNewSign || isCooldownElapsed) {
                     lastSpokenSignRef.current = detectedSign;
                     lastSpeechTimeRef.current = nowMs;
+                    setPhase("detected");
                     setCurrentSign(detectedSign);
                     setSigns((prev) => [...prev, detectedSign]);
                     setLastConfidence(kinEval.confidence || 0.96);
+                    setLastMessage(kinEval.message || null);
                     void speakSignPhraseRef.current(detectedSign, selectedLangRef.current);
                   }
                 }
