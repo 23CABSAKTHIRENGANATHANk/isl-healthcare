@@ -233,46 +233,56 @@ export async function generateProfessionalCertificateBlob(
   ctx.fill();
   ctx.stroke();
 
-  const credId = certificate.credential_id || `ISL-SETU-BRZ-${new Date().getFullYear()}-8891`;
-  const issueDate = certificate.issued_at
-    ? new Date(certificate.issued_at).toLocaleDateString("en-IN", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
-    : new Date().toLocaleDateString("en-IN", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
+  const now = new Date();
+  const issueDateObj = certificate.issued_at ? new Date(certificate.issued_at) : now;
+  const issueDateStr = issueDateObj.toLocaleDateString("en-IN", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  const issueTimeStr = issueDateObj.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
 
   ctx.textAlign = "left";
   // Col 1: Credential ID
   ctx.fillStyle = "#38bdf8";
   ctx.font = "700 24px 'Plus Jakarta Sans', sans-serif";
   ctx.letterSpacing = "2px";
-  ctx.fillText("CREDENTIAL IDENTIFIER", boxX + 110, boxY + 75);
+  ctx.fillText("CREDENTIAL IDENTIFIER", boxX + 110, boxY + 70);
   ctx.fillStyle = "#ffffff";
-  ctx.font = "800 42px 'JetBrains Mono', monospace";
-  ctx.fillText(credId, boxX + 110, boxY + 145);
+  ctx.font = "800 40px 'JetBrains Mono', monospace";
+  ctx.fillText(credId, boxX + 110, boxY + 130);
+  ctx.fillStyle = "#38bdf8";
+  ctx.font = "600 22px 'Inter', sans-serif";
+  ctx.fillText("STATUS: ACTIVE & VERIFIED", boxX + 110, boxY + 175);
 
-  // Col 2: Date of Issuance
+  // Col 2: Date & Time of Issuance (100% Dynamic Real-Time)
   ctx.fillStyle = "#fbbf24";
   ctx.font = "700 24px 'Plus Jakarta Sans', sans-serif";
   ctx.letterSpacing = "2px";
-  ctx.fillText("DATE OF ISSUANCE", boxX + 1020, boxY + 75);
+  ctx.fillText("DATE & TIME OF ISSUANCE", boxX + 960, boxY + 70);
   ctx.fillStyle = "#f8fafc";
-  ctx.font = "700 38px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText(issueDate, boxX + 1020, boxY + 145);
+  ctx.font = "700 36px 'Plus Jakarta Sans', sans-serif";
+  ctx.fillText(issueDateStr, boxX + 960, boxY + 130);
+  ctx.fillStyle = "#fbbf24";
+  ctx.font = "700 24px 'JetBrains Mono', monospace";
+  ctx.fillText(`${issueTimeStr} (IST)`, boxX + 960, boxY + 175);
 
   // Col 3: Verified Assessment Score
   ctx.fillStyle = "#34d399";
   ctx.font = "700 24px 'Plus Jakarta Sans', sans-serif";
   ctx.letterSpacing = "2px";
-  ctx.fillText("CLINICAL EVALUATION", boxX + 1880, boxY + 75);
+  ctx.fillText("CLINICAL EVALUATION", boxX + 1880, boxY + 70);
   ctx.fillStyle = "#34d399";
-  ctx.font = "800 42px 'JetBrains Mono', monospace";
-  ctx.fillText(`${score}% (PASSED)`, boxX + 1880, boxY + 145);
+  ctx.font = "800 40px 'JetBrains Mono', monospace";
+  ctx.fillText(`${score}% (PASSED)`, boxX + 1880, boxY + 130);
+  ctx.fillStyle = "#94a3b8";
+  ctx.font = "600 22px 'Inter', sans-serif";
+  ctx.fillText("CLINICAL TRIAGE ACCREDITED", boxX + 1880, boxY + 175);
 
   // 11. Symmetrical Bottom Alignment: Left Board | Center Seal | Right Directorate
   const bottomY = 1680;

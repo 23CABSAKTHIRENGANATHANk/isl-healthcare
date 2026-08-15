@@ -34,13 +34,20 @@ export function CertificateDialog({
   onOpenChange,
 }: CertificateDialogProps) {
   const reduceMotion = useReducedMotion();
-  const issuedDate = certificate.issued_at
-    ? new Date(certificate.issued_at).toLocaleDateString("en-IN", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      })
-    : "—";
+  const now = new Date();
+  const dateObj = certificate.issued_at ? new Date(certificate.issued_at) : now;
+  const issuedDate =
+    dateObj.toLocaleDateString("en-IN", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    }) +
+    " • " +
+    dateObj.toLocaleTimeString("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
