@@ -114,6 +114,8 @@ function PracticePage() {
   const [showMesh, setShowMesh] = useState(true);
   const [showGuide, setShowGuide] = useState(true);
   const [autoDetect, setAutoDetect] = useState(false);
+  const [autoDetectHoldCount, setAutoDetectHoldCount] = useState(0);
+  const [practiceVoiceLang, setPracticeVoiceLang] = useState<"ta" | "en" | "hi">("ta");
   const [strictness, setStrictness] = useState<DetectionStrictness>("balanced");
   const [soundEnabled, setSoundEnabled] = useState(true);
 
@@ -246,15 +248,18 @@ function PracticePage() {
 
               // Auto-Detect Logic
               if (autoDetect && !checking && !result?.matched) {
-                if (kinEval.success && kinEval.confidence >= 0.85) {
+                if (kinEval.success && kinEval.confidence >= 0.80) {
                   autoDetectConsecutiveMatches.current += 1;
-                  if (autoDetectConsecutiveMatches.current >= 4) {
+                  setAutoDetectHoldCount(autoDetectConsecutiveMatches.current);
+                  if (autoDetectConsecutiveMatches.current >= 3) {
                     // Match confirmed automatically!
                     autoDetectConsecutiveMatches.current = 0;
+                    setAutoDetectHoldCount(0);
                     void handleSignMatchSuccess(kinEval, target);
                   }
                 } else {
                   autoDetectConsecutiveMatches.current = Math.max(0, autoDetectConsecutiveMatches.current - 1);
+                  setAutoDetectHoldCount(autoDetectConsecutiveMatches.current);
                 }
               }
             }
@@ -263,6 +268,7 @@ function PracticePage() {
             setLiveLandmarks([]);
             setLiveExtendedCount(0);
             autoDetectConsecutiveMatches.current = 0;
+            setAutoDetectHoldCount(0);
           }
         } catch (e) {
           // Frame timestamp glitch safety
@@ -722,9 +728,65 @@ function PracticePage() {
                   </kbd>
                 </Button>
 
+                {/* Auto-Detect Toggle Button */}
+                <Button
+                  variant={autoDetect ? "hero" : "outline"}
+                  size="sm"
+                  onClick={() => setAutoDetect(!autoDetect)}
+                  className={`gap-1.5 rounded-xl text-xs font-bold transition-all ${
+                    autoDetect
+                      ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/20 border-emerald-400"
+                      : "border-border/80 text-muted-foreground hover:text-foreground"
+                  }`}
+                  title="Auto-Detect: Hands-free automatic gesture recognition when you hold the sign steady"
+                >
+                  <Zap className={`size-3.5 ${autoDetect ? "text-yellow-300 fill-yellow-300 animate-bounce" : ""}`} />
+                  <span>{autoDetect ? "⚡ Auto-Detect ON" : "Auto-Detect"}</span>
+                </Button>
+
+                {/* Voice Language Selector */}
+                <div className="flex items-center bg-muted/40 rounded-xl p-0.5 border border-border/60">
+                  <button
+                    type="button"
+                    onClick={() => setPracticeVoiceLang("ta")}
+                    className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all ${
+                      practiceVoiceLang === "ta"
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    title="தமிழ் குரல் (Tamil Voice)"
+                  >
+                    தமிழ்
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPracticeVoiceLang("en")}
+                    className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all ${
+                      practiceVoiceLang === "en"
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    title="English Voice"
+                  >
+                    EN
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPracticeVoiceLang("hi")}
+                    className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all ${
+                      practiceVoiceLang === "hi"
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    title="हिंदी आवाज (Hindi Voice)"
+                  >
+                    हिंदी
+                  </button>
+                </div>
+
                 <div className="flex items-center gap-1.5 flex-wrap justify-center">
                   {/* PiP Guide Toggle Button */}
-                  {target && target.video_url && (
+                  {target && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -737,7 +799,7 @@ function PracticePage() {
                   )}
 
                   {/* Full Video Modal */}
-                  {target && target.video_url && (
+                  {target && (
                     <Button
                       variant="ghost"
                       size="sm"
@@ -749,13 +811,27 @@ function PracticePage() {
                     </Button>
                   )}
 
-                  {/* Pronounce Word */}
+                  {/* Pronounce Word in Selected Language */}
                   {target && (
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => speak(target.gloss)}
-                      title="Hear Pronunciation"
+                      onClick={() => {
+                        const glossUpper = (target.gloss || "").toUpperCase();
+                        const phrase =
+                          CLINICAL_SIGN_DICTIONARY[glossUpper]?.[practiceVoiceLang] ||
+                          (practiceVoiceLang === "ta"
+                            ? `${target.gloss} சைகை.`
+                            : target.gloss);
+                        const langCode =
+                          practiceVoiceLang === "ta"
+                            ? "ta-IN"
+                            : practiceVoiceLang === "hi"
+                            ? "hi-IN"
+                            : "en-US";
+                        void speak(phrase, langCode, glossUpper);
+                      }}
+                      title={`Hear Voice in ${practiceVoiceLang.toUpperCase()}`}
                       className="size-8 rounded-xl"
                     >
                       <Volume2 className="size-4 text-muted-foreground hover:text-foreground" />
@@ -808,10 +884,17 @@ function PracticePage() {
               {target ? (
                 <>
                   <div>
-                    <div className="flex items-center justify-between">
-                      <h2 className="font-display text-3xl font-bold tracking-tight text-foreground">
-                        {target.gloss}
-                      </h2>
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <div className="flex items-baseline gap-2.5">
+                        <h2 className="font-display text-3xl font-bold tracking-tight text-foreground">
+                          {target.gloss}
+                        </h2>
+                        {CLINICAL_SIGN_DICTIONARY[target.gloss.toUpperCase()]?.ta && (
+                          <span className="font-sans text-base font-bold text-teal">
+                            ({CLINICAL_SIGN_DICTIONARY[target.gloss.toUpperCase()]?.ta})
+                          </span>
+                        )}
+                      </div>
                       <span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary">
                         {target.category_id}
                       </span>
@@ -819,6 +902,39 @@ function PracticePage() {
                     <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">
                       {target.meaning}
                     </p>
+                  </div>
+
+                  {/* Direct Voice Button */}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const glossUpper = (target.gloss || "").toUpperCase();
+                        const phrase =
+                          CLINICAL_SIGN_DICTIONARY[glossUpper]?.[practiceVoiceLang] ||
+                          (practiceVoiceLang === "ta"
+                            ? `${target.gloss} சைகை.`
+                            : target.gloss);
+                        const langCode =
+                          practiceVoiceLang === "ta"
+                            ? "ta-IN"
+                            : practiceVoiceLang === "hi"
+                            ? "hi-IN"
+                            : "en-US";
+                        void speak(phrase, langCode, glossUpper);
+                      }}
+                      className="w-full gap-2 rounded-xl border-primary/40 bg-primary/5 text-primary hover:bg-primary/15 font-bold text-xs"
+                    >
+                      <Volume2 className="size-4" />
+                      <span>
+                        {practiceVoiceLang === "ta"
+                          ? "🔊 தமிழ் குரல் கேட்க (Listen in Tamil)"
+                          : practiceVoiceLang === "hi"
+                          ? "🔊 आवाज सुनें (Listen in Hindi)"
+                          : "🔊 Pronounce Sign"}
+                      </span>
+                    </Button>
                   </div>
 
                   {/* Step-by-Step Performance Guide */}
