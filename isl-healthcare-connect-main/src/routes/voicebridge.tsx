@@ -45,6 +45,7 @@ import {
   extractSignMatchesFromSpeech,
   type SpeechSignMatch,
 } from "@/services/speech-to-sign.service";
+import { emergencyTriageService, type EmergencyAlert } from "@/services/emergency-triage.service";
 import { SIGN_VIDEO_URLS } from "@/config/video-mapping";
 import { useCamera } from "@/hooks/use-camera";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
@@ -409,6 +410,14 @@ function VoiceBridgePage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [capture, capturing]);
 
+  const handleTriggerSOS = useCallback((gloss: string = "EMERGENCY") => {
+    const alert = emergencyTriageService.triggerEmergency(gloss, "Telehealth Consultation 01");
+    setActiveEmergencyAlert(alert);
+    const tamilAlert = "அவசர எச்சரிக்கை! நோயாளிக்கு உடனடியாக தீவிர மருத்துவ உதவி தேவை!";
+    void speak(tamilAlert, "ta-IN", "EMERGENCY");
+    toast.error("🚨 CODE RED EMERGENCY ALERT DISPATCHED TO HOSPITAL ROSTER!");
+  }, []);
+
   const activePhrase =
     currentSign && currentSign !== "AUTO" && currentSign !== "UNKNOWN"
       ? getSpokenPhrase(currentSign, selectedLang)
@@ -423,35 +432,48 @@ function VoiceBridgePage() {
           description="Interactive bidirectional translation: Doctor speaks in Tamil/English/Hindi → Instant ISL Sign Video for patient. Patient signs on camera → Instant Multilingual Voice for doctor."
         />
 
-        {/* Bridge Mode Switcher */}
-        <div className="flex items-center justify-center sm:justify-start gap-1.5 rounded-2xl border border-border/80 bg-card p-1.5 shadow-soft w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Emergency SOS Pulse Button */}
           <Button
+            variant="destructive"
             size="sm"
-            variant={bridgeMode === "telehealth_2way" ? "hero" : "ghost"}
-            onClick={() => setBridgeMode("telehealth_2way")}
-            className="flex-1 sm:flex-none rounded-xl text-xs font-bold gap-1.5"
+            onClick={() => handleTriggerSOS("EMERGENCY")}
+            className="gap-2 rounded-xl font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-lg shadow-rose-600/30 animate-pulse"
           >
-            <PhoneCall className="size-3.5" />
-            2-Way Telehealth
+            <AlertCircle className="size-4 fill-current" />
+            <span>🚨 EMERGENCY SOS</span>
           </Button>
-          <Button
-            size="sm"
-            variant={bridgeMode === "sign_to_voice" ? "hero" : "ghost"}
-            onClick={() => setBridgeMode("sign_to_voice")}
-            className="flex-1 sm:flex-none rounded-xl text-xs font-semibold gap-1.5"
-          >
-            <Hand className="size-3.5" />
-            Sign ➔ Voice
-          </Button>
-          <Button
-            size="sm"
-            variant={bridgeMode === "voice_to_sign" ? "hero" : "ghost"}
-            onClick={() => setBridgeMode("voice_to_sign")}
-            className="flex-1 sm:flex-none rounded-xl text-xs font-semibold gap-1.5"
-          >
-            <Mic className="size-3.5" />
-            Doctor ➔ Sign
-          </Button>
+
+          {/* Bridge Mode Switcher */}
+          <div className="flex items-center justify-center sm:justify-start gap-1.5 rounded-2xl border border-border/80 bg-card p-1.5 shadow-soft w-full sm:w-auto">
+            <Button
+              size="sm"
+              variant={bridgeMode === "telehealth_2way" ? "hero" : "ghost"}
+              onClick={() => setBridgeMode("telehealth_2way")}
+              className="flex-1 sm:flex-none rounded-xl text-xs font-bold gap-1.5"
+            >
+              <PhoneCall className="size-3.5" />
+              2-Way Telehealth
+            </Button>
+            <Button
+              size="sm"
+              variant={bridgeMode === "sign_to_voice" ? "hero" : "ghost"}
+              onClick={() => setBridgeMode("sign_to_voice")}
+              className="flex-1 sm:flex-none rounded-xl text-xs font-semibold gap-1.5"
+            >
+              <Hand className="size-3.5" />
+              Sign ➔ Voice
+            </Button>
+            <Button
+              size="sm"
+              variant={bridgeMode === "voice_to_sign" ? "hero" : "ghost"}
+              onClick={() => setBridgeMode("voice_to_sign")}
+              className="flex-1 sm:flex-none rounded-xl text-xs font-semibold gap-1.5"
+            >
+              <Mic className="size-3.5" />
+              Doctor ➔ Sign
+            </Button>
+          </div>
         </div>
       </div>
 
