@@ -890,6 +890,42 @@ export function getVoiceReadinessStatus(langCode = "ta-IN"): "neural" | "browser
  * 3. In-memory session audio cache (0ms instant playback for repeated signs)
  * 4. Browser SpeechSynthesis fallback (ta-IN voice matching)
  */
+// Web Audio Context for guaranteed mobile/desktop audio output
+let sharedAudioContext: AudioContext | null = null;
+const audioBufferCache = new Map<string, AudioBuffer>();
+
+function getSharedAudioContext(): AudioContext | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!sharedAudioContext && AudioCtx) {
+      sharedAudioContext = new AudioCtx();
+    }
+    if (sharedAudioContext && sharedAudioContext.state === "suspended") {
+      void sharedAudioContext.resume();
+    }
+    return sharedAudioContext;
+  } catch {
+    return null;
+  }
+}
+
+// Global unlocker on first user interaction
+if (typeof window !== "undefined") {
+  const unlockAudio = () => {
+    const ctx = getSharedAudioContext();
+    if (ctx && ctx.state === "suspended") {
+      void ctx.resume();
+    }
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.resume();
+    }
+  };
+  window.addEventListener("click", unlockAudio, { once: false, passive: true });
+  window.addEventListener("touchstart", unlockAudio, { once: false, passive: true });
+  window.addEventListener("keydown", unlockAudio, { once: false, passive: true });
+}
+
 export async function speak(
   text: string,
   langCode = "ta-IN",
@@ -899,13 +935,12 @@ export async function speak(
     return { ok: false, voiceType: "unavailable", reason: "Browser window is undefined." };
   }
 
-  // Sanitize text: remove emojis, markdown, and normalize whitespace
   const cleanText = text.replace(/<[^>]+>/g, "").replace(/[\U00010000-\U0010ffff]/g, "").trim();
   if (!cleanText) {
     return { ok: false, reason: "Text is empty." };
   }
 
-  // Stop any active audio or speech
+  // Stop previous audio
   if (activeAudioElement) {
     try {
       activeAudioElement.pause();
@@ -913,26 +948,51 @@ export async function speak(
     } catch {}
   }
 
-  if ("speechSynthesis" in window) {
-    try {
-      window.speechSynthesis.cancel();
-    } catch {}
-  }
-
   const cleanLang = langCode.split("-")[0].toLowerCase();
+  const ctx = getSharedAudioContext();
 
   // Layer 0: Bundled Authentic Spoken Healthcare Audio Asset (100% Native Clarity)
   if (signName && signName !== "AUTO" && signName !== "UNKNOWN") {
     const signKey = signName.toUpperCase().replace(/\s+/g, "_");
     const staticUrl = `/audio/${cleanLang}/${signKey}.mp3`;
+
+    // Attempt 1: Web Audio buffer decoding (Bypasses HTML5 audio autoplay blocking)
+    if (ctx) {
+      try {
+        if (ctx.state === "suspended") await ctx.resume();
+
+        let buffer = audioBufferCache.get(staticUrl);
+        if (!buffer) {
+          const res = await fetch(staticUrl);
+          if (res.ok) {
+            const arrayBuf = await res.arrayBuffer();
+            buffer = await ctx.decodeAudioData(arrayBuf);
+            audioBufferCache.set(staticUrl, buffer);
+          }
+        }
+
+        if (buffer) {
+          const source = ctx.createBufferSource();
+          source.buffer = buffer;
+          source.connect(ctx.destination);
+          source.start(0);
+          return { ok: true, voiceType: "neural" };
+        }
+      } catch (bufErr) {
+        console.warn("[TTS Service] WebAudio buffer fallback:", bufErr);
+      }
+    }
+
+    // Attempt 2: Direct HTML5 Audio playback
     try {
       const audio = new Audio(staticUrl);
       activeAudioElement = audio;
+      audio.volume = 1.0;
       audio.playbackRate = 1.0;
       await audio.play();
       return { ok: true, voiceType: "neural" };
     } catch (staticErr) {
-      console.warn("[TTS Service] Static audio asset fallback:", staticErr);
+      console.warn("[TTS Service] Static HTMLAudio fallback:", staticErr);
     }
   }
 
