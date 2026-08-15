@@ -295,11 +295,7 @@ function VoiceBridgePage() {
   const selectedLangRef = useRef(selectedLang);
   selectedLangRef.current = selectedLang;
 
-  const speakSignPhraseRef = useRef(speakSignPhrase);
-  speakSignPhraseRef.current = speakSignPhrase;
-
-  const consecutiveSignRef = useRef<{ sign: string; count: number }>({ sign: "", count: 0 });
-  const lastStateUpdateRef = useRef<number>(0);
+  const autoDetectConsecutiveMatches = useRef<number>(0);
 
   // Continuous Camera Vision Loop with Instant Auto-Voice Trigger
   useEffect(() => {
@@ -334,35 +330,25 @@ function VoiceBridgePage() {
           if (results.landmarks && results.landmarks.length > 0) {
             const raw = results.landmarks as LandmarkPoint[][];
             latestLandmarksRef.current = raw;
+            setLiveLandmarks(raw);
 
-            // Throttle visual landmark mesh updates to ~20 FPS for peak React performance
-            if (now - lastStateUpdateRef.current > 50) {
-              setLiveLandmarks(raw);
-              lastStateUpdateRef.current = now;
-            }
-
+            const hand = raw[0];
             // Auto-detect gesture trigger (evaluated every frame with 0 latency)
-            if (autoDetect && !capturing && raw[0] && raw[0].length >= 21) {
-              const kinEval = evaluateLandmarksKinematics(raw[0], "AUTO", "balanced");
+            if (autoDetect && !capturing && hand && hand.length >= 21) {
+              const kinEval = evaluateLandmarksKinematics(hand, "AUTO", "balanced");
 
               if (kinEval.fingerStates) {
                 setLiveFingerStates(kinEval.fingerStates);
-                if (kinEval.extendedCount !== undefined) {
-                  setLiveExtendedCount(kinEval.extendedCount);
-                }
+              }
+              if (kinEval.extendedCount !== undefined) {
+                setLiveExtendedCount(kinEval.extendedCount);
               }
 
               if (kinEval.success && kinEval.sign && kinEval.sign !== "UNKNOWN") {
-                const detectedSign = kinEval.sign;
-
-                if (consecutiveSignRef.current.sign === detectedSign) {
-                  consecutiveSignRef.current.count += 1;
-                } else {
-                  consecutiveSignRef.current = { sign: detectedSign, count: 1 };
-                }
-
-                // If held steady for 2 consecutive frames (~60ms)
-                if (consecutiveSignRef.current.count >= 2) {
+                autoDetectConsecutiveMatches.current += 1;
+                if (autoDetectConsecutiveMatches.current >= 2) {
+                  autoDetectConsecutiveMatches.current = 0;
+                  const detectedSign = kinEval.sign;
                   const nowMs = Date.now();
                   const isNewSign = detectedSign !== lastSpokenSignRef.current;
                   const isCooldownElapsed = nowMs - lastSpeechTimeRef.current > 2000;
@@ -375,20 +361,37 @@ function VoiceBridgePage() {
                     setSigns((prev) => [...prev, detectedSign]);
                     setLastConfidence(kinEval.confidence || 0.96);
                     setLastMessage(kinEval.message || null);
-                    void speakSignPhraseRef.current(detectedSign, selectedLangRef.current);
+
+                    playFeedbackSound("success");
+                    const langKey = selectedLangRef.current;
+                    const spokenPhrase = getSpokenPhrase(detectedSign, langKey);
+                    const langObj = SUPPORTED_LANGUAGES.find((l) => l.code === langKey) || currentLangConfig;
+
+                    // Add to Consultation Message Feed
+                    setConsultationLog((prev) => [
+                      ...prev,
+                      {
+                        id: `pt-${Date.now()}`,
+                        sender: "patient",
+                        text: spokenPhrase,
+                        signGloss: detectedSign,
+                        timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }),
+                        language: langKey,
+                      },
+                    ]);
+
+                    void speak(spokenPhrase, langObj.voiceLang, detectedSign);
                   }
                 }
               } else {
-                consecutiveSignRef.current = { sign: "", count: 0 };
+                autoDetectConsecutiveMatches.current = Math.max(0, autoDetectConsecutiveMatches.current - 1);
               }
             }
           } else {
             latestLandmarksRef.current = [];
-            if (now - lastStateUpdateRef.current > 100) {
-              setLiveLandmarks([]);
-              lastStateUpdateRef.current = now;
-            }
-            consecutiveSignRef.current = { sign: "", count: 0 };
+            setLiveLandmarks([]);
+            setLiveExtendedCount(0);
+            autoDetectConsecutiveMatches.current = 0;
           }
         } catch {}
 
@@ -404,7 +407,7 @@ function VoiceBridgePage() {
       isActive = false;
       if (animationFrameIdRef.current) cancelAnimationFrame(animationFrameIdRef.current);
     };
-  }, [isLive, autoDetect, capturing, mode]);
+  }, [isLive, autoDetect, capturing, mode, currentLangConfig]);
 
   // Main Capture Action
   const capture = useCallback(async () => {
