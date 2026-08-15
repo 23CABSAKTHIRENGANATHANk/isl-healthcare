@@ -19,11 +19,11 @@ export default defineConfig({
   },
   build: {
     outDir: "dist",
-    target: "esnext",
+    target: "es2020",
     minify: "esbuild",
     cssMinify: true,
     cssCodeSplit: true,
-    chunkSizeWarningLimit: 600,
+    chunkSizeWarningLimit: 800,
     rollupOptions: {
       output: {
         manualChunks: (id: string): string | undefined => {
@@ -36,20 +36,12 @@ export default defineConfig({
           if (id.includes("node_modules/@radix-ui")) {
             return "vendor-radix";
           }
-          if (id.includes("node_modules/lucide-react")) {
-            return "vendor-icons";
-          }
-          if (id.includes("node_modules/framer-motion")) {
-            return "vendor-motion";
-          }
-          if (id.includes("node_modules/@supabase")) {
-            return "vendor-supabase";
-          }
-          if (id.includes("node_modules/react") || id.includes("node_modules/react-dom")) {
-            return "vendor-react";
-          }
-          if (id.includes("node_modules/@tanstack")) {
-            return "vendor-tanstack";
+          if (
+            id.includes("node_modules/react") ||
+            id.includes("node_modules/react-dom") ||
+            id.includes("node_modules/@tanstack")
+          ) {
+            return "vendor-framework";
           }
           return undefined;
         },
