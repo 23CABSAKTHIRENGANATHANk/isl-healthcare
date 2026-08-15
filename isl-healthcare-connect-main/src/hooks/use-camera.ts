@@ -106,6 +106,16 @@ export function useCamera() {
     setContrast((prev) => (prev > 110 ? 100 : 125));
   }, []);
 
+  // Ensure video element always has active stream attached across tab switches
+  useEffect(() => {
+    if (status === "ready" && streamRef.current && videoRef.current) {
+      if (videoRef.current.srcObject !== streamRef.current) {
+        videoRef.current.srcObject = streamRef.current;
+        videoRef.current.play().catch(() => {});
+      }
+    }
+  });
+
   useEffect(() => {
     void refreshDevices();
     return () => stop();
