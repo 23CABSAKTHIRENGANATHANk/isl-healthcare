@@ -197,11 +197,9 @@ function LearnPage() {
                     description="Signs for this category are published, with guided lessons on the way."
                   />
                 ) : (
-                  <div className="-mx-4 flex snap-x gap-5 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-2 gap-6">
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
                     {group.lessons.map((lesson) => (
-                      <div key={lesson.id} className="min-w-[78vw] snap-start sm:min-w-0">
-                        <LessonCard lesson={lesson} percent={progressMap.get(lesson.id) ?? 0} />
-                      </div>
+                      <LessonCard key={lesson.id} lesson={lesson} percent={progressMap.get(lesson.id) ?? 0} />
                     ))}
                   </div>
                 )}

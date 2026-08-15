@@ -25,14 +25,14 @@ const ROUTES_TO_TEST = [
 ];
 
 const VIDEOS_TO_CHECK = [
-  '/dataset-videos/Hello.mp4',
-  '/dataset-videos/Thank%20you.mp4',
-  '/dataset-videos/Fever.mp4',
-  '/dataset-videos/Come.mp4',
-  '/dataset-videos/Drink.mp4',
-  '/dataset-videos/Good%20morning.mp4',
-  '/dataset-videos/Medicine.mp4',
-  '/dataset-videos/Food.mp4',
+  '/videos/signs/Hello.mp4',
+  '/videos/signs/Thank%20you.mp4',
+  '/videos/signs/Fever.mp4',
+  '/videos/signs/Come.mp4',
+  '/videos/signs/Drink.mp4',
+  '/videos/signs/Good%20morning.mp4',
+  '/videos/signs/Medicine.mp4',
+  '/videos/signs/Food.mp4',
 ];
 
 class TestRunner {
@@ -95,14 +95,16 @@ class TestRunner {
   async testVideo(videoPath) {
     return new Promise((resolve) => {
       const url = new URL(videoPath, BASE_URL);
-      const req = http.head(url, { timeout: 3000 }, (res) => {
-        const passed = res.statusCode === 200;
+      const req = http.request(url, { method: 'GET', timeout: 5000 }, (res) => {
+        const passed = res.statusCode >= 200 && res.statusCode < 400;
+        const size = res.headers['content-length'] || 'unknown';
+        res.resume(); // Consume stream to close request
         resolve({
           video: videoPath,
           statusCode: res.statusCode,
           statusMessage: res.statusMessage,
           passed,
-          size: res.headers['content-length'] || 'unknown',
+          size,
           time: Date.now() - this.startTime,
         });
       });
@@ -129,6 +131,8 @@ class TestRunner {
           time: Date.now() - this.startTime,
         });
       });
+
+      req.end();
     });
   }
 

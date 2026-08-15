@@ -167,9 +167,18 @@ export function CameraPreview({
   // Draw MediaPipe Landmark Mesh Skeleton on Canvas
   useEffect(() => {
     const canvas = canvasRef.current;
+    const video = videoRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
+
+    // Dynamically synchronize canvas resolution with actual video stream dimensions
+    if (video && video.videoWidth > 0 && video.videoHeight > 0) {
+      if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+      }
+    }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -262,6 +271,22 @@ export function CameraPreview({
                 <Zap className="size-3 animate-bounce" /> Auto-Detect On
               </Badge>
             )}
+            {/* Camera Quality Indicator (GOOD / FAIR / POOR) */}
+            {live && (
+              <Badge
+                className={cn(
+                  "text-[10px] font-bold uppercase tracking-wider font-mono px-2 py-0.5 border",
+                  (fps ?? 30) >= 20 && extendedCount && extendedCount > 0
+                    ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                    : (fps ?? 30) >= 12 || live
+                    ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
+                    : "bg-rose-500/20 text-rose-300 border-rose-500/40"
+                )}
+              >
+                Quality: {(fps ?? 30) >= 20 && extendedCount && extendedCount > 0 ? "GOOD" : (fps ?? 30) >= 12 ? "FAIR" : "POOR"}
+              </Badge>
+            )}
+
             <div className="flex items-center gap-1.5 rounded-xl bg-primary/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary border border-primary/30">
               <Crosshair className="size-3.5" />
               Target: {targetSign}
@@ -302,7 +327,7 @@ export function CameraPreview({
             )}
           />
 
-          {/* Target Framing Silhouette Guide Box */}
+          {/* Target Framing Silhouette Guide Box & Dynamic Hand Quality Banner */}
           {live && showGuide && (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-6">
               <div
@@ -321,22 +346,27 @@ export function CameraPreview({
                 <div className="absolute -bottom-1 -left-1 size-4 border-b-2 border-l-2 border-primary" />
                 <div className="absolute -bottom-1 -right-1 size-4 border-b-2 border-r-2 border-primary" />
 
-                {/* Guide Prompt Text */}
-                <div className="text-center">
+                {/* Guide Prompt & Positioning Feedback */}
+                <div className="text-center px-4">
                   <Hand
                     className={cn(
-                      "mx-auto size-12 mb-1.5 transition-all",
+                      "mx-auto size-12 mb-2 transition-all duration-300",
                       phase === "detected"
                         ? "text-emerald-400 scale-110"
                         : extendedCount && extendedCount > 0
-                        ? "text-teal-300"
+                        ? "text-teal-300 scale-105 animate-pulse"
                         : "text-white/30"
                     )}
                   />
-                  <p className="text-[11px] font-semibold text-white/70">
-                    {extendedCount && extendedCount > 0
-                      ? `${extendedCount} Fingers Detected`
-                      : "Position Hand Within Zone"}
+                  <p className="text-xs font-bold text-white tracking-wide drop-shadow-md">
+                    {phase === "detected"
+                      ? `${targetSign} Verified ✓`
+                      : extendedCount && extendedCount > 0
+                      ? `Good Position • ${extendedCount} Fingers Active`
+                      : "Position Hand Inside Frame"}
+                  </p>
+                  <p className="mt-1 text-[11px] font-medium text-white/70">
+                    Keep hand inside guide • Hold steady
                   </p>
                 </div>
               </div>
@@ -436,12 +466,12 @@ export function CameraPreview({
         </div>
 
         {/* ------------------------------------------------------------------- */}
-        {/* Comprehensive Camera Accessories Toolbar */}
+        {/* Comprehensive Camera Accessories Toolbar (Mobile Responsive & Touch Scrollable) */}
         {/* ------------------------------------------------------------------- */}
         {live && (
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/60 bg-neutral-900/95 px-4 py-2.5 text-xs backdrop-blur-md">
+          <div className="flex items-center justify-between gap-2 overflow-x-auto border-t border-border/60 bg-neutral-900/95 px-3 sm:px-4 py-2.5 text-xs backdrop-blur-md scrollbar-none">
             {/* Left Accessories: Video Controls */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex shrink-0 items-center gap-1.5">
               <TooltipProvider delayDuration={150}>
                 {/* Flip / Mirror Toggle */}
                 {onToggleMirror && (
@@ -451,10 +481,10 @@ export function CameraPreview({
                         variant={isMirrored ? "hero" : "outline"}
                         size="sm"
                         onClick={onToggleMirror}
-                        className="h-8 rounded-xl px-2.5 gap-1.5 text-xs font-semibold"
+                        className="h-8 rounded-xl px-2.5 gap-1.5 text-xs font-semibold shrink-0"
                       >
                         <FlipHorizontal className="size-3.5" />
-                        <span className="hidden sm:inline">Mirror</span>
+                        <span>Mirror</span>
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Flip camera preview horizontally</TooltipContent>
@@ -470,12 +500,12 @@ export function CameraPreview({
                         size="sm"
                         onClick={onToggleLowLight}
                         className={cn(
-                          "h-8 rounded-xl px-2.5 gap-1.5 text-xs font-semibold",
+                          "h-8 rounded-xl px-2.5 gap-1.5 text-xs font-semibold shrink-0",
                           isLowLightActive && "bg-amber-500 hover:bg-amber-600 text-black border-amber-400"
                         )}
                       >
                         <Sun className="size-3.5" />
-                        <span className="hidden sm:inline">Light Boost</span>
+                        <span>Light Boost</span>
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Enhance brightness and contrast for dark rooms</TooltipContent>
@@ -493,7 +523,7 @@ export function CameraPreview({
                           const nextZoom = zoom === 1.0 ? 1.25 : zoom === 1.25 ? 1.5 : 1.0;
                           onSetZoom(nextZoom);
                         }}
-                        className="h-8 rounded-xl px-2.5 gap-1 text-xs font-semibold"
+                        className="h-8 rounded-xl px-2.5 gap-1 text-xs font-semibold shrink-0"
                       >
                         <ZoomIn className="size-3.5" />
                         <span>{zoom}x</span>
@@ -511,10 +541,10 @@ export function CameraPreview({
                         variant={showMesh ? "hero" : "outline"}
                         size="sm"
                         onClick={onToggleMesh}
-                        className="h-8 rounded-xl px-2.5 gap-1.5 text-xs font-semibold"
+                        className="h-8 rounded-xl px-2.5 gap-1.5 text-xs font-semibold shrink-0"
                       >
                         <Layers className="size-3.5" />
-                        <span className="hidden md:inline">Skeleton Mesh</span>
+                        <span>Skeleton Mesh</span>
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Toggle real-time hand landmark skeleton overlay</TooltipContent>
@@ -529,10 +559,10 @@ export function CameraPreview({
                         variant={showGuide ? "hero" : "outline"}
                         size="sm"
                         onClick={onToggleGuide}
-                        className="h-8 rounded-xl px-2.5 gap-1.5 text-xs font-semibold"
+                        className="h-8 rounded-xl px-2.5 gap-1.5 text-xs font-semibold shrink-0"
                       >
                         <Crosshair className="size-3.5" />
-                        <span className="hidden md:inline">Guide Box</span>
+                        <span>Guide Box</span>
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Toggle hand placement target guide</TooltipContent>
@@ -542,7 +572,7 @@ export function CameraPreview({
             </div>
 
             {/* Right Accessories: AI Engine & Sensitivity Settings */}
-            <div className="flex items-center gap-1.5">
+            <div className="flex shrink-0 items-center gap-1.5 ml-2">
               <TooltipProvider delayDuration={150}>
                 {/* Auto-Detect Mode Toggle */}
                 {onToggleAutoDetect && (
@@ -553,12 +583,12 @@ export function CameraPreview({
                         size="sm"
                         onClick={onToggleAutoDetect}
                         className={cn(
-                          "h-8 rounded-xl px-2.5 gap-1.5 text-xs font-semibold",
+                          "h-8 rounded-xl px-2.5 gap-1.5 text-xs font-semibold shrink-0",
                           autoDetect && "bg-emerald-500 hover:bg-emerald-600 text-black border-emerald-400"
                         )}
                       >
                         <Zap className="size-3.5" />
-                        <span className="hidden sm:inline">Auto-Detect</span>
+                        <span>Auto-Detect</span>
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>Automatically verify signs when held steady</TooltipContent>
@@ -569,7 +599,7 @@ export function CameraPreview({
                 {onSetStrictness && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="h-8 rounded-xl px-2.5 gap-1 text-xs font-semibold">
+                      <Button variant="outline" size="sm" className="h-8 rounded-xl px-2.5 gap-1 text-xs font-semibold shrink-0">
                         <Sliders className="size-3.5" />
                         <span className="capitalize">{strictness}</span>
                       </Button>
@@ -598,7 +628,7 @@ export function CameraPreview({
                         variant={soundEnabled ? "ghost" : "outline"}
                         size="icon"
                         onClick={onToggleSound}
-                        className="size-8 rounded-xl text-neutral-300 hover:text-white"
+                        className="size-8 rounded-xl text-neutral-300 hover:text-white shrink-0"
                       >
                         {soundEnabled ? <Volume2 className="size-3.5" /> : <VolumeX className="size-3.5 text-neutral-500" />}
                       </Button>
@@ -611,7 +641,7 @@ export function CameraPreview({
                 {devices.length > 1 && onSwitchDevice && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="icon" className="size-8 rounded-xl">
+                      <Button variant="outline" size="icon" className="size-8 rounded-xl shrink-0">
                         <Settings2 className="size-3.5" />
                       </Button>
                     </DropdownMenuTrigger>

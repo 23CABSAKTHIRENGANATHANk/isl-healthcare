@@ -178,3 +178,86 @@ class TestFastAPIAppImport:
         app = self._import_app()
         assert hasattr(app, "predict_sign_endpoint") or hasattr(app, "predict_sign"), \
             "predict_sign endpoint must be defined in main.py"
+
+
+# ─────────────────────────────────────────────────────────────
+# Real-Time Gesture Kinematics & False Positive Rejection Tests
+# ─────────────────────────────────────────────────────────────
+
+class TestSignRecognizerKinematics:
+    """Tests for landmark kinematics, gesture evaluation, and false-positive UNKNOWN rejection."""
+
+    def _get_recognizer(self):
+        from services.sign_recognizer import recognizer
+        return recognizer
+
+    def _make_dummy_landmarks(self, extended_indices=(8, 12)):
+        """Creates 21 synthetic 3D landmarks with specified extended fingers."""
+        landmarks = [[0.5, 0.8, 0.0] for _ in range(21)] # Wrist at base
+        # MCP joints
+        for i in [2, 5, 9, 13, 17]:
+            landmarks[i] = [0.5 + (i - 9) * 0.03, 0.6, 0.0]
+        # Extended fingertips (farther from wrist)
+        for tip in [4, 8, 12, 16, 20]:
+            if tip in extended_indices:
+                landmarks[tip] = [0.5 + (tip - 12) * 0.03, 0.2, 0.0] # Far up
+            else:
+                landmarks[tip] = [0.5 + (tip - 12) * 0.02, 0.55, 0.0] # Curled near MCP
+        return [{"x": pt[0], "y": pt[1], "z": pt[2]} for pt in landmarks]
+
+    def test_empty_landmarks_returns_unknown(self):
+        recognizer = self._get_recognizer()
+        res = recognizer.predict_from_landmarks(landmarks=None, target_sign="DOCTOR")
+        assert res["success"] is False
+        assert res["sign"] == "UNKNOWN"
+
+    def test_open_palm_does_not_match_doctor(self):
+        """Open palm (5 extended fingers) must NOT match DOCTOR (requires 2 fingers)."""
+        recognizer = self._get_recognizer()
+        open_palm = self._make_dummy_landmarks(extended_indices=(4, 8, 12, 16, 20))
+        res = recognizer.predict_from_landmarks(landmarks=[open_palm], target_sign="DOCTOR")
+        assert res["success"] is False
+        assert res["sign"] == "UNKNOWN"
+
+    def test_two_fingers_matches_doctor(self):
+        """2 extended fingers (index & middle) matches DOCTOR."""
+        recognizer = self._get_recognizer()
+        v_shape = self._make_dummy_landmarks(extended_indices=(8, 12))
+        res = recognizer.predict_from_landmarks(landmarks=[v_shape], target_sign="DOCTOR")
+        assert res["success"] is True
+        assert res["sign"] == "DOCTOR"
+        assert res["confidence"] >= 0.85
+
+    def test_three_fingers_matches_water(self):
+        """3 extended fingers (index, middle, ring) matches WATER."""
+        recognizer = self._get_recognizer()
+        w_shape = self._make_dummy_landmarks(extended_indices=(8, 12, 16))
+        res = recognizer.predict_from_landmarks(landmarks=[w_shape], target_sign="WATER")
+        assert res["success"] is True
+        assert res["sign"] == "WATER"
+
+    def test_closed_fist_does_not_match_hello(self):
+        """Closed fist must NOT match HELLO (requires open palm)."""
+        recognizer = self._get_recognizer()
+        fist = self._make_dummy_landmarks(extended_indices=())
+        res = recognizer.predict_from_landmarks(landmarks=[fist], target_sign="HELLO")
+        assert res["success"] is False
+        assert res["sign"] == "UNKNOWN"
+
+    def test_open_palm_matches_help_and_hello(self):
+        """Open palm matches HELP and HELLO."""
+        recognizer = self._get_recognizer()
+        open_palm = self._make_dummy_landmarks(extended_indices=(4, 8, 12, 16, 20))
+        res_help = recognizer.predict_from_landmarks(landmarks=[open_palm], target_sign="HELP")
+        res_hello = recognizer.predict_from_landmarks(landmarks=[open_palm], target_sign="HELLO")
+        assert res_help["success"] is True
+        assert res_hello["success"] is True
+
+    def test_pointing_matches_injury(self):
+        """Single index finger extended matches INJURY."""
+        recognizer = self._get_recognizer()
+        pointing = self._make_dummy_landmarks(extended_indices=(8,))
+        res = recognizer.predict_from_landmarks(landmarks=[pointing], target_sign="INJURY")
+        assert res["success"] is True
+        assert res["sign"] == "INJURY"
+

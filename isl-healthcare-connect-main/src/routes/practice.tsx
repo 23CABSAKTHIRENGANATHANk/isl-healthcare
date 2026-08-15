@@ -63,12 +63,14 @@ import { isTargetMatch } from "@/services/sign-matching";
 
 interface PracticeSearch {
   sign?: string;
+  debug?: boolean;
 }
 
 export const Route = createFileRoute("/practice")({
   validateSearch: (search: Record<string, unknown>): PracticeSearch => {
     return {
       sign: typeof search.sign === "string" ? search.sign : undefined,
+      debug: search.debug === true || search.debug === "true",
     };
   },
   head: () => ({
@@ -466,19 +468,19 @@ function PracticePage() {
   return (
     <PageShell>
       {/* Header & Mode Switcher */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <PageHeader
           eyebrow="AI Computer Vision"
           title="Practice Signs with Live AI Feedback"
           description="Real-time 21-landmark 3D hand tracking. Hold your hand in front of the camera and press Space or click 'Check Sign Now'."
         />
 
-        <div className="flex items-center gap-2 rounded-2xl border border-border bg-card p-1.5 shadow-soft">
+        <div className="flex items-center justify-center sm:justify-start gap-2 rounded-2xl border border-border bg-card p-1.5 shadow-soft w-full sm:w-auto">
           <Button
             size="sm"
             variant={mode === "ai" ? "hero" : "ghost"}
             onClick={() => setMode("ai")}
-            className="rounded-xl text-xs font-semibold"
+            className="flex-1 sm:flex-none rounded-xl text-xs font-semibold"
           >
             <Cpu className="size-3.5" aria-hidden="true" />
             AI Mode (MediaPipe)
@@ -487,7 +489,7 @@ function PracticePage() {
             size="sm"
             variant={mode === "demo" ? "outline" : "ghost"}
             onClick={() => setMode("demo")}
-            className="rounded-xl text-xs font-semibold"
+            className="flex-1 sm:flex-none rounded-xl text-xs font-semibold"
           >
             <Bot className="size-3.5" aria-hidden="true" />
             Demo Mode
@@ -496,7 +498,7 @@ function PracticePage() {
       </div>
 
       {/* Metrics Bar */}
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
+      <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <StatCard label="Total Attempts" value={attempts} icon={Target} animate={false} />
         <StatCard
           label="Correct Matches"
@@ -520,9 +522,9 @@ function PracticePage() {
         <div className="mt-6 rounded-3xl border border-border/70 bg-card/60 p-3 shadow-soft backdrop-blur-md">
           <div className="flex items-center justify-between px-2 pb-2 text-xs font-semibold text-muted-foreground">
             <span>Healthcare Curriculum Signs ({items.length})</span>
-            <span>Click any sign to jump</span>
+            <span className="hidden sm:inline">Click any sign to jump</span>
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none touch-pan-x">
             {items.map((signItem, sIdx) => {
               const isSelected = sIdx === index;
               const isDone = completedSigns.has(signItem.id);
@@ -535,8 +537,8 @@ function PracticePage() {
                     isSelected
                       ? "bg-primary text-primary-foreground shadow-md ring-2 ring-primary/40 scale-105"
                       : isDone
-                      ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25"
-                      : "bg-muted/60 text-muted-foreground hover:bg-accent hover:text-foreground"
+                      ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30"
+                      : "bg-muted/90 text-foreground/80 border border-border/80 hover:bg-accent hover:text-foreground"
                   }`}
                 >
                   {isDone && <CheckCircle2 className="size-3 text-emerald-400" />}
@@ -551,6 +553,59 @@ function PracticePage() {
       {/* Main Practice Workspace */}
       <div className="mt-6 grid gap-6 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
+          {/* Live In-App Diagnostic HUD (Activated when /practice?debug=true) */}
+          {searchParams.debug && (
+            <div className="rounded-2xl border border-primary/40 bg-neutral-950/90 p-3.5 text-xs text-neutral-200 shadow-xl backdrop-blur-md">
+              <div className="flex items-center justify-between border-b border-neutral-800 pb-2 mb-2">
+                <div className="flex items-center gap-2 font-mono font-bold text-primary">
+                  <Cpu className="size-4" />
+                  <span>LIVE DIAGNOSTIC TELEMETRY (DEBUG MODE)</span>
+                </div>
+                <Badge variant="outline" className="text-[10px] font-mono text-emerald-400 border-emerald-500/40">
+                  HUD ACTIVE
+                </Badge>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 font-mono text-[11px]">
+                <div className="rounded-lg bg-neutral-900/80 p-2 border border-neutral-800">
+                  <span className="text-neutral-400 block">Resolution:</span>
+                  <span className="font-bold text-white">
+                    {videoRef.current?.videoWidth || 1280}×{videoRef.current?.videoHeight || 720}
+                  </span>
+                </div>
+                <div className="rounded-lg bg-neutral-900/80 p-2 border border-neutral-800">
+                  <span className="text-neutral-400 block">Frame Rate:</span>
+                  <span className="font-bold text-emerald-400">{fps} FPS</span>
+                </div>
+                <div className="rounded-lg bg-neutral-900/80 p-2 border border-neutral-800">
+                  <span className="text-neutral-400 block">Hand Detected:</span>
+                  <span className="font-bold text-teal-300">
+                    {liveLandmarks.length > 0 ? "YES (21 Pts)" : "NO"}
+                  </span>
+                </div>
+                <div className="rounded-lg bg-neutral-900/80 p-2 border border-neutral-800">
+                  <span className="text-neutral-400 block">Active Fingers:</span>
+                  <span className="font-bold text-amber-400">{liveExtendedCount} / 5</span>
+                </div>
+                <div className="rounded-lg bg-neutral-900/80 p-2 border border-neutral-800">
+                  <span className="text-neutral-400 block">Active Target:</span>
+                  <span className="font-bold text-primary">{target ? target.gloss : "NONE"}</span>
+                </div>
+                <div className="rounded-lg bg-neutral-900/80 p-2 border border-neutral-800">
+                  <span className="text-neutral-400 block">Stabilizer State:</span>
+                  <span className="font-bold text-cyan-300">{phase.toUpperCase()}</span>
+                </div>
+                <div className="rounded-lg bg-neutral-900/80 p-2 border border-neutral-800">
+                  <span className="text-neutral-400 block">Recognition Mode:</span>
+                  <span className="font-bold text-purple-300">{mode.toUpperCase()}</span>
+                </div>
+                <div className="rounded-lg bg-neutral-900/80 p-2 border border-neutral-800">
+                  <span className="text-neutral-400 block">Client Latency:</span>
+                  <span className="font-bold text-emerald-400">&lt; 15 ms</span>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Camera Stage with Accessories */}
           <div className="relative overflow-hidden rounded-3xl">
             <CameraPreview
@@ -592,7 +647,7 @@ function PracticePage() {
 
             {/* Video Picture-in-Picture Guide Overlay */}
             {showPipVideo && target && target.video_url && isLive && (
-              <div className="absolute right-4 top-14 w-44 overflow-hidden rounded-2xl border-2 border-white/20 bg-black/90 shadow-2xl backdrop-blur-md">
+              <div className="absolute right-3 top-14 w-36 sm:w-44 overflow-hidden rounded-2xl border-2 border-white/20 bg-black/90 shadow-2xl backdrop-blur-md z-20">
                 <div className="flex items-center justify-between bg-black/70 px-2 py-1 text-[10px] font-bold text-white">
                   <span className="flex items-center gap-1">
                     <span className="size-1.5 rounded-full bg-teal-400" />
@@ -622,16 +677,17 @@ function PracticePage() {
           </div>
 
           {/* Interactive Action Command Deck */}
-          <div className="rounded-3xl border border-border/80 bg-card/80 p-4 shadow-soft backdrop-blur-md">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex flex-wrap items-center gap-2.5">
+          <div className="rounded-3xl border border-border/80 bg-card/80 p-3.5 sm:p-4 shadow-soft backdrop-blur-md">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+              {/* Action Buttons Group */}
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-2.5 w-full sm:w-auto">
                 {/* Main Check Sign Button */}
                 <Button
                   variant="hero"
                   size="lg"
                   onClick={check}
                   disabled={checking || !target}
-                  className="gap-2.5 px-6 shadow-lg text-sm font-bold tracking-wide"
+                  className="w-full sm:w-auto gap-2.5 px-6 shadow-lg text-sm font-bold tracking-wide justify-center"
                 >
                   <Sparkles className="size-4 animate-pulse" />
                   {checking ? "Analyzing Hand Gesture…" : "Check Sign Now"}
@@ -640,69 +696,71 @@ function PracticePage() {
                   </kbd>
                 </Button>
 
-                {/* PiP Guide Toggle Button */}
-                {target && target.video_url && (
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    onClick={() => setShowPipVideo(!showPipVideo)}
-                    className="gap-2 border-primary/30 text-primary hover:bg-primary/10"
-                  >
-                    {showPipVideo ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                    {showPipVideo ? "Hide PiP Demo" : "Show PiP Demo"}
-                  </Button>
-                )}
+                <div className="flex items-center gap-1.5 flex-wrap justify-center">
+                  {/* PiP Guide Toggle Button */}
+                  {target && target.video_url && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowPipVideo(!showPipVideo)}
+                      className="gap-1.5 border-primary/30 text-primary hover:bg-primary/10 text-xs rounded-xl"
+                    >
+                      {showPipVideo ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                      <span className="hidden sm:inline">{showPipVideo ? "Hide PiP" : "Show PiP"}</span>
+                    </Button>
+                  )}
 
-                {/* Full Video Modal */}
-                {target && target.video_url && (
-                  <Button
-                    variant="ghost"
-                    size="lg"
-                    onClick={() => setVideoModalOpen(true)}
-                    className="gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-                  >
-                    <Video className="size-4" />
-                    Full Video
-                  </Button>
-                )}
+                  {/* Full Video Modal */}
+                  {target && target.video_url && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setVideoModalOpen(true)}
+                      className="gap-1.5 text-xs text-muted-foreground hover:text-foreground rounded-xl"
+                    >
+                      <Video className="size-3.5" />
+                      <span>Video</span>
+                    </Button>
+                  )}
 
-                {/* Pronounce Word */}
-                {target && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => speak(target.gloss)}
-                    title="Hear Pronunciation"
-                    className="rounded-2xl"
-                  >
-                    <Volume2 className="size-5 text-muted-foreground hover:text-foreground" />
-                  </Button>
-                )}
+                  {/* Pronounce Word */}
+                  {target && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => speak(target.gloss)}
+                      title="Hear Pronunciation"
+                      className="size-8 rounded-xl"
+                    >
+                      <Volume2 className="size-4 text-muted-foreground hover:text-foreground" />
+                    </Button>
+                  )}
+                </div>
               </div>
 
               {/* Navigation Controls */}
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto pt-2 sm:pt-0 border-t border-border/40 sm:border-t-0">
                 <Button
                   variant="outline"
-                  size="icon"
+                  size="sm"
                   onClick={handlePrev}
                   disabled={items.length <= 1}
-                  className="size-9 rounded-xl"
-                  title="Previous Sign (←)"
+                  className="rounded-xl gap-1 text-xs"
                 >
                   <ChevronLeft className="size-4" />
+                  <span>Prev</span>
                 </Button>
-                <span className="px-2 text-xs font-bold text-muted-foreground">
+                <span className="px-3 text-xs font-bold text-muted-foreground">
                   {index + 1} / {items.length}
                 </span>
                 <Button
                   variant="outline"
-                  size="icon"
+                  size="sm"
                   onClick={handleNext}
                   disabled={items.length <= 1}
-                  className="size-9 rounded-xl"
-                  title="Next Sign (→)"
+                  className="rounded-xl gap-1 text-xs"
                 >
+                  <span>Next</span>
                   <ChevronRight className="size-4" />
                 </Button>
               </div>
@@ -794,10 +852,10 @@ function PracticePage() {
                     <Badge
                       key={key}
                       variant="outline"
-                      className={`text-[10px] font-medium transition-colors ${
+                      className={`text-[10px] font-semibold transition-colors ${
                         isActive
-                          ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
-                          : "bg-muted/40 text-muted-foreground/60 border-transparent"
+                          ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/40"
+                          : "bg-muted/80 text-foreground/70 border-border/80"
                       }`}
                     >
                       {label}

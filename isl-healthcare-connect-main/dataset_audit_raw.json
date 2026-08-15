@@ -1,0 +1,1007 @@
+{
+  "video_dataset": {
+    "total_classes": 61,
+    "classes": {
+      "Bear": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231102_12_38_17_Pro.mp4",
+          "WIN_20231102_12_38_17_Pro_left_tilt.mp4",
+          "WIN_20231102_12_38_17_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          6.83,
+          6.83
+        ],
+        "frames": [
+          205,
+          205
+        ]
+      },
+      "Break": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231102_13_29_56_Pro.mp4",
+          "WIN_20231102_13_29_56_Pro_left_tilt.mp4",
+          "WIN_20231102_13_29_56_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          5.37,
+          5.37
+        ],
+        "frames": [
+          161,
+          161
+        ]
+      },
+      "Brinjal": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231102_10_52_48_Pro.mp4",
+          "WIN_20231102_10_52_48_Pro_left_tilt.mp4",
+          "WIN_20231102_10_52_48_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          4.8,
+          4.8
+        ],
+        "frames": [
+          144,
+          144
+        ]
+      },
+      "Budget": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20230901_09_29_50_Pro.mp4",
+          "WIN_20230901_09_29_50_Pro_left_tilt.mp4",
+          "WIN_20230901_09_29_50_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          4.83,
+          4.83
+        ],
+        "frames": [
+          145,
+          145
+        ]
+      },
+      "Busy": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20230831_14_45_26_Pro.mp4",
+          "WIN_20230831_14_45_26_Pro_left_tilt.mp4",
+          "WIN_20230831_14_45_26_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          4.4,
+          4.4
+        ],
+        "frames": [
+          132,
+          132
+        ]
+      },
+      "Cabbage": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231102_11_05_03_Pro.mp4",
+          "WIN_20231102_11_05_03_Pro_left_tilt.mp4",
+          "WIN_20231102_11_05_03_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          6.0,
+          6.0
+        ],
+        "frames": [
+          180,
+          180
+        ]
+      },
+      "Carrot": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231102_11_18_27_Pro.mp4",
+          "WIN_20231102_11_18_27_Pro_left_tilt.mp4",
+          "WIN_20231102_11_18_27_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          4.33,
+          4.33
+        ],
+        "frames": [
+          130,
+          130
+        ]
+      },
+      "Cauliflower": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231102_11_34_51_Pro.mp4",
+          "WIN_20231102_11_34_51_Pro_left_tilt.mp4",
+          "WIN_20231102_11_34_51_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          5.63,
+          5.63
+        ],
+        "frames": [
+          169,
+          169
+        ]
+      },
+      "Chilli": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231102_11_47_32_Pro.mp4",
+          "WIN_20231102_11_47_32_Pro_left_tilt.mp4",
+          "WIN_20231102_11_47_32_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          4.33,
+          4.33
+        ],
+        "frames": [
+          130,
+          130
+        ]
+      },
+      "Clean": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231103_10_29_32_Pro.mp4",
+          "WIN_20231103_10_29_32_Pro_left_tilt.mp4",
+          "WIN_20231103_10_29_32_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          6.03,
+          6.03
+        ],
+        "frames": [
+          181,
+          181
+        ]
+      },
+      "Close": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231103_10_35_06_Pro.mp4",
+          "WIN_20231103_10_35_06_Pro_left_tilt.mp4",
+          "WIN_20231103_10_35_06_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          4.2,
+          4.2
+        ],
+        "frames": [
+          126,
+          126
+        ]
+      },
+      "Come": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231103_10_41_41_Pro.mp4",
+          "WIN_20231103_10_41_41_Pro_left_tilt.mp4",
+          "WIN_20231103_10_41_41_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          4.33,
+          4.33
+        ],
+        "frames": [
+          130,
+          130
+        ]
+      },
+      "Cook": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231103_10_45_35_Pro.mp4",
+          "WIN_20231103_10_45_35_Pro_left_tilt.mp4",
+          "WIN_20231103_10_45_35_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          5.53,
+          5.53
+        ],
+        "frames": [
+          166,
+          166
+        ]
+      },
+      "Crocodile": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231102_12_46_01_Pro.mp4",
+          "WIN_20231102_12_46_01_Pro_left_tilt.mp4",
+          "WIN_20231102_12_46_01_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          7.37,
+          7.37
+        ],
+        "frames": [
+          221,
+          221
+        ]
+      },
+      "Cry": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231103_10_51_30_Pro.mp4",
+          "WIN_20231103_10_51_30_Pro_left_tilt.mp4",
+          "WIN_20231103_10_51_30_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          4.47,
+          4.47
+        ],
+        "frames": [
+          134,
+          134
+        ]
+      },
+      "Cucumber": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231102_11_56_56_Pro.mp4",
+          "WIN_20231102_11_56_56_Pro_left_tilt.mp4",
+          "WIN_20231102_11_56_56_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          6.63,
+          6.63
+        ],
+        "frames": [
+          199,
+          199
+        ]
+      },
+      "Deer": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231102_12_52_30_Pro.mp4",
+          "WIN_20231102_12_52_30_Pro_left_tilt.mp4",
+          "WIN_20231102_12_52_30_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          6.93,
+          6.93
+        ],
+        "frames": [
+          208,
+          208
+        ]
+      },
+      "Drink": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231103_10_55_48_Pro.mp4",
+          "WIN_20231103_10_55_48_Pro_left_tilt.mp4",
+          "WIN_20231103_10_55_48_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          4.8,
+          4.8
+        ],
+        "frames": [
+          144,
+          144
+        ]
+      },
+      "Elephant": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231102_12_59_25_Pro.mp4",
+          "WIN_20231102_12_59_25_Pro_left_tilt.mp4",
+          "WIN_20231102_12_59_25_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          6.8,
+          6.8
+        ],
+        "frames": [
+          204,
+          204
+        ]
+      },
+      "Exam": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231103_11_20_16_Pro.mp4",
+          "WIN_20231103_11_20_16_Pro_left_tilt.mp4",
+          "WIN_20231103_11_20_16_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          5.0,
+          5.0
+        ],
+        "frames": [
+          150,
+          150
+        ]
+      },
+      "Fedup": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231103_13_02_30_Pro.mp4",
+          "WIN_20231103_13_02_30_Pro_left_tilt.mp4",
+          "WIN_20231103_13_02_30_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          4.3,
+          4.3
+        ],
+        "frames": [
+          129,
+          129
+        ]
+      },
+      "Fever": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20230901_10_05_26_Pro.mp4",
+          "WIN_20230901_10_05_26_Pro_left_tilt.mp4",
+          "WIN_20230901_10_05_26_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          6.0,
+          6.0
+        ],
+        "frames": [
+          180,
+          180
+        ]
+      },
+      "Giraffe": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231102_13_05_27_Pro.mp4",
+          "WIN_20231102_13_05_27_Pro_left_tilt.mp4",
+          "WIN_20231102_13_05_27_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          9.07,
+          9.07
+        ],
+        "frames": [
+          272,
+          272
+        ]
+      },
+      "Give": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231103_10_59_37_Pro.mp4",
+          "WIN_20231103_10_59_37_Pro_left_tilt.mp4",
+          "WIN_20231103_10_59_37_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          3.87,
+          3.87
+        ],
+        "frames": [
+          116,
+          116
+        ]
+      },
+      "Good Morning": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231103_13_17_04_Pro.mp4",
+          "WIN_20231103_13_17_04_Pro_left_tilt.mp4",
+          "WIN_20231103_13_17_04_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          5.2,
+          5.2
+        ],
+        "frames": [
+          156,
+          156
+        ]
+      },
+      "Good afternoon": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231103_13_08_56_Pro.mp4",
+          "WIN_20231103_13_08_56_Pro_left_tilt.mp4",
+          "WIN_20231103_13_08_56_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          4.87,
+          4.87
+        ],
+        "frames": [
+          146,
+          146
+        ]
+      },
+      "Hello": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231103_13_22_45_Pro.mp4",
+          "WIN_20231103_13_22_45_Pro_left_tilt.mp4",
+          "WIN_20231103_13_22_45_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          3.93,
+          3.93
+        ],
+        "frames": [
+          118,
+          118
+        ]
+      },
+      "Hug": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20230831_14_29_40_Pro.mp4",
+          "WIN_20230831_14_29_40_Pro_left_tilt.mp4",
+          "WIN_20230831_14_29_40_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          4.13,
+          4.13
+        ],
+        "frames": [
+          124,
+          124
+        ]
+      },
+      "Injury": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20230831_14_19_14_Pro.mp4",
+          "WIN_20230831_14_19_14_Pro_left_tilt.mp4",
+          "WIN_20230831_14_19_14_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          3.7,
+          3.7
+        ],
+        "frames": [
+          111,
+          111
+        ]
+      },
+      "Interview": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20230901_09_45_57_Pro.mp4",
+          "WIN_20230901_09_45_57_Pro_left_tilt.mp4",
+          "WIN_20230901_09_45_57_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          5.27,
+          5.27
+        ],
+        "frames": [
+          158,
+          158
+        ]
+      },
+      "Jump": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231103_11_03_33_Pro.mp4",
+          "WIN_20231103_11_03_33_Pro_left_tilt.mp4",
+          "WIN_20231103_11_03_33_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          5.4,
+          5.4
+        ],
+        "frames": [
+          162,
+          162
+        ]
+      },
+      "Karnataka": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231103_11_14_01_Pro.mp4",
+          "WIN_20231103_11_14_01_Pro_left_tilt.mp4",
+          "WIN_20231103_11_14_01_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          4.03,
+          4.03
+        ],
+        "frames": [
+          121,
+          121
+        ]
+      },
+      "Key": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20230901_09_22_12_Pro.mp4",
+          "WIN_20230901_09_22_12_Pro_left_tilt.mp4",
+          "WIN_20230901_09_22_12_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          4.13,
+          4.13
+        ],
+        "frames": [
+          124,
+          124
+        ]
+      },
+      "Knife": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20230831_12_40_43_Pro.mp4",
+          "WIN_20230831_12_40_43_Pro_left_tilt.mp4",
+          "WIN_20230831_12_40_43_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          6.57,
+          6.57
+        ],
+        "frames": [
+          197,
+          197
+        ]
+      },
+      "Lemon": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231102_12_03_42_Pro.mp4",
+          "WIN_20231102_12_03_42_Pro_left_tilt.mp4",
+          "WIN_20231102_12_03_42_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          4.57,
+          4.57
+        ],
+        "frames": [
+          137,
+          137
+        ]
+      },
+      "Lion": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231102_13_10_25_Pro.mp4",
+          "WIN_20231102_13_10_25_Pro_left_tilt.mp4",
+          "WIN_20231102_13_10_25_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          5.17,
+          5.17
+        ],
+        "frames": [
+          155,
+          155
+        ]
+      },
+      "Man": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20230831_12_29_00_Pro.mp4",
+          "WIN_20230831_12_29_00_Pro_left_tilt.mp4",
+          "WIN_20230831_12_29_00_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          4.93,
+          4.93
+        ],
+        "frames": [
+          148,
+          148
+        ]
+      },
+      "Maths": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20230901_09_38_10_Pro.mp4",
+          "WIN_20230901_09_38_10_Pro_left_tilt.mp4",
+          "WIN_20230901_09_38_10_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          4.97,
+          4.97
+        ],
+        "frames": [
+          149,
+          149
+        ]
+      },
+      "Maybe": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20230901_09_17_49_Pro.mp4",
+          "WIN_20230901_09_17_49_Pro_left_tilt.mp4",
+          "WIN_20230901_09_17_49_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          4.4,
+          4.4
+        ],
+        "frames": [
+          132,
+          132
+        ]
+      },
+      "Monkey": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231102_13_15_07_Pro.mp4",
+          "WIN_20231102_13_15_07_Pro_left_tilt.mp4",
+          "WIN_20231102_13_15_07_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          4.7,
+          4.7
+        ],
+        "frames": [
+          141,
+          141
+        ]
+      },
+      "Onion": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231102_12_12_33_Pro.mp4",
+          "WIN_20231102_12_12_33_Pro_left_tilt.mp4",
+          "WIN_20231102_12_12_33_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          5.83,
+          5.83
+        ],
+        "frames": [
+          175,
+          175
+        ]
+      },
+      "Peacock": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231103_12_51_54_Pro.mp4",
+          "WIN_20231103_12_51_54_Pro_left_tilt.mp4",
+          "WIN_20231103_12_51_54_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          3.83,
+          3.83
+        ],
+        "frames": [
+          115,
+          115
+        ]
+      },
+      "Pigeon": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231103_12_54_54_Pro.mp4",
+          "WIN_20231103_12_54_54_Pro_left_tilt.mp4",
+          "WIN_20231103_12_54_54_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          5.17,
+          5.17
+        ],
+        "frames": [
+          155,
+          155
+        ]
+      },
+      "Pour": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231103_11_09_17_Pro.mp4",
+          "WIN_20231103_11_09_17_Pro_left_tilt.mp4",
+          "WIN_20231103_11_09_17_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          4.97,
+          4.97
+        ],
+        "frames": [
+          149,
+          149
+        ]
+      },
+      "Radish": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231102_12_26_37_Pro.mp4",
+          "WIN_20231102_12_26_37_Pro_left_tilt.mp4",
+          "WIN_20231102_12_26_37_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          5.3,
+          5.3
+        ],
+        "frames": [
+          159,
+          159
+        ]
+      },
+      "Sparrow": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231103_12_58_35_Pro.mp4",
+          "WIN_20231103_12_58_35_Pro_left_tilt.mp4",
+          "WIN_20231103_12_58_35_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          5.7,
+          5.7
+        ],
+        "frames": [
+          171,
+          171
+        ]
+      },
+      "Still": {
+        "count": 30,
+        "sample_files": [
+          "WIN_20231014_19_04_36_Pro_Trim - Copy_cropped.mp4",
+          "WIN_20231014_19_04_36_Pro_Trim - Copy_cropped_left_tilt.mp4",
+          "WIN_20231014_19_04_36_Pro_Trim - Copy_cropped_right_tilt.mp4"
+        ],
+        "durations": [
+          7.47,
+          7.47
+        ],
+        "frames": [
+          224,
+          224
+        ]
+      },
+      "Switch": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20230901_09_08_23_Pro.mp4",
+          "WIN_20230901_09_08_23_Pro_left_tilt.mp4",
+          "WIN_20230901_09_08_23_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          4.37,
+          4.37
+        ],
+        "frames": [
+          131,
+          131
+        ]
+      },
+      "Tea": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20230831_12_01_07_Pro.mp4",
+          "WIN_20230831_12_01_07_Pro_left_tilt.mp4",
+          "WIN_20230831_12_01_07_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          8.43,
+          8.43
+        ],
+        "frames": [
+          253,
+          253
+        ]
+      },
+      "Temple": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20230831_12_12_59_Pro.mp4",
+          "WIN_20230831_12_12_59_Pro_left_tilt.mp4",
+          "WIN_20230831_12_12_59_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          8.0,
+          8.0
+        ],
+        "frames": [
+          240,
+          240
+        ]
+      },
+      "Thank you": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231103_13_12_51_Pro.mp4",
+          "WIN_20231103_13_12_51_Pro_left_tilt.mp4",
+          "WIN_20231103_13_12_51_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          3.77,
+          3.77
+        ],
+        "frames": [
+          113,
+          113
+        ]
+      },
+      "Tiger": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231102_13_18_43_Pro.mp4",
+          "WIN_20231102_13_18_43_Pro_left_tilt.mp4",
+          "WIN_20231102_13_18_43_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          6.33,
+          6.33
+        ],
+        "frames": [
+          190,
+          190
+        ]
+      },
+      "Turtle": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231102_13_23_44_Pro.mp4",
+          "WIN_20231102_13_23_44_Pro_left_tilt.mp4",
+          "WIN_20231102_13_23_44_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          5.73,
+          5.73
+        ],
+        "frames": [
+          172,
+          172
+        ]
+      },
+      "Umbrella": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20230831_13_06_19_Pro.mp4",
+          "WIN_20230831_13_06_19_Pro_left_tilt.mp4",
+          "WIN_20230831_13_06_19_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          5.67,
+          5.67
+        ],
+        "frames": [
+          170,
+          170
+        ]
+      },
+      "Uncle": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20230831_12_55_07_Pro.mp4",
+          "WIN_20230831_12_55_07_Pro_left_tilt.mp4",
+          "WIN_20230831_12_55_07_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          5.67,
+          5.67
+        ],
+        "frames": [
+          170,
+          170
+        ]
+      },
+      "Vegetables": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231102_10_40_49_Pro.mp4",
+          "WIN_20231102_10_40_49_Pro_left_tilt.mp4",
+          "WIN_20231102_10_40_49_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          5.93,
+          5.93
+        ],
+        "frames": [
+          178,
+          178
+        ]
+      },
+      "Volcano": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20231103_11_28_58_Pro.mp4",
+          "WIN_20231103_11_28_58_Pro_left_tilt.mp4",
+          "WIN_20231103_11_28_58_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          4.5,
+          4.5
+        ],
+        "frames": [
+          135,
+          135
+        ]
+      },
+      "What is your Name": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20230901_09_59_01_Pro.mp4",
+          "WIN_20230901_09_59_01_Pro_left_tilt.mp4",
+          "WIN_20230901_09_59_01_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          6.43,
+          6.43
+        ],
+        "frames": [
+          193,
+          193
+        ]
+      },
+      "Wife": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20230901_08_57_39_Pro.mp4",
+          "WIN_20230901_08_57_39_Pro_left_tilt.mp4",
+          "WIN_20230901_08_57_39_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          6.4,
+          6.4
+        ],
+        "frames": [
+          192,
+          192
+        ]
+      },
+      "Writer": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20230901_09_50_19_Pro.mp4",
+          "WIN_20230901_09_50_19_Pro_left_tilt.mp4",
+          "WIN_20230901_09_50_19_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          5.2,
+          5.2
+        ],
+        "frames": [
+          156,
+          156
+        ]
+      },
+      "Wrong": {
+        "count": 60,
+        "sample_files": [
+          "WIN_20230831_13_16_16_Pro.mp4",
+          "WIN_20230831_13_16_16_Pro_left_tilt.mp4",
+          "WIN_20230831_13_16_16_Pro_right_tilt.mp4"
+        ],
+        "durations": [
+          5.6,
+          5.6
+        ],
+        "frames": [
+          168,
+          168
+        ]
+      }
+    },
+    "resolutions": [
+      "880x720",
+      "760x720",
+      "640x720"
+    ],
+    "fps_set": [
+      30.0
+    ],
+    "total_videos": 3630,
+    "corrupt_files": [],
+    "signer_sessions": [
+      "20230831",
+      "20231102",
+      "20231103",
+      "20231014",
+      "20230901"
+    ]
+  },
+  "sign_mnist": {
+    "train_exists": true,
+    "test_exists": true,
+    "train_size_mb": 79.42,
+    "test_size_mb": 20.77,
+    "note": "Sign MNIST is American Sign Language (ASL) fingerspelling 24 classes (A-Y, excluding J/Z), 28x28 grayscale images."
+  }
+}

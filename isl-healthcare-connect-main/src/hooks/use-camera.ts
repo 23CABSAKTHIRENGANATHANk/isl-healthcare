@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { initializeCameraStream, stopCameraStream } from "@/services/camera.service";
 
 export type CameraStatus = "idle" | "requesting" | "ready" | "denied" | "unavailable" | "error";
 
@@ -44,66 +45,44 @@ export function useCamera() {
   }, [selectedDeviceId]);
 
   const stop = useCallback(() => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
-      streamRef.current = null;
-    }
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-    }
+    stopCameraStream(streamRef.current, videoRef.current);
+    streamRef.current = null;
     setStatus("idle");
     setMessage("");
   }, []);
 
   const start = useCallback(async (deviceIdToUse?: string) => {
-    if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
-      setStatus("unavailable");
-      setMessage("No camera is available on this device or browser.");
-      return;
-    }
-
     const devId = deviceIdToUse || selectedDeviceId;
     setStatus("requesting");
     setMessage("");
 
     // Stop current stream if already running
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => track.stop());
+      stopCameraStream(streamRef.current, videoRef.current);
       streamRef.current = null;
     }
 
-    try {
-      const constraints: MediaStreamConstraints = {
-        video: devId
-          ? { deviceId: { exact: devId }, width: { ideal: 1280 }, height: { ideal: 720 } }
-          : { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } },
-        audio: false,
-      };
+    const res = await initializeCameraStream(videoRef.current, {
+      deviceId: devId,
+      facingMode: "user",
+      width: 1280,
+      height: 720,
+      frameRate: 30,
+    });
 
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      streamRef.current = stream;
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play().catch(() => undefined);
-      }
-
+    if (res.success && res.stream) {
+      streamRef.current = res.stream;
       setStatus("ready");
       void refreshDevices();
-    } catch (error) {
-      const name = error instanceof DOMException ? error.name : "";
-      if (name === "NotAllowedError" || name === "SecurityError") {
+    } else {
+      if (res.errorState === "CAMERA_PERMISSION_DENIED") {
         setStatus("denied");
-        setMessage(
-          "Camera permission was blocked. Allow camera access in your browser settings to practise.",
-        );
-      } else if (name === "NotFoundError" || name === "DevicesNotFoundError") {
+      } else if (res.errorState === "CAMERA_UNAVAILABLE") {
         setStatus("unavailable");
-        setMessage("We couldn't find a camera on this device. You can still use Demo Mode.");
       } else {
         setStatus("error");
-        setMessage("The camera could not be started. Close other apps using it and try again.");
       }
+      setMessage(res.errorMessage || "Camera access failed. Please try again.");
     }
   }, [selectedDeviceId, refreshDevices]);
 

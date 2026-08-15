@@ -190,36 +190,40 @@ const rural = [
 function Landing() {
   return (
     <>
-      <section className="bg-gradient-hero">
-        <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:py-24">
+      <section className="relative overflow-hidden bg-gradient-to-b from-background via-surface/60 to-background border-b border-border/60 py-12 sm:py-20">
+        <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-2">
           <Reveal>
             <Badge
               variant="outline"
-              className="mb-5 gap-1.5 rounded-full border-primary/25 bg-card px-3 py-1.5"
+              className="mb-5 gap-2 rounded-full border-teal/40 bg-card/90 px-3.5 py-1.5 text-xs font-bold text-teal shadow-sm backdrop-blur-md"
             >
-              <Stethoscope className="size-3.5 text-primary" aria-hidden="true" />
-              Healthcare-first Indian Sign Language platform
+              <Stethoscope className="size-3.5 text-teal" aria-hidden="true" />
+              <span>Healthcare-First Indian Sign Language Platform</span>
             </Badge>
-            <h1 className="text-4xl font-bold text-foreground sm:text-5xl lg:text-[3.4rem]">
-              Breaking the Communication Barrier in Healthcare
+            <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-[3.5rem] leading-[1.12]">
+              Breaking the{" "}
+              <span className="bg-gradient-to-r from-primary via-teal to-emerald-400 bg-clip-text text-transparent">
+                Communication Barrier
+              </span>{" "}
+              in Healthcare
             </h1>
-            <p className="mt-5 text-lg font-medium text-foreground/80">
+            <p className="mt-5 text-lg sm:text-xl font-semibold text-foreground/90 leading-snug">
               Learn Indian Sign Language, practice with AI, and communicate with confidence.
             </p>
-            <p className="mt-4 max-w-xl text-muted-foreground">
+            <p className="mt-4 max-w-xl text-base sm:text-lg text-muted-foreground leading-relaxed">
               ISL Setu is a complete learning, communication and certification platform for
               healthcare teams — receptionists, nurses, pharmacists, ASHA and ANM workers, security
               staff, doctors and counsellors. Learn the signs, practise them, then use them where
               they matter.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild variant="hero" size="lg">
+              <Button asChild variant="hero" size="lg" className="shadow-lg shadow-primary/20">
                 <Link to="/learn">
                   <GraduationCap aria-hidden="true" />
                   Start Learning
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="lg">
+              <Button asChild variant="outline" size="lg" className="border-border/80 bg-card/80 hover:bg-accent font-semibold">
                 <Link to="/voicebridge">
                   <Mic aria-hidden="true" />
                   Try VoiceBridge

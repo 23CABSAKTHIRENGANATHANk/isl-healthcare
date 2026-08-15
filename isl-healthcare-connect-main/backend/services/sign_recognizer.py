@@ -344,6 +344,27 @@ class SignRecognizer:
             "solidity": solidity
         }
 
+    def predict_from_landmarks(
+        self,
+        landmarks: Optional[List[List[Dict[str, float]]]] = None,
+        target_sign: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Direct kinematic prediction from landmark list.
+        """
+        if not landmarks or len(landmarks) == 0:
+            target = (target_sign or "HELLO").upper().strip()
+            return {
+                "success": False,
+                "sign": "UNKNOWN",
+                "confidence": 0.0,
+                "phrase": PHRASE_MAPPINGS.get(target, f"{target}."),
+                "mode": "ai",
+                "model_version": "isl_kinematics_v2",
+                "message": "No hand landmarks detected. Position hand inside camera frame."
+            }
+        return self.predict(image_input=None, target_sign=target_sign, client_landmarks=landmarks)
+
     def predict(
         self,
         image_input: Any = None,
@@ -426,64 +447,83 @@ class SignRecognizer:
         feedback = ""
         detected_sign = target
 
-        # 1. Open Palm Gestures (HELLO, GIVE, CLEAN, FEVER, HELP, WATER, HOSPITAL, DOCTOR, THANK YOU, GOOD MORNING, GOOD AFTERNOON)
-        if target in ["HELLO", "GIVE", "CLEAN", "FEVER", "HELP", "HOSPITAL", "DOCTOR", "THANK YOU", "GOOD MORNING", "GOOD AFTERNOON", "STOP", "STILL"]:
+        # 1. DOCTOR Sign (Index + Middle finger extended for checking pulse on wrist)
+        if target == "DOCTOR":
+            if states["index"] and states["middle"] and not states["ring"] and not states["pinky"]:
+                matched = True
+                confidence = 0.96
+                feedback = "✓ Perfect match! 2-finger pulse check verified for DOCTOR."
+            elif states["index"] and states["middle"] and ext <= 3:
+                matched = True
+                confidence = 0.90
+                feedback = "✓ Pulse check gesture verified for DOCTOR."
+            else:
+                matched = False
+                confidence = 0.35
+                detected_sign = "OPEN_PALM" if ext >= 4 else "PARTIAL_HAND"
+                feedback = f"Detected {ext} fingers. For DOCTOR, please extend 2 fingers (index & middle) to check wrist pulse, not an open palm."
+
+        # 2. NURSE Sign (Index + Middle finger V-shape)
+        elif target in ["NURSE", "WHAT IS YOUR NAME", "EXAM", "MATHS"]:
+            if states["index"] and states["middle"] and not states["ring"] and not states["pinky"]:
+                matched = True
+                confidence = 0.96
+                feedback = f"✓ Perfect match! 2-finger V-shape verified for {target}."
+            elif ext == 2 and idx_mid_gap > 0.30:
+                matched = True
+                confidence = 0.92
+                feedback = f"✓ 2-finger gesture verified for {target}."
+            else:
+                matched = False
+                confidence = 0.35
+                detected_sign = "OPEN_PALM" if ext >= 4 else "PARTIAL_HAND"
+                feedback = f"Detected {ext} fingers. Please show 2 fingers in a V-shape for {target}."
+
+        # 3. Open Palm Gestures (HELLO, GIVE, CLEAN, FEVER, HELP, HOSPITAL, THANK YOU, GOOD MORNING, GOOD AFTERNOON, STOP, STILL)
+        elif target in ["HELLO", "GIVE", "CLEAN", "FEVER", "HELP", "HOSPITAL", "THANK YOU", "GOOD MORNING", "GOOD AFTERNOON", "STOP", "STILL"]:
             if ext >= 3 or (states["index"] and states["middle"] and states["ring"]):
                 matched = True
                 confidence = 0.96 if ext >= 4 else 0.88
                 feedback = f"✓ Perfect match! Open palm gesture verified for {target}."
             else:
                 matched = False
-                confidence = 0.45
+                confidence = 0.38
                 detected_sign = "FIST" if ext <= 1 else "PARTIAL_HAND"
                 feedback = f"Detected {ext} extended fingers. Please open your hand facing the camera for {target}."
 
-        # 2. Single Index Pointing Gestures (INJURY, ONE, POINT, NO, COME, SWITCH)
+        # 4. Single Index Pointing Gestures (INJURY, ONE, POINT, NO, COME, SWITCH, WRONG)
         elif target in ["INJURY", "ONE", "POINT", "NO", "COME", "SWITCH", "WRONG"]:
-            if states["index"] and not states["pinky"] and not states["ring"]:
+            if states["index"] and not states["pinky"] and not states["ring"] and not states["middle"]:
                 matched = True
                 confidence = 0.95
                 feedback = f"✓ Perfect match! Index pointing verified for {target}."
-            elif ext == 1:
+            elif ext == 1 and states["index"]:
                 matched = True
                 confidence = 0.90
                 feedback = f"✓ Pointing gesture detected for {target}."
             else:
                 matched = False
-                confidence = 0.40
+                confidence = 0.35
+                detected_sign = "OPEN_PALM" if ext >= 4 else "PARTIAL_HAND"
                 feedback = f"Detected {ext} fingers. Please point with 1 index finger for {target}."
 
-        # 3. Two-Finger V-Shape Gestures (NURSE, WHAT IS YOUR NAME, EXAM, MATHS)
-        elif target in ["NURSE", "WHAT IS YOUR NAME", "EXAM", "MATHS"]:
-            if states["index"] and states["middle"] and not states["ring"] and not states["pinky"]:
-                matched = True
-                confidence = 0.96
-                feedback = f"✓ Perfect match! 2-finger V-shape verified for {target}."
-            elif ext == 2 and idx_mid_gap > 0.35:
-                matched = True
-                confidence = 0.92
-                feedback = f"✓ 2-finger gesture verified for {target}."
-            else:
-                matched = False
-                confidence = 0.42
-                feedback = f"Detected {ext} fingers. Please show 2 fingers in a V-shape for {target}."
-
-        # 4. Three-Finger W-Shape (WATER)
+        # 5. Three-Finger W-Shape (WATER)
         elif target in ["WATER"]:
             if states["index"] and states["middle"] and states["ring"] and not states["pinky"]:
                 matched = True
                 confidence = 0.96
                 feedback = f"✓ Perfect match! 3-finger W-shape verified for {target}."
-            elif ext in [3, 4, 5]:
+            elif ext == 3:
                 matched = True
                 confidence = 0.90
-                feedback = f"✓ Water gesture verified."
+                feedback = f"✓ Water 3-finger gesture verified."
             else:
                 matched = False
-                confidence = 0.45
-                feedback = f"Please extend your 3 center fingers (W-shape) for {target}."
+                confidence = 0.38
+                detected_sign = "OPEN_PALM" if ext >= 4 else "PARTIAL_HAND"
+                feedback = f"Detected {ext} fingers. Please extend your 3 center fingers (W-shape) for {target}."
 
-        # 5. Pinch / Small Object Gestures (MEDICINE, FOOD, KEY, LEMON, TEA, POUR)
+        # 6. Pinch / Small Object Gestures (MEDICINE, FOOD, KEY, LEMON, TEA, POUR)
         elif target in ["MEDICINE", "FOOD", "KEY", "LEMON", "TEA", "POUR"]:
             if is_pinched or (ext <= 2 and thumb_idx_gap < 0.55):
                 matched = True
@@ -491,10 +531,11 @@ class SignRecognizer:
                 feedback = f"✓ Perfect match! Tablet pinch gesture verified for {target}."
             else:
                 matched = False
-                confidence = 0.45
-                feedback = f"Please pinch your thumb and index finger together for {target}."
+                confidence = 0.35
+                detected_sign = "OPEN_PALM" if ext >= 4 else "PARTIAL_HAND"
+                feedback = f"Detected open hand ({ext} fingers). Please pinch your thumb and index finger together for {target}."
 
-        # 6. Closed Fist Gestures (BREAK, FEDUP, YES, PAIN, CLOSE)
+        # 7. Closed Fist Gestures (BREAK, FEDUP, YES, PAIN, CLOSE)
         elif target in ["BREAK", "FEDUP", "YES", "PAIN", "CLOSE"]:
             if ext <= 1 or (not states["index"] and not states["middle"] and not states["ring"] and not states["pinky"]):
                 matched = True
@@ -502,23 +543,24 @@ class SignRecognizer:
                 feedback = f"✓ Perfect match! Closed fist verified for {target}."
             else:
                 matched = False
-                confidence = 0.40
+                confidence = 0.35
+                detected_sign = "OPEN_PALM"
                 feedback = f"Detected open hand ({ext} fingers). Please form a closed fist for {target}."
 
-        # 7. Default general curriculum gestures
+        # 8. Default general curriculum gestures
         else:
-            if ext >= 1:
+            if ext >= 1 and ext <= 4:
                 matched = True
-                confidence = 0.92
+                confidence = 0.88
                 feedback = f"✓ Gesture verified for {target}."
             else:
                 matched = False
-                confidence = 0.45
+                confidence = 0.40
                 feedback = f"Please position your hand clearly in front of the camera for {target}."
 
         return {
             "success": matched,
-            "sign": target if matched else detected_sign,
+            "sign": target if matched else "UNKNOWN",
             "confidence": confidence,
             "phrase": PHRASE_MAPPINGS.get(target, f"{target}."),
             "mode": "ai",
@@ -539,7 +581,17 @@ class SignRecognizer:
         confidence = 0.50
         feedback = ""
 
-        if target in ["HELLO", "GIVE", "CLEAN", "FEVER", "HELP", "HOSPITAL", "DOCTOR", "THANK YOU", "GOOD MORNING", "GOOD AFTERNOON", "STOP", "STILL"]:
+        if target == "DOCTOR":
+            if fingers == 2:
+                matched = True
+                confidence = 0.92
+                feedback = "✓ 2-finger pulse check gesture verified for DOCTOR."
+            else:
+                matched = False
+                confidence = 0.35
+                feedback = f"Detected {fingers} fingers. For DOCTOR, show 2 fingers (pulse check), not an open palm."
+
+        elif target in ["HELLO", "GIVE", "CLEAN", "FEVER", "HELP", "HOSPITAL", "THANK YOU", "GOOD MORNING", "GOOD AFTERNOON", "STOP", "STILL"]:
             if fingers >= 3 or solidity < 0.82:
                 matched = True
                 confidence = 0.94

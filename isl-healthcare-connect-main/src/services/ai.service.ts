@@ -364,8 +364,97 @@ export function evaluateLandmarksKinematics(
   let message = "";
   let detectedSign = target;
 
-  // 1. Open Palm Gestures (HELLO, FEVER, HELP, GIVE, CLEAN, HOSPITAL, DOCTOR, THANK YOU, GOOD MORNING, GOOD AFTERNOON, STOP, STILL)
-  if (
+  // Open Multi-Sign Recognition Mode (Used for VoiceBridge open translation)
+  if (!target || target === "AUTO" || target === "OPEN" || target === "ANY" || target === "NONE") {
+    if (indexExt && middleExt && !ringExt && !pinkyExt) {
+      detectedSign = "DOCTOR";
+      matched = true;
+      confidence = 0.94;
+      message = "✓ DOCTOR sign recognized (2-finger pulse check).";
+    } else if (indexExt && middleExt && ringExt && !pinkyExt) {
+      detectedSign = "WATER";
+      matched = true;
+      confidence = 0.95;
+      message = "✓ WATER sign recognized (3-finger W-shape).";
+    } else if (indexExt && !middleExt && !ringExt && !pinkyExt) {
+      detectedSign = "INJURY";
+      matched = true;
+      confidence = 0.92;
+      message = "✓ INJURY sign recognized (pointing gesture).";
+    } else if (isPinched || (extendedCount <= 2 && thumbIndexGap < 0.55)) {
+      detectedSign = "MEDICINE";
+      matched = true;
+      confidence = 0.93;
+      message = "✓ MEDICINE sign recognized (tablet pinch).";
+    } else if (extendedCount >= 4) {
+      detectedSign = "HELP";
+      matched = true;
+      confidence = 0.95;
+      message = "✓ HELP / EMERGENCY sign recognized (open palm).";
+    } else if (extendedCount <= 1) {
+      detectedSign = "PAIN";
+      matched = true;
+      confidence = 0.92;
+      message = "✓ PAIN sign recognized (closed fist).";
+    } else {
+      detectedSign = "UNKNOWN";
+      matched = false;
+      confidence = 0.35;
+      message = "Gesture not recognized. Keep hand steady inside guide box.";
+    }
+
+    return {
+      success: matched,
+      sign: matched ? detectedSign : "UNKNOWN",
+      confidence,
+      phrase: CONTROLLED_PHRASES[detectedSign] || `${detectedSign}.`,
+      mode: "ai",
+      model_version: "isl_client_kinematics_v2",
+      message,
+      landmarks: [landmarks],
+      fingerStates,
+      extendedCount,
+    };
+  }
+
+  // 1. DOCTOR Sign (Index + Middle finger extended for checking pulse on wrist)
+  else if (target === "DOCTOR") {
+    if (indexExt && middleExt && !ringExt && !pinkyExt) {
+      matched = true;
+      confidence = 0.96;
+      message = "✓ Perfect match! 2-finger pulse check verified for DOCTOR.";
+    } else if (indexExt && middleExt && extendedCount <= 3) {
+      matched = true;
+      confidence = 0.90;
+      message = "✓ Pulse check gesture verified for DOCTOR.";
+    } else {
+      matched = false;
+      confidence = 0.35;
+      detectedSign = extendedCount >= 4 ? "OPEN_PALM" : "PARTIAL_HAND";
+      message = `Detected ${extendedCount} fingers. For DOCTOR, please extend 2 fingers (index & middle) to check wrist pulse, not an open palm.`;
+    }
+  }
+
+  // 2. NURSE Sign (Index + Middle finger V-shape)
+  else if (["NURSE", "WHAT IS YOUR NAME", "EXAM", "MATHS"].includes(target)) {
+    if (indexExt && middleExt && !ringExt && !pinkyExt) {
+      matched = true;
+      confidence = 0.96;
+      message = `✓ Perfect match! 2-finger V-shape verified for ${target}.`;
+    } else if (extendedCount === 2) {
+      matched = true;
+      confidence = 0.92;
+      message = `✓ 2-finger sign verified for ${target}.`;
+    } else {
+      matched = false;
+      confidence = 0.35;
+      detectedSign = extendedCount >= 4 ? "OPEN_PALM" : "PARTIAL_HAND";
+      message = `Detected ${extendedCount} fingers. Please show 2 fingers in a V-shape for ${target}.`;
+    }
+  }
+
+  // 3. Open Palm Gestures (HELLO, FEVER, HELP, GIVE, CLEAN, HOSPITAL, THANK YOU, GOOD MORNING, GOOD AFTERNOON, STOP, STILL)
+  else if (
     [
       "HELLO",
       "FEVER",
@@ -373,7 +462,6 @@ export function evaluateLandmarksKinematics(
       "GIVE",
       "CLEAN",
       "HOSPITAL",
-      "DOCTOR",
       "THANK YOU",
       "GOOD MORNING",
       "GOOD AFTERNOON",
@@ -388,64 +476,49 @@ export function evaluateLandmarksKinematics(
       message = `✓ Perfect match! Open palm gesture verified for ${target}.`;
     } else {
       matched = false;
-      confidence = 0.42;
+      confidence = 0.38;
       detectedSign = extendedCount <= 1 ? "FIST" : "PARTIAL_HAND";
       message = `Detected ${extendedCount} open fingers. Please open your hand facing camera for ${target}.`;
     }
   }
 
-  // 2. Single Index Pointing Gestures (INJURY, ONE, POINT, NO, COME, SWITCH, WRONG)
+  // 4. Single Index Pointing Gestures (INJURY, ONE, POINT, NO, COME, SWITCH, WRONG)
   else if (["INJURY", "ONE", "POINT", "NO", "COME", "SWITCH", "WRONG"].includes(target)) {
-    if (indexExt && !pinkyExt && (!ringExt || strictness === "lenient")) {
+    if (indexExt && !middleExt && !ringExt && !pinkyExt) {
       matched = true;
       confidence = 0.95;
       message = `✓ Perfect match! Index pointing verified for ${target}.`;
-    } else if (extendedCount === 1) {
+    } else if (extendedCount === 1 && indexExt) {
       matched = true;
       confidence = 0.91;
       message = `✓ Pointing gesture detected for ${target}.`;
     } else {
       matched = false;
-      confidence = 0.40;
+      confidence = 0.35;
+      detectedSign = extendedCount >= 4 ? "OPEN_PALM" : "PARTIAL_HAND";
       message = `Detected ${extendedCount} fingers. Please point 1 index finger for ${target}.`;
     }
   }
 
-  // 3. Two-Finger V-Shape Gestures (NURSE, WHAT IS YOUR NAME, EXAM, MATHS)
-  else if (["NURSE", "WHAT IS YOUR NAME", "EXAM", "MATHS"].includes(target)) {
-    if (indexExt && middleExt && (!ringExt || strictness === "lenient")) {
-      matched = true;
-      confidence = 0.96;
-      message = `✓ Perfect match! 2-finger V-shape verified for ${target}.`;
-    } else if (extendedCount === 2) {
-      matched = true;
-      confidence = 0.92;
-      message = `✓ 2-finger sign verified for ${target}.`;
-    } else {
-      matched = false;
-      confidence = 0.42;
-      message = `Detected ${extendedCount} fingers. Please show 2 fingers in a V-shape for ${target}.`;
-    }
-  }
-
-  // 4. Three-Finger W-Shape (WATER)
+  // 5. Three-Finger W-Shape (WATER)
   else if (target === "WATER") {
-    if (indexExt && middleExt && ringExt) {
+    if (indexExt && middleExt && ringExt && !pinkyExt) {
       matched = true;
       confidence = 0.96;
       message = `✓ Perfect match! 3-finger W-shape verified for WATER.`;
-    } else if (extendedCount >= 3) {
+    } else if (extendedCount === 3) {
       matched = true;
       confidence = 0.90;
-      message = `✓ Water gesture verified.`;
+      message = `✓ Water 3-finger gesture verified.`;
     } else {
       matched = false;
-      confidence = 0.45;
-      message = `Please extend 3 fingers (W-shape) for WATER.`;
+      confidence = 0.38;
+      detectedSign = extendedCount >= 4 ? "OPEN_PALM" : "PARTIAL_HAND";
+      message = `Detected ${extendedCount} fingers. Please extend exactly 3 fingers (W-shape) for WATER.`;
     }
   }
 
-  // 5. Pinch / Small Tablet Gestures (MEDICINE, FOOD, KEY, LEMON, TEA, POUR)
+  // 6. Pinch / Small Object Gestures (MEDICINE, FOOD, KEY, LEMON, TEA, POUR)
   else if (["MEDICINE", "FOOD", "KEY", "LEMON", "TEA", "POUR"].includes(target)) {
     if (isPinched || (extendedCount <= 2 && thumbIndexGap < 0.55)) {
       matched = true;
@@ -453,12 +526,13 @@ export function evaluateLandmarksKinematics(
       message = `✓ Perfect match! Pinch gesture verified for ${target}.`;
     } else {
       matched = false;
-      confidence = 0.45;
-      message = `Please pinch your thumb and index fingers together for ${target}.`;
+      confidence = 0.35;
+      detectedSign = extendedCount >= 4 ? "OPEN_PALM" : "PARTIAL_HAND";
+      message = `Detected open hand (${extendedCount} fingers). Please pinch your thumb and index fingers together for ${target}.`;
     }
   }
 
-  // 6. Closed Fist Gestures (BREAK, FEDUP, YES, PAIN, CLOSE)
+  // 7. Closed Fist Gestures (BREAK, FEDUP, YES, PAIN, CLOSE)
   else if (["BREAK", "FEDUP", "YES", "PAIN", "CLOSE"].includes(target)) {
     if (extendedCount <= 1 || (!indexExt && !middleExt && !ringExt && !pinkyExt)) {
       matched = true;
@@ -466,21 +540,22 @@ export function evaluateLandmarksKinematics(
       message = `✓ Perfect match! Closed fist verified for ${target}.`;
     } else {
       matched = false;
-      confidence = 0.40;
+      confidence = 0.35;
+      detectedSign = "OPEN_PALM";
       message = `Detected open hand (${extendedCount} fingers). Please form a closed fist for ${target}.`;
     }
   }
 
-  // 7. General vocabulary signs
+  // 8. General vocabulary signs
   else {
-    if (extendedCount >= 1) {
+    if (extendedCount >= 1 && extendedCount <= 4) {
       matched = true;
-      confidence = 0.92;
+      confidence = 0.88;
       message = `✓ Gesture verified for ${target}.`;
     } else {
       matched = false;
-      confidence = 0.45;
-      message = `Please position hand clearly for ${target}.`;
+      confidence = 0.40;
+      message = `Please position your hand clearly for ${target}.`;
     }
   }
 
@@ -530,7 +605,7 @@ export async function predictSign(
   options: PredictOptions = {}
 ): Promise<PredictionResult> {
   const mode = options.mode || "ai";
-  const targetSign = options.targetSign?.toUpperCase() || "HELLO";
+  const targetSign = options.targetSign ? options.targetSign.toUpperCase().trim() : "AUTO";
   const strictness = options.strictness || "balanced";
 
   // Demo simulation mode
@@ -677,22 +752,44 @@ export function speak(
   }
 
   try {
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = langCode;
-    utterance.rate = 0.95;
-    utterance.pitch = 1.0;
-
-    const voices = window.speechSynthesis.getVoices();
-    if (voices && voices.length > 0) {
-      const match = voices.find(
-        (v) =>
-          v.lang.toLowerCase().replace("_", "-") === langCode.toLowerCase().replace("_", "-")
-      );
-      if (match) utterance.voice = match;
+    const synth = window.speechSynthesis;
+    synth.cancel(); // Clear any pending or queued speech
+    if (synth.paused) {
+      synth.resume();
     }
 
-    window.speechSynthesis.speak(utterance);
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = langCode;
+    utterance.rate = 0.92;
+    utterance.pitch = 1.0;
+
+    const voices = synth.getVoices();
+    if (voices && voices.length > 0) {
+      const normalizedTarget = langCode.toLowerCase().replace("_", "-");
+      // Find exact regional voice (e.g. ta-IN, hi-IN)
+      let match = voices.find(
+        (v) => v.lang.toLowerCase().replace("_", "-") === normalizedTarget
+      );
+      // Fallback to language prefix (e.g. ta, hi)
+      if (!match) {
+        const prefix = normalizedTarget.split("-")[0];
+        match = voices.find((v) => v.lang.toLowerCase().startsWith(prefix));
+      }
+      // Fallback to Indian English (en-IN)
+      if (!match) {
+        match = voices.find((v) => v.lang.toLowerCase().includes("in"));
+      }
+      if (match) {
+        utterance.voice = match;
+      }
+    }
+
+    // Safety resume on utterance start
+    utterance.onstart = () => {
+      if (synth.paused) synth.resume();
+    };
+
+    synth.speak(utterance);
     return { ok: true };
   } catch (err) {
     return { ok: false, reason: String(err) };

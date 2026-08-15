@@ -92,7 +92,7 @@ export function AdminSidebar({
       <div
         role="tablist"
         aria-label="Admin sections"
-        className="-mx-1 flex gap-1 overflow-x-auto pb-1 md:hidden"
+        className="-mx-1 flex gap-1 overflow-x-auto pb-1 scrollbar-none touch-pan-x md:hidden"
       >
         {ADMIN_SECTIONS.map((section) => (
           <button

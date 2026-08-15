@@ -75,65 +75,30 @@ export function Navbar() {
               </Link>
             </li>
           ))}
-          <li>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="h-auto px-3 py-2 text-sm font-medium text-muted-foreground"
-                >
-                  More
-                  <ChevronDown className="size-4" aria-hidden="true" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-64">
-                {moreNav.map((item) => (
-                  <DropdownMenuItem key={item.to} asChild>
-                    <Link to={item.to} className="flex items-center gap-2">
-                      <item.icon className="size-4" aria-hidden="true" />
-                      {item.label}
-                    </Link>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </li>
+          {moreNav.slice(0, 2).map((item) => (
+            <li key={item.to}>
+              <Link
+                to={item.to}
+                className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                activeProps={{ className: "bg-accent text-accent-foreground font-semibold" }}
+              >
+                {item.label}
+              </Link>
+            </li>
+          ))}
         </ul>
 
         <div className="ml-auto flex items-center gap-2">
           {user ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="hidden sm:inline-flex">
-                  <span className="grid size-6 place-items-center rounded-full bg-gradient-brand text-xs font-bold text-primary-foreground">
-                    {displayName.charAt(0).toUpperCase()}
-                  </span>
-                  {displayName}
-                  <ChevronDown className="size-4" aria-hidden="true" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel className="truncate">{user.email}</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/dashboard" className="flex items-center gap-2">
-                    <LayoutDashboard className="size-4" aria-hidden="true" />
-                    My Dashboard
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/certification" className="flex items-center gap-2">
-                    <Sparkles className="size-4" aria-hidden="true" />
-                    My Certifications
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => void handleSignOut()}>
-                  <LogOut className="size-4" aria-hidden="true" />
-                  Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="hidden flex-col gap-2 sm:flex">
+              <Button asChild variant="outline" size="sm">
+                <Link to="/dashboard">My Dashboard</Link>
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => void handleSignOut()}>
+                <LogOut className="size-4 mr-1.5" />
+                Sign out
+              </Button>
+            </div>
           ) : (
             <>
               <Button asChild variant="ghost" className="hidden sm:inline-flex">

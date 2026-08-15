@@ -4,7 +4,7 @@
  * Tests that the dev server is running and key routes are accessible
  */
 
-const http = require('http');
+import http from 'http';
 
 const baseURL = 'http://localhost:5174';
 
@@ -53,9 +53,9 @@ async function runVerification() {
     '/voicebridge',
     '/assessment',
     '/certification',
-    '/dataset-videos/Hello.mp4',
-    '/dataset-videos/Fever.mp4',
-    '/dataset-videos/Thank%20you.mp4',
+    '/videos/signs/Hello.mp4',
+    '/videos/signs/Fever.mp4',
+    '/videos/signs/Thank%20you.mp4',
   ];
 
   const results = [];
