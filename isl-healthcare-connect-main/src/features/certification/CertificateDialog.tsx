@@ -4,6 +4,7 @@ import { toast } from "sonner";
 
 import logo from "@/assets/isl-setu-logo.png";
 import { Button } from "@/components/ui/button";
+import { downloadDirectCertificate } from "@/services/certificatePdf.service";
 import {
   Dialog,
   DialogContent,
@@ -118,32 +119,22 @@ export function CertificateDialog({
         <div className="flex justify-end gap-3 print:hidden">
           <Button
             variant="hero"
+            className="gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 font-bold text-white shadow-md hover:from-emerald-600 hover:to-teal-600"
             onClick={async () => {
               try {
-                toast.loading("Preparing certificate PDF...");
-                const id = certificate.credential_id || certificate.id || "pending";
-                const resp = await fetch(
-                  `http://127.0.0.1:8000/api/certificate/${encodeURIComponent(id)}/pdf`,
-                );
-                if (!resp.ok) throw new Error("Failed to generate certificate");
-                const blob = await resp.blob();
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = `certificate-${id}.pdf`;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                URL.revokeObjectURL(url);
+                toast.loading("Rendering high-definition certificate...");
+                await downloadDirectCertificate(certificate, user);
                 toast.dismiss();
-                toast.success("Certificate downloaded");
+                toast.success("Official Certificate downloaded successfully!");
               } catch (err) {
-                toast.error("Certificate download failed");
+                toast.dismiss();
+                toast.error("Certificate download failed. Please try again.");
+                console.error("[Modal Certificate Download]", err);
               }
             }}
           >
-            <Download aria-hidden="true" />
-            Download Certificate
+            <Download className="size-4.5" aria-hidden="true" />
+            Download Official Certificate
           </Button>
         </div>
       </DialogContent>

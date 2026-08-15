@@ -1,7 +1,17 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Award, CheckCircle2, Download, Eye, FileWarning, Loader2, Lock } from "lucide-react";
+import {
+  Award,
+  CheckCircle2,
+  Download,
+  Eye,
+  FileCheck2,
+  FileWarning,
+  Loader2,
+  Lock,
+  Sparkles,
+} from "lucide-react";
 
 import logo from "@/assets/isl-setu-logo.png";
 import { CertificateDialog } from "@/features/certification/CertificateDialog";
@@ -14,6 +24,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/use-auth";
 import { getDemoUser } from "@/services/progress.service";
+import { downloadDirectCertificate } from "@/services/certificatePdf.service";
 import { toast } from "sonner";
 import type { AppUser, Certificate } from "@/types";
 
@@ -24,69 +35,25 @@ const statusMap: Record<Certificate["status"], StatusKind> = {
 };
 
 const toneRing: Record<Certificate["tier"], string> = {
-  bronze: "border-bronze/30",
-  silver: "border-silver/30",
-  gold: "border-gold/30",
+  bronze: "border-amber-500/40",
+  silver: "border-slate-400/40",
+  gold: "border-yellow-500/40",
 };
 
 const toneText: Record<Certificate["tier"], string> = {
-  bronze: "text-bronze",
-  silver: "text-silver",
-  gold: "text-gold",
+  bronze: "text-amber-400",
+  silver: "text-slate-300",
+  gold: "text-yellow-400",
 };
 
 const toneBg: Record<Certificate["tier"], string> = {
-  bronze: "bg-bronze/15",
-  silver: "bg-silver/15",
-  gold: "bg-gold/15",
+  bronze: "bg-amber-500/10",
+  silver: "bg-slate-400/10",
+  gold: "bg-yellow-500/10",
 };
 
 interface CertificationDashboardProps {
   certificates: Certificate[];
-}
-
-const AI_BACKEND_URL =
-  typeof import.meta !== "undefined" && import.meta.env?.["VITE_AI_API_URL"]
-    ? (import.meta.env["VITE_AI_API_URL"] as string)
-    : "http://localhost:8000";
-
-/**
- * Downloads a server-side generated PDF certificate from the FastAPI backend.
- * Falls back to browser print if backend is unavailable.
- */
-async function downloadServerPdf(
-  certificate: Certificate,
-  userName: string,
-  role: string,
-): Promise<void> {
-  const params = new URLSearchParams({
-    name: userName,
-    tier: certificate.tier,
-    role,
-    score: String(80),
-    ...(certificate.issued_at ? { issued_at: certificate.issued_at } : {}),
-  });
-
-  const url = `${AI_BACKEND_URL}/api/certificate/${encodeURIComponent(certificate.credential_id ?? certificate.id)}/pdf?${params.toString()}`;
-
-  try {
-    const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
-    if (!response.ok) throw new Error(`Server returned ${response.status}`);
-
-    const blob = await response.blob();
-    const objectUrl = URL.createObjectURL(blob);
-    const anchor = document.createElement("a");
-    anchor.href = objectUrl;
-    anchor.download = `ISL-Setu-Certificate-${certificate.credential_id ?? certificate.id}.pdf`;
-    document.body.appendChild(anchor);
-    anchor.click();
-    document.body.removeChild(anchor);
-    URL.revokeObjectURL(objectUrl);
-  } catch {
-    // Fallback: browser print dialog
-    window.print();
-    throw new Error("backend_unavailable");
-  }
 }
 
 export function CertificationDashboard({ certificates }: CertificationDashboardProps) {
@@ -100,7 +67,7 @@ export function CertificationDashboard({ certificates }: CertificationDashboardP
     (authUser
       ? {
           id: authUser.id,
-          full_name: displayName,
+          full_name: displayName || authUser.email?.split("@")[0] || "Healthcare Professional",
           email: authUser.email || "",
           role: "nurse",
           hospital_id: null,
@@ -110,7 +77,7 @@ export function CertificationDashboard({ certificates }: CertificationDashboardP
         }
       : demoUser || {
           id: "guest",
-          full_name: displayName,
+          full_name: displayName || "Healthcare Professional",
           email: "",
           role: "nurse",
           hospital_id: null,
@@ -122,14 +89,14 @@ export function CertificationDashboard({ certificates }: CertificationDashboardP
   async function handleDownload(certificate: Certificate) {
     setDownloadingId(certificate.id);
     try {
-      await downloadServerPdf(certificate, currentUser.full_name, currentUser.role);
-      toast.success("Certificate downloaded successfully!");
+      toast.loading("Rendering high-definition official certificate...");
+      await downloadDirectCertificate(certificate, currentUser);
+      toast.dismiss();
+      toast.success("Official Certificate downloaded successfully!");
     } catch (err) {
-      if ((err as Error).message === "backend_unavailable") {
-        toast.info("AI server offline — opened browser print dialog instead.");
-      } else {
-        toast.error("Download failed. Please try again.");
-      }
+      toast.dismiss();
+      toast.error("Download failed. Please try again.");
+      console.error("[Certificate Download Error]", err);
     } finally {
       setDownloadingId(null);
     }
@@ -141,7 +108,7 @@ export function CertificationDashboard({ certificates }: CertificationDashboardP
         {certificates.map((certificate) => {
           const percent = Math.min(
             100,
-            Math.round((certificate.signs_completed / certificate.signs_required) * 100),
+            Math.round((certificate.signs_completed / certificate.signs_required) * 100)
           );
           const isCompleted = certificate.status === "completed";
           const isLocked = certificate.status === "locked";
@@ -150,13 +117,13 @@ export function CertificationDashboard({ certificates }: CertificationDashboardP
           return (
             <RevealItem key={certificate.id}>
               <Card
-                className={`h-full overflow-hidden rounded-2xl border-2 ${toneRing[certificate.tier]} shadow-soft`}
+                className={`flex h-full flex-col overflow-hidden rounded-3xl border-2 ${toneRing[certificate.tier]} shadow-soft bg-card/95 backdrop-blur-sm`}
               >
                 <div
-                  className={`flex items-center justify-between px-5 py-4 ${toneBg[certificate.tier]}`}
+                  className={`flex items-center justify-between px-6 py-4.5 border-b border-border/40 ${toneBg[certificate.tier]}`}
                 >
-                  <div className="flex items-center gap-2">
-                    <Award className={`size-5 ${toneText[certificate.tier]}`} aria-hidden="true" />
+                  <div className="flex items-center gap-2.5">
+                    <Award className={`size-5.5 ${toneText[certificate.tier]}`} aria-hidden="true" />
                     <p className={`font-display text-lg font-bold ${toneText[certificate.tier]}`}>
                       {certificate.title}
                     </p>
@@ -164,83 +131,100 @@ export function CertificationDashboard({ certificates }: CertificationDashboardP
                   <StatusBadge status={statusMap[certificate.status]} />
                 </div>
 
-                <CardContent className="flex h-full flex-col gap-4 p-5">
-                  <div className="flex items-center gap-3 rounded-xl border border-dashed border-border bg-muted/40 p-3">
-                    <img src={logo} alt="" aria-hidden="true" className="h-8 w-auto opacity-80" />
-                    <p className="text-xs text-muted-foreground">{certificate.subtitle}</p>
-                  </div>
-
-                  {certificate.credential_id && isCompleted ? (
-                    <p className="rounded-xl bg-primary/5 px-3 py-2 font-mono text-xs font-semibold tracking-wider text-primary">
-                      {certificate.credential_id}
-                    </p>
-                  ) : null}
-
-                  <div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium text-foreground">Signs mastered</span>
-                      <span className="text-muted-foreground">
-                        {certificate.signs_completed}/{certificate.signs_required}
-                      </span>
+                <CardContent className="flex flex-1 flex-col justify-between gap-5 p-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 rounded-2xl border border-dashed border-border/80 bg-muted/30 p-3.5">
+                      <img src={logo} alt="" aria-hidden="true" className="h-8 w-auto opacity-90" />
+                      <p className="text-xs font-medium text-muted-foreground">{certificate.subtitle}</p>
                     </div>
-                    <Progress
-                      value={percent}
-                      className="mt-2 h-2"
-                      aria-label={`${certificate.title} progress: ${percent}%`}
-                    />
+
+                    {certificate.credential_id && isCompleted ? (
+                      <div className="flex items-center justify-between rounded-xl bg-emerald-500/10 border border-emerald-500/30 px-3.5 py-2">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-400">
+                          <FileCheck2 className="size-4" />
+                          <span>CREDENTIAL ID</span>
+                        </div>
+                        <span className="font-mono text-xs font-bold tracking-wider text-emerald-300">
+                          {certificate.credential_id}
+                        </span>
+                      </div>
+                    ) : null}
+
+                    <div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-semibold text-foreground">Signs mastered</span>
+                        <span className="font-mono font-bold text-muted-foreground">
+                          {certificate.signs_completed}/{certificate.signs_required}
+                        </span>
+                      </div>
+                      <Progress
+                        value={percent}
+                        className="mt-2 h-2.5 bg-muted/60"
+                        aria-label={`${certificate.title} progress: ${percent}%`}
+                      />
+                    </div>
+
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                        Requirements
+                      </p>
+                      <ul className="mt-2.5 space-y-2">
+                        {certificate.requirements.map((req) => (
+                          <li
+                            key={req}
+                            className="flex items-start gap-2.5 text-xs font-medium text-muted-foreground"
+                          >
+                            <CheckCircle2
+                              className={`mt-0.5 size-4 shrink-0 ${isLocked ? "text-muted-foreground/40" : "text-emerald-400"}`}
+                              aria-hidden="true"
+                            />
+                            <span>{req}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
 
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">Requirements</p>
-                    <ul className="mt-2 space-y-1.5">
-                      {certificate.requirements.map((req) => (
-                        <li
-                          key={req}
-                          className="flex items-start gap-2 text-sm text-muted-foreground"
-                        >
-                          <CheckCircle2
-                            className={`mt-0.5 size-4 shrink-0 ${isLocked ? "text-muted-foreground" : "text-success"}`}
-                            aria-hidden="true"
-                          />
-                          {req}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="mt-auto flex flex-wrap gap-2 pt-2">
+                  {/* Action Section */}
+                  <div className="mt-4 pt-4 border-t border-border/40">
                     {isCompleted ? (
-                      <>
-                        <Button
-                          id={`view-cert-${certificate.id}`}
-                          variant="outline"
-                          className="min-h-11 flex-1"
-                          onClick={() => setActiveCertificate(certificate)}
-                        >
-                          <Eye aria-hidden="true" />
-                          View
-                        </Button>
-                        <Button
-                          id={`download-cert-${certificate.id}`}
-                          variant="hero"
-                          className="min-h-11 flex-1"
-                          onClick={() => void handleDownload(certificate)}
-                          disabled={isDownloading}
-                        >
-                          {isDownloading ? (
-                            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                          ) : (
-                            <Download aria-hidden="true" />
-                          )}
-                          {isDownloading ? "Generating…" : "Download PDF"}
-                        </Button>
-                      </>
+                      <div className="space-y-2.5">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            id={`view-cert-${certificate.id}`}
+                            variant="outline"
+                            className="h-11 flex-1 gap-2 rounded-xl font-bold border-border/80 hover:bg-muted"
+                            onClick={() => setActiveCertificate(certificate)}
+                          >
+                            <Eye className="size-4 text-muted-foreground" aria-hidden="true" />
+                            View
+                          </Button>
+                          <Button
+                            id={`download-cert-${certificate.id}`}
+                            variant="hero"
+                            className="h-11 flex-[2] gap-2 rounded-xl font-bold bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/20"
+                            onClick={() => void handleDownload(certificate)}
+                            disabled={isDownloading}
+                          >
+                            {isDownloading ? (
+                              <Loader2 className="size-4.5 animate-spin" aria-hidden="true" />
+                            ) : (
+                              <Download className="size-4.5" aria-hidden="true" />
+                            )}
+                            {isDownloading ? "Generating…" : "Download Certificate (PDF)"}
+                          </Button>
+                        </div>
+                      </div>
                     ) : (
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <span className="w-full">
-                            <Button variant="secondary" className="min-h-11 w-full" disabled>
-                              <Lock aria-hidden="true" />
+                          <span className="w-full block">
+                            <Button
+                              variant="secondary"
+                              className="h-11 w-full gap-2 rounded-xl font-medium text-muted-foreground opacity-80"
+                              disabled
+                            >
+                              <Lock className="size-4" aria-hidden="true" />
                               {isLocked ? "Locked" : "In Progress"}
                             </Button>
                           </span>
@@ -253,16 +237,6 @@ export function CertificationDashboard({ certificates }: CertificationDashboardP
                       </Tooltip>
                     )}
                   </div>
-
-                  {!isCompleted ? (
-                    <EmptyState
-                      icon={FileWarning}
-                      title="Certificate unavailable"
-                      description="This credential hasn't been issued yet. Keep learning to unlock it."
-                      tone="neutral"
-                      className="border-none bg-transparent p-0 shadow-none [&>div]:py-4"
-                    />
-                  ) : null}
                 </CardContent>
               </Card>
             </RevealItem>
@@ -270,14 +244,16 @@ export function CertificationDashboard({ certificates }: CertificationDashboardP
         })}
       </RevealGroup>
 
-      <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-border bg-card p-6 text-center shadow-soft">
-        <Award className="size-6 text-primary" aria-hidden="true" />
-        <p className="text-base font-semibold text-foreground">Ready to earn your next tier?</p>
+      <div className="mt-8 flex flex-col items-center gap-3.5 rounded-3xl border border-border/80 bg-gradient-to-br from-card via-card to-primary/5 p-8 text-center shadow-soft">
+        <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+          <Sparkles className="size-6" />
+        </div>
+        <p className="font-display text-lg font-bold text-foreground">Ready to earn your next healthcare tier?</p>
         <p className="max-w-md text-sm text-muted-foreground">
-          Take the timed healthcare ISL assessment to progress toward your next certification.
+          Take the timed healthcare ISL assessment to progress toward your Silver & Gold clinical certifications.
         </p>
-        <Button variant="hero" size="lg" asChild>
-          <Link to="/assessment">Take the Assessment</Link>
+        <Button variant="hero" size="lg" className="rounded-xl px-8 shadow-md" asChild>
+          <Link to="/assessment">Take the Clinical Assessment</Link>
         </Button>
       </div>
 
