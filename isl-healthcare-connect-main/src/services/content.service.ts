@@ -8,17 +8,26 @@ import type { Lesson, QuizQuestion, Sign, SignCategory } from "@/types";
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 
+import { SIGN_VIDEO_URLS } from "@/config/video-mapping";
+
 /** Enrich any sign with guaranteed video URL from canonical dataset */
 function enrichSign(s: Sign): Sign {
+  const glossKey = s.gloss.toLowerCase().trim();
+  const idKey = s.id.toLowerCase().trim();
+  const exactMappedVideo = SIGN_VIDEO_URLS[glossKey] || SIGN_VIDEO_URLS[idKey];
+
   const canonical = mockSigns.find(
     (m) =>
-      m.id.toLowerCase() === s.id.toLowerCase() ||
-      m.gloss.toLowerCase() === s.gloss.toLowerCase(),
+      m.id.toLowerCase() === idKey ||
+      m.gloss.toLowerCase() === glossKey,
   );
+
+  const fallbackCapitalized = `/videos/signs/${s.gloss.charAt(0).toUpperCase() + s.gloss.slice(1).toLowerCase()}.mp4`;
+  const videoUrl = exactMappedVideo || canonical?.video_url || s.video_url || fallbackCapitalized;
 
   return {
     ...s,
-    video_url: canonical?.video_url || s.video_url || `/videos/signs/${s.gloss}.mp4`,
+    video_url: videoUrl,
     steps: (s.steps && s.steps.length > 0) ? s.steps : (canonical?.steps || []),
     region_note: s.region_note || canonical?.region_note,
   };

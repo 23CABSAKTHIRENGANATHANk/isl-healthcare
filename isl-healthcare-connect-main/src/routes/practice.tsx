@@ -55,9 +55,11 @@ import {
   predictSign,
   playFeedbackSound,
   speak,
+  CLINICAL_SIGN_DICTIONARY,
   type LandmarkPoint,
   type DetectionStrictness,
 } from "@/services/ai.service";
+import { SIGN_VIDEO_URLS } from "@/config/video-mapping";
 import { listSigns } from "@/services/content.service";
 import { isTargetMatch } from "@/services/sign-matching";
 
@@ -295,7 +297,11 @@ function PracticePage() {
 
     if (!hasSpokenForCurrentSign.current) {
       hasSpokenForCurrentSign.current = true;
-      speak(`Great! ${currentTarget.gloss} matched.`);
+      const glossUpper = (currentTarget.gloss || "").toUpperCase();
+      const tamilPhrase =
+        CLINICAL_SIGN_DICTIONARY[glossUpper]?.ta ||
+        `${currentTarget.gloss} சைகை வெற்றிகரமாக பொருந்தியது.`;
+      void speak(tamilPhrase, "ta-IN", glossUpper);
     }
 
     setResult({
@@ -646,7 +652,7 @@ function PracticePage() {
             />
 
             {/* Video Picture-in-Picture Guide Overlay */}
-            {showPipVideo && target && target.video_url && isLive && (
+            {showPipVideo && target && isLive && (
               <div className="absolute right-3 top-14 w-36 sm:w-44 overflow-hidden rounded-2xl border-2 border-white/20 bg-black/90 shadow-2xl backdrop-blur-md z-20">
                 <div className="flex items-center justify-between bg-black/70 px-2 py-1 text-[10px] font-bold text-white">
                   <span className="flex items-center gap-1">
@@ -662,15 +668,35 @@ function PracticePage() {
                   </button>
                 </div>
                 <div className="aspect-video w-full bg-black">
-                  <video
-                    key={target.video_url}
-                    src={target.video_url}
-                    className="size-full object-contain"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                  />
+                  {(() => {
+                    const glossLower = target.gloss.toLowerCase().trim();
+                    const idLower = target.id.toLowerCase().trim();
+                    const mappedUrl =
+                      SIGN_VIDEO_URLS[glossLower] ||
+                      SIGN_VIDEO_URLS[idLower] ||
+                      target.video_url ||
+                      `/videos/signs/${target.gloss.charAt(0).toUpperCase() + target.gloss.slice(1).toLowerCase()}.mp4`;
+
+                    return (
+                      <video
+                        key={mappedUrl}
+                        src={mappedUrl}
+                        className="size-full object-contain"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        onError={(e) => {
+                          const targetEl = e.currentTarget;
+                          const gloss = target.gloss;
+                          const capital = `/videos/signs/${gloss.charAt(0).toUpperCase() + gloss.slice(1).toLowerCase()}.mp4`;
+                          if (targetEl.src !== capital && !targetEl.src.endsWith(capital)) {
+                            targetEl.src = capital;
+                          }
+                        }}
+                      />
+                    );
+                  })()}
                 </div>
               </div>
             )}
@@ -934,7 +960,7 @@ function PracticePage() {
       </div>
 
       {/* Video Demonstration Modal */}
-      {target && target.video_url && (
+      {target && (
         <Dialog open={videoModalOpen} onOpenChange={setVideoModalOpen}>
           <DialogContent className="max-w-2xl rounded-3xl p-6">
             <DialogHeader>
@@ -944,19 +970,42 @@ function PracticePage() {
               </DialogTitle>
             </DialogHeader>
 
-            <div className="overflow-hidden rounded-2xl bg-black aspect-video relative">
-              <video
-                key={target.video_url}
-                src={target.video_url}
-                className="size-full object-contain"
-                controls
-                autoPlay
-                loop
-                playsInline
-                ref={(el) => {
-                  if (el) el.playbackRate = videoSpeed;
-                }}
-              />
+            <div className="overflow-hidden rounded-2xl bg-black aspect-video relative flex items-center justify-center">
+              {(() => {
+                const glossLower = target.gloss.toLowerCase().trim();
+                const idLower = target.id.toLowerCase().trim();
+                const mappedUrl =
+                  SIGN_VIDEO_URLS[glossLower] ||
+                  SIGN_VIDEO_URLS[idLower] ||
+                  target.video_url ||
+                  `/videos/signs/${target.gloss.charAt(0).toUpperCase() + target.gloss.slice(1).toLowerCase()}.mp4`;
+
+                return (
+                  <video
+                    key={mappedUrl}
+                    src={mappedUrl}
+                    className="size-full object-contain"
+                    controls
+                    autoPlay
+                    loop
+                    playsInline
+                    onError={(e) => {
+                      const targetEl = e.currentTarget;
+                      const gloss = target.gloss;
+                      const capital = `/videos/signs/${gloss.charAt(0).toUpperCase() + gloss.slice(1).toLowerCase()}.mp4`;
+                      const allCaps = `/videos/signs/${gloss.toUpperCase()}.mp4`;
+                      if (targetEl.src !== capital && !targetEl.src.endsWith(capital)) {
+                        targetEl.src = capital;
+                      } else if (targetEl.src !== allCaps && !targetEl.src.endsWith(allCaps)) {
+                        targetEl.src = allCaps;
+                      }
+                    }}
+                    ref={(el) => {
+                      if (el) el.playbackRate = videoSpeed;
+                    }}
+                  />
+                );
+              })()}
             </div>
 
             {/* Speed Control Pill */}
