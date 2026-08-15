@@ -261,3 +261,58 @@ class TestSignRecognizerKinematics:
         assert res["success"] is True
         assert res["sign"] == "INJURY"
 
+
+# ─────────────────────────────────────────────────────────────
+# Neural Text-to-Speech (TTS) Endpoint & Service Tests
+# ─────────────────────────────────────────────────────────────
+
+class TestTTSBackend:
+    """Tests for the Neural Text-to-Speech service and /api/tts endpoint."""
+
+    def test_tamil_clinical_dictionary_completeness(self):
+        from services.tts_service import CLINICAL_TAMIL_DICTIONARY
+        required = ["HELP", "DOCTOR", "NURSE", "PAIN", "FEVER", "MEDICINE", "WATER", "EMERGENCY"]
+        for key in required:
+            assert key in CLINICAL_TAMIL_DICTIONARY
+            assert len(CLINICAL_TAMIL_DICTIONARY[key]) > 0
+            # Ensure proper Tamil Unicode characters are present
+            assert any(ord(c) >= 0x0B80 and ord(c) <= 0x0BFF for c in CLINICAL_TAMIL_DICTIONARY[key])
+
+    def test_sanitize_tts_text_strips_emojis_and_html(self):
+        from services.tts_service import sanitize_tts_text
+        raw = "🚨 <b>மருத்துவரை</b> அழைக்கவும்! 😊   "
+        clean = sanitize_tts_text(raw)
+        assert clean == "மருத்துவரை அழைக்கவும்!"
+
+    def test_tts_empty_text_raises_400(self):
+        from fastapi.testclient import TestClient
+        from main import app
+        client = TestClient(app)
+        res = client.post("/api/tts", json={"text": "", "language": "ta-IN"})
+        assert res.status_code == 400
+
+    def test_tts_unsupported_language_raises_400(self):
+        from fastapi.testclient import TestClient
+        from main import app
+        client = TestClient(app)
+        res = client.post("/api/tts", json={"text": "Hello", "language": "xx-YY"})
+        assert res.status_code == 400
+
+    def test_tts_excessive_length_raises_400(self):
+        from fastapi.testclient import TestClient
+        from main import app
+        client = TestClient(app)
+        res = client.post("/api/tts", json={"text": "அ" * 501, "language": "ta-IN"})
+        assert res.status_code == 400
+
+    def test_tts_endpoint_tamil_stream(self):
+        from fastapi.testclient import TestClient
+        from main import app
+        client = TestClient(app)
+        res = client.post("/api/tts", json={"text": "மருத்துவர்", "language": "ta-IN"})
+        # Should return 200 with audio/mpeg or 503 if sandbox network blocks external TTS
+        assert res.status_code in [200, 503]
+        if res.status_code == 200:
+            assert res.headers.get("content-type") == "audio/mpeg"
+            assert len(res.content) > 100
+

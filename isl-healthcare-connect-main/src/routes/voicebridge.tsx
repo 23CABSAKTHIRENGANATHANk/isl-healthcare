@@ -27,6 +27,7 @@ import {
   getSpokenPhrase,
   predictSign,
   speak,
+  getVoiceReadinessStatus,
   getClientHandLandmarker,
   type LandmarkPoint,
 } from "@/services/ai.service";
@@ -110,19 +111,24 @@ function VoiceBridgePage() {
     SUPPORTED_LANGUAGES.find((l) => l.code === selectedLang) || SUPPORTED_LANGUAGES[0];
 
   // Helper to vocalize a recognized sign
-  const speakSignPhrase = useCallback((signName: string, langCode: string) => {
-    if (!signName || signName === "AUTO" || signName === "UNKNOWN") return;
+  const speakSignPhrase = useCallback(
+    async (signName: string, langCode: string) => {
+      if (!signName || signName === "AUTO" || signName === "UNKNOWN") return;
 
-    const spokenPhrase = getSpokenPhrase(signName, langCode);
-    const langObj = SUPPORTED_LANGUAGES.find((l) => l.code === langCode) || currentLangConfig;
-    
-    setIsPlayingAudio(true);
-    const speechResult = speak(spokenPhrase, langObj.voiceLang, signName);
-    if (!speechResult.ok) {
-      setVoiceNotice(`Audio notice: ${speechResult.reason || "Audio voice unavailable. Showing text."}`);
-    }
-    setTimeout(() => setIsPlayingAudio(false), 2200);
-  }, [currentLangConfig]);
+      const spokenPhrase = getSpokenPhrase(signName, langCode);
+      const langObj = SUPPORTED_LANGUAGES.find((l) => l.code === langCode) || currentLangConfig;
+
+      setIsPlayingAudio(true);
+      const speechResult = await speak(spokenPhrase, langObj.voiceLang);
+      if (!speechResult.ok) {
+        setVoiceNotice(speechResult.reason || "Audio voice unavailable on this device. Displaying text.");
+      } else {
+        setVoiceNotice(null);
+      }
+      setTimeout(() => setIsPlayingAudio(false), 2200);
+    },
+    [currentLangConfig]
+  );
 
   // Stop any active speech
   const handleStopSpeech = () => {
@@ -496,9 +502,8 @@ function VoiceBridgePage() {
         </div>
 
         <div className="space-y-6">
-          {/* Active Spoken Caption Card (Clean & Non-Repeating) */}
           <Card className="rounded-3xl border-border/70 shadow-soft">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2">
               <CardTitle className="text-base font-bold flex items-center gap-2">
                 <span>Active Spoken Phrase</span>
                 {isPlayingAudio && (
@@ -508,9 +513,26 @@ function VoiceBridgePage() {
                   </span>
                 )}
               </CardTitle>
-              <Badge variant="secondary" className="text-xs font-bold text-primary">
-                {currentLangConfig.nativeName} ({currentLangConfig.name})
-              </Badge>
+              <div className="flex flex-wrap items-center gap-2">
+                {getVoiceReadinessStatus(currentLangConfig.voiceLang) === "neural" && (
+                  <Badge variant="outline" className="text-[11px] font-semibold text-emerald-400 border-emerald-500/40 bg-emerald-500/10">
+                    ● {currentLangConfig.nativeName} Neural Voice Ready
+                  </Badge>
+                )}
+                {getVoiceReadinessStatus(currentLangConfig.voiceLang) === "browser" && (
+                  <Badge variant="outline" className="text-[11px] font-semibold text-cyan-400 border-cyan-500/40 bg-cyan-500/10">
+                    ● {currentLangConfig.nativeName} Browser Voice Ready
+                  </Badge>
+                )}
+                {getVoiceReadinessStatus(currentLangConfig.voiceLang) === "unavailable" && (
+                  <Badge variant="outline" className="text-[11px] font-semibold text-amber-400 border-amber-500/40 bg-amber-500/10">
+                    ⚠️ {currentLangConfig.nativeName} Voice Unavailable (Text Only)
+                  </Badge>
+                )}
+                <Badge variant="secondary" className="text-xs font-bold text-primary">
+                  {currentLangConfig.nativeName} ({currentLangConfig.name})
+                </Badge>
+              </div>
             </CardHeader>
             <CardContent aria-live="polite" className="space-y-4">
               <div className="min-h-32 rounded-2xl bg-gradient-to-br from-primary/10 via-card to-surface p-4 leading-relaxed border border-primary/20 shadow-inner flex flex-col justify-center">

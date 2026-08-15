@@ -18,6 +18,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 from services.sign_recognizer import recognizer, HEALTHCARE_VOCABULARY, PHRASE_MAPPINGS
 from services.certificate_generator import generate_certificate_pdf
+from services.tts_service import synthesize_speech, VOICE_MAPPING, CLINICAL_TAMIL_DICTIONARY
 
 app = FastAPI(
     title="ISL Setu AI Backend",
@@ -64,6 +65,10 @@ class VoiceBridgeResponse(BaseModel):
     sentence: str
     signs: List[str]
     phrases: List[str]
+
+class TTSRequest(BaseModel):
+    text: str
+    language: Optional[str] = "ta-IN"
 
 # -----------------------------------------------------------------------------
 # Health & Metadata Endpoints
@@ -140,6 +145,43 @@ def voicebridge_endpoint(payload: VoiceBridgeRequest):
         sentence=full_sentence,
         signs=payload.signs,
         phrases=phrases
+    )
+
+# -----------------------------------------------------------------------------
+# Neural Text-to-Speech (TTS) Endpoint
+# -----------------------------------------------------------------------------
+
+@app.post("/api/tts")
+@app.post("/tts")
+def text_to_speech_endpoint(payload: TTSRequest):
+    from fastapi import HTTPException
+    
+    clean_text = (payload.text or "").strip()
+    if not clean_text:
+        raise HTTPException(status_code=400, detail="Text payload cannot be empty.")
+    
+    if len(clean_text) > 500:
+        raise HTTPException(status_code=400, detail="Text length exceeds maximum allowed limit of 500 characters.")
+    
+    lang = (payload.language or "ta-IN").strip()
+    if lang not in VOICE_MAPPING and lang.split("-")[0] not in VOICE_MAPPING:
+        raise HTTPException(status_code=400, detail=f"Unsupported language code '{lang}'. Supported: {list(VOICE_MAPPING.keys())}")
+    
+    result = synthesize_speech(clean_text, language=lang)
+    if not result:
+        raise HTTPException(status_code=503, detail="TTS service temporarily unavailable. Use client-side WebSpeech fallback.")
+    
+    audio_bytes, voice_name, engine_name = result
+    
+    return StreamingResponse(
+        BytesIO(audio_bytes),
+        media_type="audio/mpeg",
+        headers={
+            "Content-Disposition": "inline; filename=speech.mp3",
+            "X-TTS-Voice": voice_name,
+            "X-TTS-Engine": engine_name,
+            "Cache-Control": "public, max-age=86400",
+        }
     )
 
 # -----------------------------------------------------------------------------

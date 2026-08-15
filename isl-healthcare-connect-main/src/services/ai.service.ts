@@ -75,14 +75,14 @@ export const SUPPORTED_LANGUAGES: LanguageOption[] = [
 
 export const MULTILINGUAL_PHRASES: Record<string, Record<string, string>> = {
   FEVER: {
-    en: "I have a high fever.",
-    ta: "எனக்கு கடுமையான காய்ச்சல் உள்ளது.",
-    hi: "मुझे तेज बुखार है।",
-    te: "నాకు అధిక జ్వరం ఉంది.",
-    kn: "ನನಗೆ ತೀವ್ರ ಜ್ವರವಿದೆ.",
-    ml: "എനിക്ക് കഠിനമായ പനിയുണ്ട്.",
-    bn: "আমার তীব্র জ্বর হয়েছে।",
-    mr: "मला तीव्र ताप आला आहे.",
+    en: "I have a fever.",
+    ta: "எனக்கு காய்ச்சல் உள்ளது.",
+    hi: "मुझे बुखार है।",
+    te: "నాకు జ్వరం ఉంది.",
+    kn: "ನನಗೆ ಜ್ವರವಿದೆ.",
+    ml: "എനിക്ക് പനിയുണ്ട്.",
+    bn: "আমার জ্বর হয়েছে।",
+    mr: "मला ताप आला आहे.",
   },
   PAIN: {
     en: "I am experiencing severe pain.",
@@ -90,7 +90,7 @@ export const MULTILINGUAL_PHRASES: Record<string, Record<string, string>> = {
     hi: "मुझे बहुत दर्द हो रहा है।",
     te: "నాకు చాలా నొప్పిగా ఉంది.",
     kn: "ನನಗೆ ತುಂಬಾ ನೋವಾಗುತ್ತಿದೆ.",
-    ml: "ಎനിക്ക് കഠിനമായ വേദനയുണ്ട്.",
+    ml: "എനിക്ക് കഠിനമായ വേദനയുണ്ട്.",
     bn: "আমার খুব ব্যথা হচ্ছে।",
     mr: "मला खूप वेदना होत आहेत.",
   },
@@ -106,7 +106,7 @@ export const MULTILINGUAL_PHRASES: Record<string, Record<string, string>> = {
   },
   DOCTOR: {
     en: "Please call the doctor immediately.",
-    ta: "தயவுசெய்து மருத்துவரை அழைக்கவும்.",
+    ta: "தயவுசெய்து மருத்துவரை உடனடியாக அழைக்கவும்.",
     hi: "कृपया डॉक्टर को तुरंत बुलाएं।",
     te: "దయచేసి వెంటనే డాక్టర్‌ను పిలవండి.",
     kn: "ದಯವಿಟ್ಟು ವೈದ್ಯರನ್ನು ಕರೆಯಿರಿ.",
@@ -126,7 +126,7 @@ export const MULTILINGUAL_PHRASES: Record<string, Record<string, string>> = {
   },
   MEDICINE: {
     en: "Please provide the prescribed medicine.",
-    ta: "தயவுசெய்து மருந்து கொடுங்கள்.",
+    ta: "தயவுசெய்து பரிந்துரைக்கப்பட்ட மருந்தை வழங்கவும்.",
     hi: "कृपया निर्धारित दवाई दें।",
     te: "దయచేసి మందులు ఇవ్వండి.",
     kn: "ದಯವಿಟ್ಟು ಔಷಧ ನೀಡಿ.",
@@ -136,7 +136,7 @@ export const MULTILINGUAL_PHRASES: Record<string, Record<string, string>> = {
   },
   WATER: {
     en: "Please give me drinking water.",
-    ta: "தயவுசெய்து குடிநீர் கொடுங்கள்.",
+    ta: "தயவுசெய்து குடிக்க தண்ணீர் கொடுக்கவும்.",
     hi: "कृपया पीने का पानी दें।",
     te: "దయచేసి మంచినీరు ఇవ్వండి.",
     kn: "ದಯವಿಟ್ಟು ಕುಡಿಯುವ ನೀರು ನೀಡಿ.",
@@ -145,8 +145,8 @@ export const MULTILINGUAL_PHRASES: Record<string, Record<string, string>> = {
     mr: "कृपया पिण्याचे पाणी द्या.",
   },
   EMERGENCY: {
-    en: "This is a clinical emergency.",
-    ta: "இது ஒரு அவசர மருத்துவ நிலைமை.",
+    en: "Emergency medical assistance needed.",
+    ta: "அவசர மருத்துவ உதவி தேவை.",
     hi: "यह एक आपातकालीन स्थिति है।",
     te: "ఇది అత్యవసర పరిస్థితి.",
     kn: "ಇದು ತುರ್ತು ಪರಿಸ್ಥಿತಿ.",
@@ -756,28 +756,9 @@ export async function logPracticeAttempt(params: {
   }
 }
 
-export const TAMIL_PHONETIC_PHRASES: Record<string, string> = {
-  HELP: "Enakku udaniyaaga udhavi thevai.",
-  EMERGENCY: "Idhu oru avasara maruthuva nilai.",
-  DOCTOR: "Dayavu seidhu maruthuvarai azhaikkavum.",
-  NURSE: "Dayavu seidhu seviliyarai azhaikkavum.",
-  WATER: "Dayavu seidhu kudineer kodungal.",
-  PAIN: "Enakku kadumaiyaana vali ulladhu.",
-  FEVER: "Enakku kadumaiyaana kaaichal ulladhu.",
-  MEDICINE: "Dayavu seidhu marundhu kodungal.",
-  INJURY: "Kaayam yerpattulladhu.",
-  HELLO: "Vanakkam, maruthuvamanaikku nalvaravu.",
-  "THANK YOU": "Ungal udhavikku mikka nandri.",
-  "GOOD MORNING": "Kaalai vanakkam.",
-  FOOD: "Enakku unavu vendum.",
-  STOP: "Dayavu seidhu niruthungal.",
-  COME: "Dayavu seidhu ulle vaarungal.",
-};
+// Session in-memory cache for synthesized audio blobs to eliminate redundant requests
+const ttsAudioCache = new Map<string, string>();
 
-/**
- * Multilingual speech output with direct high-clarity native audio stream
- * and browser SpeechSynthesis fallback for 100% reliability in Tamil and other Indian languages.
- */
 let cachedVoices: SpeechSynthesisVoice[] = [];
 if (typeof window !== "undefined" && "speechSynthesis" in window) {
   cachedVoices = window.speechSynthesis.getVoices();
@@ -788,16 +769,55 @@ if (typeof window !== "undefined" && "speechSynthesis" in window) {
 
 let activeAudioElement: HTMLAudioElement | null = null;
 
-export function speak(
-  text: string,
-  langCode = "ta-IN",
-  signKey?: string
-): { ok: boolean; reason?: string } {
-  if (typeof window === "undefined") {
-    return { ok: false, reason: "Window undefined" };
+/**
+ * Checks voice readiness status for a language.
+ * Returns 'neural' | 'browser' | 'unavailable'
+ */
+export function getVoiceReadinessStatus(langCode = "ta-IN"): "neural" | "browser" | "unavailable" {
+  if (typeof window === "undefined") return "unavailable";
+
+  const backendUrl = getBackendUrl();
+  if (backendUrl) {
+    return "neural";
   }
 
-  // Stop any currently playing audio stream or synth speech
+  if (!("speechSynthesis" in window)) return "unavailable";
+
+  const voices = cachedVoices.length > 0 ? cachedVoices : window.speechSynthesis.getVoices();
+  const cleanPrefix = langCode.split("-")[0].toLowerCase();
+  const hasVoice = voices.some(
+    (v) =>
+      v.lang.toLowerCase().startsWith(cleanPrefix) ||
+      v.name.toLowerCase().includes(cleanPrefix === "ta" ? "tamil" : cleanPrefix) ||
+      v.lang.toLowerCase() === langCode.toLowerCase()
+  );
+
+  return hasVoice ? "browser" : "unavailable";
+}
+
+/**
+ * High-quality Natural Speech Synthesis for Tamil (ta-IN) and Indian Healthcare languages.
+ * Architecture:
+ * 1. Backend Neural TTS (Azure AI Speech / Neural Stream with ta-IN-PallaviNeural)
+ * 2. In-memory session audio cache (0ms instant playback for repeated signs)
+ * 3. Browser SpeechSynthesis fallback (ta-IN voice matching)
+ * 4. Honest UI error reporting without false English pronunciation.
+ */
+export async function speak(
+  text: string,
+  langCode = "ta-IN"
+): Promise<{ ok: boolean; voiceType?: "neural" | "browser" | "unavailable"; reason?: string }> {
+  if (typeof window === "undefined") {
+    return { ok: false, voiceType: "unavailable", reason: "Browser window is undefined." };
+  }
+
+  // Sanitize text: remove emojis, markdown, and normalize whitespace
+  const cleanText = text.replace(/<[^>]+>/g, "").replace(/[\U00010000-\U0010ffff]/g, "").trim();
+  if (!cleanText) {
+    return { ok: false, reason: "Text is empty." };
+  }
+
+  // Stop any active audio or speech
   if (activeAudioElement) {
     try {
       activeAudioElement.pause();
@@ -811,37 +831,68 @@ export function speak(
     } catch {}
   }
 
-  const cleanLang = langCode.split("-")[0].toLowerCase(); // e.g. "ta", "hi", "en", "te"
+  const cacheKey = `${langCode}:${cleanText}`;
 
-  // Primary Method: High-clarity native audio stream (Guaranteed natural Tamil speech)
-  try {
-    const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${cleanLang}&q=${encodeURIComponent(text)}`;
-    const audio = new Audio(audioUrl);
-    activeAudioElement = audio;
-    audio.playbackRate = 1.0;
-
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(() => {
-        // Fallback to browser SpeechSynthesis if Audio element is blocked
-        fallbackSpeechSynthesis(text, langCode, signKey);
-      });
-      return { ok: true };
+  // Layer 1: Play from in-memory session cache if previously generated
+  if (ttsAudioCache.has(cacheKey)) {
+    try {
+      const cachedUrl = ttsAudioCache.get(cacheKey)!;
+      const audio = new Audio(cachedUrl);
+      activeAudioElement = audio;
+      audio.playbackRate = 1.0;
+      await audio.play();
+      return { ok: true, voiceType: "neural" };
+    } catch (cacheErr) {
+      console.warn("[TTS Service] Cache playback notice:", cacheErr);
     }
-  } catch {
-    // Fallback to SpeechSynthesis
   }
 
-  return fallbackSpeechSynthesis(text, langCode, signKey);
+  // Layer 2: Call FastAPI Neural TTS Backend (POST /api/tts)
+  const backendUrl = getBackendUrl();
+  if (backendUrl) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+      const response = await fetch(`${backendUrl}/api/tts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: cleanText, language: langCode }),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const audioBlob = await response.blob();
+        const blobUrl = URL.createObjectURL(audioBlob);
+        ttsAudioCache.set(cacheKey, blobUrl);
+
+        const audio = new Audio(blobUrl);
+        activeAudioElement = audio;
+        audio.playbackRate = 1.0;
+        await audio.play();
+        return { ok: true, voiceType: "neural" };
+      }
+    } catch (backendTtsErr) {
+      console.warn("[TTS Service] Backend Neural TTS unavailable, using browser fallback:", backendTtsErr);
+    }
+  }
+
+  // Layer 3: Browser Web SpeechSynthesis Fallback (Strict ta-IN matching)
+  return fallbackSpeechSynthesis(cleanText, langCode);
 }
 
 function fallbackSpeechSynthesis(
   text: string,
-  langCode: string,
-  signKey?: string
-): { ok: boolean; reason?: string } {
+  langCode: string
+): { ok: boolean; voiceType?: "browser" | "unavailable"; reason?: string } {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-    return { ok: false, reason: "Voice output is not supported in this browser." };
+    return {
+      ok: false,
+      voiceType: "unavailable",
+      reason: "குரல் வெளியீடு இந்த உலாவியில் ஆதரிக்கப்படவில்லை (SpeechSynthesis not supported).",
+    };
   }
 
   try {
@@ -854,38 +905,31 @@ function fallbackSpeechSynthesis(
     const voices = cachedVoices.length > 0 ? cachedVoices : synth.getVoices();
     const cleanPrefix = langCode.split("-")[0].toLowerCase();
 
-    // Look for dedicated native voice (e.g. Google தமிழ் / Microsoft Tamil)
-    const nativeVoice = voices.find(
+    // Priority 1: Exact ta-IN match
+    // Priority 2: Voice starting with ta / containing tamil
+    const tamilVoice = voices.find(
       (v) =>
+        v.lang.toLowerCase() === langCode.toLowerCase() ||
         v.lang.toLowerCase().startsWith(cleanPrefix) ||
-        v.name.toLowerCase().includes("tamil") ||
-        v.name.toLowerCase().includes("ta-in")
+        v.name.toLowerCase().includes(cleanPrefix === "ta" ? "tamil" : cleanPrefix)
     );
 
-    let textToSpeak = text;
-    let voiceToUse = nativeVoice;
-    let targetLang = langCode;
-
-    // If no native Tamil voice exists in browser/OS, speak phonetic Tamil with Indian English voice
-    if (!nativeVoice && cleanPrefix === "ta") {
-      const upper = signKey?.toUpperCase().trim() || "";
-      textToSpeak = TAMIL_PHONETIC_PHRASES[upper] || "Enakku udhavi thevai.";
-      targetLang = "en-IN";
-      const indianVoice = voices.find(
-        (v) => v.lang.toLowerCase().includes("in") || v.name.toLowerCase().includes("india")
-      );
-      if (indianVoice) {
-        voiceToUse = indianVoice;
-      }
+    if (!tamilVoice && cleanPrefix === "ta") {
+      // Do NOT speak English or corrupt Tamil pronunciation. Report honestly.
+      return {
+        ok: false,
+        voiceType: "unavailable",
+        reason: "தமிழ் குரல் இந்த சாதனத்தில் கிடைக்கவில்லை. சாதனத்தின் Text-to-Speech அமைப்புகளில் தமிழ் குரலை இயக்கவும்.",
+      };
     }
 
-    const utterance = new SpeechSynthesisUtterance(textToSpeak);
-    utterance.lang = targetLang;
-    utterance.rate = cleanPrefix === "ta" ? 0.88 : 0.95;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = langCode;
+    utterance.rate = 0.90;
     utterance.pitch = 1.0;
 
-    if (voiceToUse) {
-      utterance.voice = voiceToUse;
+    if (tamilVoice) {
+      utterance.voice = tamilVoice;
     }
 
     utterance.onstart = () => {
@@ -893,9 +937,9 @@ function fallbackSpeechSynthesis(
     };
 
     synth.speak(utterance);
-    return { ok: true };
+    return { ok: true, voiceType: "browser" };
   } catch (err) {
-    return { ok: false, reason: String(err) };
+    return { ok: false, voiceType: "unavailable", reason: String(err) };
   }
 }
 
