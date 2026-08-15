@@ -139,7 +139,7 @@ function VoiceBridgePage() {
 
   // Handle direct quick sign click (Instant clinical tap)
   const handleQuickSign = (signName: string) => {
-    if (!signName || signName === "AUTO") return;
+    if (!signName || signName === "AUTO" || signName === "UNKNOWN") return;
     setCurrentSign(signName);
     setSigns((prev) => [...prev, signName]);
     setLastConfidence(0.96);
@@ -245,21 +245,44 @@ function VoiceBridgePage() {
     };
   }, [isLive, videoRef, mode, autoDetect, selectedLang, speakSignPhrase]);
 
-  // Manual Capture button
-  async function capture() {
+  // Manual / Spacebar Capture function
+  const capture = useCallback(async () => {
+    if (capturing) return;
     setCapturing(true);
     setLastMessage(null);
     setVoiceNotice(null);
 
     try {
       setPhase("scanning");
-      await new Promise((r) => setTimeout(r, 150));
+      await new Promise((r) => setTimeout(r, 80));
       setPhase("recognising");
 
-      const frame = isLive ? videoRef.current : null;
-      const currentLandmarks = latestLandmarksRef.current;
+      const video = videoRef.current;
+      let currentLandmarks = latestLandmarksRef.current;
 
-      const prediction = await predictSign(frame, {
+      // If landmarks were not caught yet, run an immediate detection on current video frame
+      if ((!currentLandmarks || currentLandmarks.length === 0) && video && video.readyState >= 2) {
+        try {
+          const landmarker = await getClientHandLandmarker();
+          if (landmarker) {
+            let timestamp = performance.now();
+            if (timestamp <= lastVideoTimestampRef.current) {
+              timestamp = lastVideoTimestampRef.current + 1;
+            }
+            lastVideoTimestampRef.current = timestamp;
+            const res = landmarker.detectForVideo(video, timestamp);
+            if (res && res.landmarks && res.landmarks.length > 0) {
+              currentLandmarks = [res.landmarks[0] as LandmarkPoint[]];
+              latestLandmarksRef.current = currentLandmarks;
+              setLiveLandmarks(currentLandmarks);
+            }
+          }
+        } catch (e) {
+          console.warn("[VoiceBridge Direct Capture]", e);
+        }
+      }
+
+      const prediction = await predictSign(video, {
         mode,
         landmarks: currentLandmarks,
         targetSign: "AUTO",
@@ -283,11 +306,27 @@ function VoiceBridgePage() {
       setCapturing(false);
       setTimeout(() => setPhase("idle"), 900);
     }
-  }
+  }, [capturing, isLive, videoRef, mode, selectedLang, speakSignPhrase]);
+
+  // Spacebar & Enter Key Keyboard Shortcut Handler
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.code === "Space" || e.key === " " || e.code === "Enter") {
+        const activeTag = document.activeElement?.tagName;
+        if (activeTag !== "INPUT" && activeTag !== "TEXTAREA") {
+          e.preventDefault();
+          void capture();
+        }
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [capture]);
 
   // Active current spoken phrase
-  const activePhrase = currentSign && currentSign !== "AUTO" ? getSpokenPhrase(currentSign, selectedLang) : null;
-  const activeEnglishPhrase = currentSign && currentSign !== "AUTO" ? getSpokenPhrase(currentSign, "en") : null;
+  const activePhrase = currentSign && currentSign !== "AUTO" && currentSign !== "UNKNOWN" ? getSpokenPhrase(currentSign, selectedLang) : null;
+  const activeEnglishPhrase = currentSign && currentSign !== "AUTO" && currentSign !== "UNKNOWN" ? getSpokenPhrase(currentSign, "en") : null;
 
   return (
     <PageShell>
@@ -335,7 +374,7 @@ function VoiceBridgePage() {
                 type="button"
                 onClick={() => {
                   setSelectedLang(lang.code);
-                  if (currentSign && currentSign !== "AUTO") {
+                  if (currentSign && currentSign !== "AUTO" && currentSign !== "UNKNOWN") {
                     speakSignPhrase(currentSign, lang.code);
                   }
                 }}
@@ -370,7 +409,7 @@ function VoiceBridgePage() {
             <Zap className="size-3.5" />
             Quick Healthcare Signs (Tap to Speak):
           </span>
-          <span className="text-[11px] text-muted-foreground hidden sm:inline">Tap any sign or use live camera gesture</span>
+          <span className="text-[11px] text-muted-foreground hidden sm:inline">Tap sign, press Space, or use live camera</span>
         </div>
         <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none touch-pan-x">
           {CORE_HEALTHCARE_SIGNS.map(({ sign, label, icon }) => (
@@ -408,9 +447,9 @@ function VoiceBridgePage() {
             <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
               <Button variant="hero" onClick={capture} disabled={capturing} className="w-full sm:w-auto gap-2 justify-center shadow-md">
                 <Hand aria-hidden="true" className="size-4" />
-                {capturing ? "Extracting Landmarks…" : "Capture Sign"}
+                {capturing ? "Extracting Landmarks…" : "Capture Sign (Space)"}
               </Button>
-              {currentSign && currentSign !== "AUTO" && (
+              {currentSign && currentSign !== "AUTO" && currentSign !== "UNKNOWN" && (
                 <Button
                   variant="teal"
                   onClick={() => speakSignPhrase(currentSign, selectedLang)}
@@ -500,7 +539,7 @@ function VoiceBridgePage() {
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    Perform an ISL sign in front of the camera (e.g. 2 fingers for Doctor, 3 for Water, Open hand for Help) or tap a quick sign above. Captions & spoken audio in <strong className="text-foreground">{currentLangConfig.nativeName}</strong> will play automatically.
+                    Perform an ISL sign in front of the camera (e.g. 2 fingers for Doctor, 3 for Water, Open hand for Help) or press <strong>Space</strong> / click a sign. Captions & spoken audio in <strong className="text-foreground">{currentLangConfig.nativeName}</strong> will play automatically.
                   </p>
                 )}
               </div>
