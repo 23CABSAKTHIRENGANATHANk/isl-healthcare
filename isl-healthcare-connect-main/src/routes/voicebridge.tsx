@@ -179,6 +179,9 @@ function VoiceBridgePage() {
           setVoiceNotice(null);
         }
 
+        // Play instant auditory chime
+        playFeedbackSound("success");
+
         // Add to Consultation Message Feed
         setConsultationLog((prev) => [
           ...prev,
@@ -193,8 +196,8 @@ function VoiceBridgePage() {
         ]);
 
         await speak(spokenPhrase, langObj.voiceLang, signName);
-      } catch {
-        // Fallback handled inside speak()
+      } catch (err) {
+        console.warn("[VoiceBridge Speak Error]", err);
       } finally {
         setIsPlayingAudio(false);
       }
@@ -727,6 +730,16 @@ function VoiceBridgePage() {
                       <p className="font-display text-2xl font-extrabold text-foreground leading-snug">
                         "{activePhrase}"
                       </p>
+
+                      <Button
+                        variant="teal"
+                        size="sm"
+                        onClick={() => void speak(activePhrase, currentLangConfig.voiceLang, currentSign || undefined)}
+                        className="mt-2 w-full gap-2 font-bold shadow-md rounded-xl"
+                      >
+                        <Volume2 className="size-4" />
+                        <span>Play Spoken Voice ({currentLangConfig.nativeName}) 🔊</span>
+                      </Button>
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground leading-relaxed">

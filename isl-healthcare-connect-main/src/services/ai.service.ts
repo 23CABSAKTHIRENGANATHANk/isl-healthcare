@@ -1004,20 +1004,45 @@ export async function speak(
     }
   }
 
-  const cacheKey = `${langCode}:${cleanText}`;
+  // Layer 1: High-Clarity Google Neural TTS Stream (Guaranteed authentic audio in Tamil, Hindi, etc.)
+  try {
+    const ttsLang = cleanLang === "ta" ? "ta" : cleanLang === "hi" ? "hi" : cleanLang === "te" ? "te" : cleanLang === "kn" ? "kn" : cleanLang === "ml" ? "ml" : cleanLang === "bn" ? "bn" : cleanLang === "mr" ? "mr" : "en";
+    const googleTtsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${ttsLang}&client=tw-ob&q=${encodeURIComponent(cleanText)}`;
 
-  // Layer 1: Play from in-memory session cache if previously generated
-  if (ttsAudioCache.has(cacheKey)) {
-    try {
-      const cachedUrl = ttsAudioCache.get(cacheKey)!;
-      const audio = new Audio(cachedUrl);
-      activeAudioElement = audio;
-      audio.playbackRate = 1.0;
-      await audio.play();
-      return { ok: true, voiceType: "neural" };
-    } catch (cacheErr) {
-      console.warn("[TTS Service] Cache playback notice:", cacheErr);
+    // Try WebAudio buffer decoding first for mobile/autoplay support
+    if (ctx) {
+      try {
+        if (ctx.state === "suspended") await ctx.resume();
+        let buffer = audioBufferCache.get(googleTtsUrl);
+        if (!buffer) {
+          const res = await fetch(googleTtsUrl);
+          if (res.ok) {
+            const arrayBuf = await res.arrayBuffer();
+            buffer = await ctx.decodeAudioData(arrayBuf);
+            audioBufferCache.set(googleTtsUrl, buffer);
+          }
+        }
+        if (buffer) {
+          const source = ctx.createBufferSource();
+          source.buffer = buffer;
+          source.connect(ctx.destination);
+          source.start(0);
+          return { ok: true, voiceType: "neural" };
+        }
+      } catch (webAudioErr) {
+        console.warn("[TTS Service] WebAudio stream notice:", webAudioErr);
+      }
     }
+
+    // Direct HTML5 Audio playback fallback
+    const audio = new Audio(googleTtsUrl);
+    activeAudioElement = audio;
+    audio.volume = 1.0;
+    audio.playbackRate = 1.0;
+    await audio.play();
+    return { ok: true, voiceType: "neural" };
+  } catch (streamErr) {
+    console.warn("[TTS Service] Google TTS stream notice, trying backend/browser:", streamErr);
   }
 
   // Layer 2: Call FastAPI Neural TTS Backend (POST /api/tts)
