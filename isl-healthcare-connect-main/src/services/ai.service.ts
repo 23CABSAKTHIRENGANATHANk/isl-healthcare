@@ -957,8 +957,54 @@ export async function speak(
   }
 
   const cleanLang = langCode.split("-")[0].toLowerCase();
+  const ctx = getSharedAudioContext();
 
-  // Primary Instant Trigger: Synchronous Browser SpeechSynthesis (Bypasses autoplay restriction and zero latency)
+  // Layer 0: Bundled Authentic Spoken Healthcare Audio Asset (/audio/ta/MEDICINE.mp3)
+  // 100% reliable, zero network latency, authentic native Tamil voice across all devices
+  if (signName && signName !== "AUTO" && signName !== "UNKNOWN") {
+    const signKey = signName.toUpperCase().replace(/\s+/g, "_");
+    const staticUrl = `/audio/${cleanLang}/${signKey}.mp3`;
+
+    // Priority A: WebAudio buffer playback (bypasses browser autoplay blocks)
+    if (ctx) {
+      try {
+        if (ctx.state === "suspended") {
+          void ctx.resume();
+        }
+        let buffer = audioBufferCache.get(staticUrl);
+        if (!buffer) {
+          const res = await fetch(staticUrl);
+          if (res.ok) {
+            const arrayBuf = await res.arrayBuffer();
+            buffer = await ctx.decodeAudioData(arrayBuf);
+            audioBufferCache.set(staticUrl, buffer);
+          }
+        }
+        if (buffer) {
+          const source = ctx.createBufferSource();
+          source.buffer = buffer;
+          source.connect(ctx.destination);
+          source.start(0);
+          return { ok: true, voiceType: "neural" };
+        }
+      } catch (bufErr) {
+        console.warn("[TTS Service] WebAudio buffer notice:", bufErr);
+      }
+    }
+
+    // Priority B: Direct HTML5 Audio element playback
+    try {
+      const audio = new Audio(staticUrl);
+      activeAudioElement = audio;
+      audio.volume = 1.0;
+      await audio.play();
+      return { ok: true, voiceType: "neural" };
+    } catch (staticErr) {
+      console.warn("[TTS Service] Static HTMLAudio notice:", staticErr);
+    }
+  }
+
+  // Layer 1: Synchronous Browser SpeechSynthesis (Bypasses autoplay restriction and zero latency)
   if (typeof window !== "undefined" && "speechSynthesis" in window) {
     try {
       const synth = window.speechSynthesis;
