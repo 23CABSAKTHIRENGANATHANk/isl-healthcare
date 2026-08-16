@@ -378,6 +378,37 @@ function VoiceBridgePage() {
             latestLandmarksRef.current = [];
             setLiveLandmarks([]);
             setLiveExtendedCount(0);
+
+            // Fallback canvas frame prediction when 3D landmarks are absent (e.g. direct outdoor sunlight)
+            const nowMs = Date.now();
+            if (autoDetect && !capturing && !isProcessingAutoRef.current && nowMs - lastAutoCheckTimeRef.current > 220) {
+              lastAutoCheckTimeRef.current = nowMs;
+              isProcessingAutoRef.current = true;
+
+              predictSign(videoRef.current, { mode: "ai", targetSign: "AUTO" })
+                .then((prediction) => {
+                  if (prediction.success && prediction.sign && prediction.sign !== "UNKNOWN") {
+                    const detectedSign = prediction.sign;
+                    const isNewSign = detectedSign !== lastSpokenSignRef.current;
+                    const isCooldownElapsed = Date.now() - lastSpeechTimeRef.current > 2000;
+
+                    if (isNewSign || isCooldownElapsed) {
+                      lastSpokenSignRef.current = detectedSign;
+                      lastSpeechTimeRef.current = Date.now();
+                      setPhase("detected");
+                      setCurrentSign(detectedSign);
+                      setSigns((prev) => [...prev, detectedSign]);
+                      setLastConfidence(prediction.confidence || 0.95);
+                      setLastMessage(prediction.message || null);
+
+                      void speakSignPhrase(detectedSign, selectedLangRef.current);
+                    }
+                  }
+                })
+                .finally(() => {
+                  isProcessingAutoRef.current = false;
+                });
+            }
           }
         } catch {}
 
