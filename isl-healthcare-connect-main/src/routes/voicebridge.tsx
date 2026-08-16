@@ -162,25 +162,19 @@ function VoiceBridgePage() {
   const currentLangConfig =
     SUPPORTED_LANGUAGES.find((l) => l.code === selectedLang) || SUPPORTED_LANGUAGES[1]; // Tamil
 
+  const isSpeakingRef = useRef<boolean>(false);
+
   // Helper to vocalize a recognized sign
   const speakSignPhrase = useCallback(
     async (signName: string, langCode: string) => {
-      if (!signName || signName === "AUTO" || signName === "UNKNOWN") return;
+      if (!signName || signName === "AUTO" || signName === "UNKNOWN" || isSpeakingRef.current) return;
 
+      isSpeakingRef.current = true;
       const spokenPhrase = getSpokenPhrase(signName, langCode);
       const langObj = SUPPORTED_LANGUAGES.find((l) => l.code === langCode) || currentLangConfig;
 
       try {
         setIsPlayingAudio(true);
-        const readiness = getVoiceReadinessStatus(langObj.voiceLang);
-        if (readiness === "unavailable") {
-          setVoiceNotice(`Spoken voice not supported in this browser for ${langObj.name}. Showing text only.`);
-        } else {
-          setVoiceNotice(null);
-        }
-
-        // Play instant auditory chime
-        playFeedbackSound("success");
 
         // Add to Consultation Message Feed
         setConsultationLog((prev) => [
@@ -200,6 +194,9 @@ function VoiceBridgePage() {
         console.warn("[VoiceBridge Speak Error]", err);
       } finally {
         setIsPlayingAudio(false);
+        setTimeout(() => {
+          isSpeakingRef.current = false;
+        }, 1500);
       }
     },
     [currentLangConfig]
@@ -398,48 +395,6 @@ function VoiceBridgePage() {
       if (animationFrameIdRef.current) cancelAnimationFrame(animationFrameIdRef.current);
     };
   }, [isLive, autoDetect, capturing, speakSignPhrase]);
-
-  // Continuous Auto-Detection Polling Fallback (ensures 100% responsiveness under any lighting/device)
-  useEffect(() => {
-    if (!autoDetect || !isLive || capturing) return;
-
-    const interval = setInterval(() => {
-      if (!isLive || capturing || isProcessingAutoRef.current) return;
-      const nowMs = Date.now();
-      if (nowMs - lastAutoCheckTimeRef.current < 1200) return;
-
-      lastAutoCheckTimeRef.current = nowMs;
-      isProcessingAutoRef.current = true;
-
-      const frame = videoRef.current;
-      predictSign(frame, { mode: "ai", landmarks: latestLandmarksRef.current, targetSign: "AUTO" })
-        .then((prediction) => {
-          if (prediction.success && prediction.sign && prediction.sign !== "UNKNOWN") {
-            const detectedSign = prediction.sign;
-            const isNewSign = detectedSign !== lastSpokenSignRef.current;
-            const isCooldownElapsed = Date.now() - lastSpeechTimeRef.current > 2500;
-
-            if (isNewSign || isCooldownElapsed) {
-              lastSpokenSignRef.current = detectedSign;
-              lastSpeechTimeRef.current = Date.now();
-              setPhase("detected");
-              setCurrentSign(detectedSign);
-              setSigns((prev) => [...prev, detectedSign]);
-              setLastConfidence(prediction.confidence || 0.95);
-              setLastMessage(prediction.message || null);
-
-              playFeedbackSound("success");
-              void speakSignPhrase(detectedSign, selectedLangRef.current);
-            }
-          }
-        })
-        .finally(() => {
-          isProcessingAutoRef.current = false;
-        });
-    }, 1200);
-
-    return () => clearInterval(interval);
-  }, [autoDetect, isLive, capturing, speakSignPhrase]);
 
   // Main Capture Action
   const capture = useCallback(async () => {

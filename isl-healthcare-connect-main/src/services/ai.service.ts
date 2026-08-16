@@ -981,24 +981,12 @@ export async function speak(
   const ctx = getSharedAudioContext();
 
   // Layer 0: Bundled Authentic Spoken Healthcare Audio Asset (/audio/ta/MEDICINE.mp3)
-  // 100% reliable, zero network latency, authentic native Tamil voice across all devices
+  // Plays single clean audio stream with 0ms latency
   if (signName && signName !== "AUTO" && signName !== "UNKNOWN") {
     const signKey = signName.toUpperCase().replace(/\s+/g, "_");
     const staticUrl = `/audio/${cleanLang}/${signKey}.mp3`;
 
-    // Priority A: Direct HTML5 Audio element playback (synchronous trigger)
-    try {
-      const audio = new Audio(staticUrl);
-      activeAudioElement = audio;
-      audio.volume = 1.0;
-      audio.play().catch((audioErr) => {
-        console.warn("[TTS HTML5 Play notice]", audioErr);
-      });
-    } catch (staticErr) {
-      console.warn("[TTS Static Audio notice]", staticErr);
-    }
-
-    // Priority B: WebAudio buffer playback (redundant guarantee)
+    // Priority A: WebAudio buffer playback (Single stream, no double voice)
     if (ctx) {
       try {
         if (ctx.state === "suspended") {
@@ -1010,27 +998,23 @@ export async function speak(
           source.buffer = cachedBuffer;
           source.connect(ctx.destination);
           source.start(0);
-        } else {
-          fetch(staticUrl)
-            .then((res) => (res.ok ? res.arrayBuffer() : null))
-            .then((ab) => (ab ? ctx.decodeAudioData(ab) : null))
-            .then((decodedBuf) => {
-              if (decodedBuf) {
-                audioBufferCache.set(staticUrl, decodedBuf);
-                const source = ctx.createBufferSource();
-                source.buffer = decodedBuf;
-                source.connect(ctx.destination);
-                source.start(0);
-              }
-            })
-            .catch(() => {});
+          return { ok: true, voiceType: "neural" };
         }
       } catch (bufErr) {
         console.warn("[TTS WebAudio notice]", bufErr);
       }
     }
 
-    return { ok: true, voiceType: "neural" };
+    // Priority B: Direct HTML5 Audio fallback (Only if WebAudio was not used)
+    try {
+      const audio = new Audio(staticUrl);
+      activeAudioElement = audio;
+      audio.volume = 1.0;
+      await audio.play();
+      return { ok: true, voiceType: "neural" };
+    } catch (staticErr) {
+      console.warn("[TTS Static Audio notice]", staticErr);
+    }
   }
 
   // Layer 1: Synchronous Browser SpeechSynthesis (Bypasses autoplay restriction and zero latency)
