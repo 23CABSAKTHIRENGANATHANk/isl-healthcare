@@ -918,9 +918,9 @@ function getSharedAudioContext(): AudioContext | null {
   }
 }
 
-// Global unlocker on first user interaction
+// Global unlocker on first user interaction and preload core healthcare audio
 if (typeof window !== "undefined") {
-  const unlockAudio = () => {
+  const preloadCoreAudio = async () => {
     const ctx = getSharedAudioContext();
     if (ctx && ctx.state === "suspended") {
       void ctx.resume();
@@ -928,10 +928,31 @@ if (typeof window !== "undefined") {
     if ("speechSynthesis" in window) {
       window.speechSynthesis.resume();
     }
+
+    // Preload core Tamil healthcare audio files into memory
+    const coreSigns = ["HELP", "MEDICINE", "INJURY", "DOCTOR", "WATER", "PAIN", "FEVER", "NURSE", "HELLO", "EMERGENCY"];
+    if (ctx) {
+      for (const sign of coreSigns) {
+        const url = `/audio/ta/${sign}.mp3`;
+        if (!audioBufferCache.has(url)) {
+          fetch(url)
+            .then((r) => (r.ok ? r.arrayBuffer() : null))
+            .then((ab) => (ab ? ctx.decodeAudioData(ab) : null))
+            .then((buf) => {
+              if (buf) audioBufferCache.set(url, buf);
+            })
+            .catch(() => {});
+        }
+      }
+    }
   };
-  window.addEventListener("click", unlockAudio, { once: false, passive: true });
-  window.addEventListener("touchstart", unlockAudio, { once: false, passive: true });
-  window.addEventListener("keydown", unlockAudio, { once: false, passive: true });
+
+  window.addEventListener("click", preloadCoreAudio, { passive: true });
+  window.addEventListener("touchstart", preloadCoreAudio, { passive: true });
+  window.addEventListener("keydown", preloadCoreAudio, { passive: true });
+
+  // Initial trigger after DOM loads
+  setTimeout(preloadCoreAudio, 500);
 }
 
 export async function speak(
