@@ -355,14 +355,14 @@ function VoiceBridgePage() {
                     if (prediction.success && prediction.sign && prediction.sign !== "UNKNOWN") {
                       const detectedSign = prediction.sign;
                       const isNewSign = detectedSign !== lastSpokenSignRef.current;
-                      const isCooldownElapsed = Date.now() - lastSpeechTimeRef.current > 2000;
 
-                      if (isNewSign || isCooldownElapsed) {
+                      // Only vocalize once when a new sign is presented (prevents continuous voice repetition)
+                      if (isNewSign) {
                         lastSpokenSignRef.current = detectedSign;
                         lastSpeechTimeRef.current = Date.now();
                         setPhase("detected");
                         setCurrentSign(detectedSign);
-                        setSigns((prev) => [...prev, detectedSign]);
+                        setSigns((prev) => (prev[prev.length - 1] === detectedSign ? prev : [...prev, detectedSign]));
                         setLastConfidence(prediction.confidence || 0.96);
                         setLastMessage(prediction.message || null);
 
@@ -380,6 +380,7 @@ function VoiceBridgePage() {
             setLiveLandmarks([]);
             setLiveExtendedCount(0);
             setPhase("idle");
+            lastSpokenSignRef.current = null;
           }
         } catch {}
 

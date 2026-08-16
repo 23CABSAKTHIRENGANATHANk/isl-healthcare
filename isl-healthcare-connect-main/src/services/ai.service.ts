@@ -144,6 +144,16 @@ export const MULTILINGUAL_PHRASES: Record<string, Record<string, string>> = {
     bn: "অনুগ্রহ করে খাবার জল দিন।",
     mr: "कृपया पिण्याचे पाणी द्या.",
   },
+  INJURY: {
+    en: "I have an injury or trauma.",
+    ta: "காயம் அல்லது அதிர்ச்சி ஏற்பட்டுள்ளது.",
+    hi: "मुझे चोट या आघात लगा है।",
+    te: "నాకు గాయం తగిలింది.",
+    kn: "ನನಗೆ ಗಾಯವಾಗಿದೆ.",
+    ml: "എനിക്ക് പരിക്കേറ്റു.",
+    bn: "আমার আঘাত লেগেছে।",
+    mr: "मला दुखापत झाली आहे.",
+  },
   EMERGENCY: {
     en: "Emergency medical assistance needed.",
     ta: "அவசர மருத்துவ உதவி தேவை.",
