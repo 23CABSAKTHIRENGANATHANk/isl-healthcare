@@ -460,36 +460,54 @@ export function evaluateLandmarksKinematics(
 
   // Open Multi-Sign Recognition Mode (Used for VoiceBridge open translation)
   if (!target || target === "AUTO" || target === "OPEN" || target === "ANY" || target === "NONE") {
-    if (indexExt && middleExt && ringExt && !pinkyExt) {
+    // 1. MEDICINE: Tablet pinch gesture (thumb tip and index tip close together)
+    if (isPinched || (extendedCount <= 2 && thumbIndexGap < 0.28 && !ringExt && !pinkyExt)) {
+      detectedSign = "MEDICINE";
+      matched = true;
+      confidence = 0.96;
+      message = "✓ MEDICINE sign recognized (tablet pinch).";
+    }
+    // 2. WATER: 3 extended fingers (W-shape)
+    else if ((indexExt && middleExt && ringExt && !pinkyExt) || extendedCount === 3) {
       detectedSign = "WATER";
       matched = true;
       confidence = 0.98;
       message = "✓ WATER sign recognized (3-finger W-shape).";
-    } else if (indexExt && middleExt && !ringExt && !pinkyExt) {
+    }
+    // 3. HELP: 4 or 5 extended fingers (Open Palm)
+    else if (extendedCount >= 4 || (indexExt && middleExt && ringExt && pinkyExt)) {
+      detectedSign = "HELP";
+      matched = true;
+      confidence = 0.97;
+      message = "✓ HELP / EMERGENCY sign recognized (open palm).";
+    }
+    // 4. INJURY: Single index pointing gesture (or index pointing up with thumb)
+    else if ((indexExt && !middleExt && !ringExt && !pinkyExt) || (extendedCount === 1 && indexExt)) {
+      detectedSign = "INJURY";
+      matched = true;
+      confidence = 0.95;
+      message = "✓ INJURY sign recognized (pointing gesture).";
+    }
+    // 5. DOCTOR: 2 extended fingers (V-shape / Index + Middle pulse check)
+    else if ((indexExt && middleExt && !ringExt && !pinkyExt) || (extendedCount === 2 && !isPinched)) {
       detectedSign = "DOCTOR";
       matched = true;
       confidence = 0.96;
       message = "✓ DOCTOR sign recognized (2-finger pulse check).";
-    } else if (indexExt && !middleExt && !ringExt && !pinkyExt) {
-      detectedSign = "INJURY";
-      matched = true;
-      confidence = 0.94;
-      message = "✓ INJURY sign recognized (pointing gesture).";
-    } else if (isPinched || (extendedCount <= 2 && thumbIndexGap < 0.50)) {
-      detectedSign = "MEDICINE";
-      matched = true;
-      confidence = 0.95;
-      message = "✓ MEDICINE sign recognized (tablet pinch).";
-    } else if (extendedCount >= 4 || (indexExt && middleExt && ringExt && pinkyExt)) {
-      detectedSign = "HELP";
-      matched = true;
-      confidence = 0.96;
-      message = "✓ HELP / EMERGENCY sign recognized (open palm).";
-    } else if (extendedCount <= 1) {
+    }
+    // 6. PAIN: Closed fist (0 extended fingers or tight fist)
+    else if (extendedCount === 0 || (!indexExt && !middleExt && !ringExt && !pinkyExt)) {
       detectedSign = "PAIN";
       matched = true;
-      confidence = 0.93;
+      confidence = 0.94;
       message = "✓ PAIN sign recognized (closed fist).";
+    }
+    // 7. Fallback for single finger
+    else if (extendedCount === 1) {
+      detectedSign = "INJURY";
+      matched = true;
+      confidence = 0.92;
+      message = "✓ INJURY sign recognized (single finger).";
     } else {
       detectedSign = "UNKNOWN";
       matched = false;

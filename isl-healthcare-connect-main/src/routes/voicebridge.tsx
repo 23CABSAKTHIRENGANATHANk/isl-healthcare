@@ -343,9 +343,9 @@ function VoiceBridgePage() {
                 setLiveExtendedCount(kinEval.extendedCount);
               }
 
-              // Run identical prediction to Spacebar trigger every 300ms
+              // Run instant prediction on auto-detect every 180ms for ultra-low latency
               const nowMs = Date.now();
-              if (autoDetect && !capturing && !isProcessingAutoRef.current && nowMs - lastAutoCheckTimeRef.current > 300) {
+              if (autoDetect && !capturing && !isProcessingAutoRef.current && nowMs - lastAutoCheckTimeRef.current > 180) {
                 lastAutoCheckTimeRef.current = nowMs;
                 isProcessingAutoRef.current = true;
 
@@ -354,7 +354,7 @@ function VoiceBridgePage() {
                     if (prediction.success && prediction.sign && prediction.sign !== "UNKNOWN") {
                       const detectedSign = prediction.sign;
                       const isNewSign = detectedSign !== lastSpokenSignRef.current;
-                      const isCooldownElapsed = Date.now() - lastSpeechTimeRef.current > 2500;
+                      const isCooldownElapsed = Date.now() - lastSpeechTimeRef.current > 2000;
 
                       if (isNewSign || isCooldownElapsed) {
                         lastSpokenSignRef.current = detectedSign;
@@ -365,7 +365,6 @@ function VoiceBridgePage() {
                         setLastConfidence(prediction.confidence || 0.96);
                         setLastMessage(prediction.message || null);
 
-                        playFeedbackSound("success");
                         void speakSignPhrase(detectedSign, selectedLangRef.current);
                       }
                     }
