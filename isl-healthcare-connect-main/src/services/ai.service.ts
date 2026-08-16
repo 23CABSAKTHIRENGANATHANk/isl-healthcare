@@ -709,100 +709,6 @@ function extractBase64FromInput(input: SignImageInput): string | null {
   return null;
 }
 
-function detectSignFromCanvasFrame(
-  input: SignImageInput,
-  targetSign: string
-): PredictionResult | null {
-  if (typeof window === "undefined" || !input) return null;
-  try {
-    let video: HTMLVideoElement | null = null;
-    if (input instanceof HTMLVideoElement && input.videoWidth > 0) {
-      video = input;
-    }
-    if (!video) return null;
-
-    const canvas = document.createElement("canvas");
-    canvas.width = 160;
-    canvas.height = 120;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return null;
-
-    ctx.drawImage(video, 0, 0, 160, 120);
-    const imgData = ctx.getImageData(20, 10, 120, 100);
-    const d = imgData.data;
-
-    let skinPixels = 0;
-    let minX = 160, maxX = 0, minY = 120, maxY = 0;
-    const topProfile: number[] = new Array(120).fill(120);
-
-    for (let y = 0; y < 100; y++) {
-      for (let x = 0; x < 120; x++) {
-        const idx = (y * 120 + x) * 4;
-        const r = d[idx], g = d[idx + 1], b = d[idx + 2];
-
-        // Multi-gamut robust skin detector (works across sunlight, shadows, backlight)
-        const isSkin =
-          (r > 50 && g > 30 && b > 15 && r > g && r > b && (r - Math.min(g, b)) > 10) ||
-          (r > 90 && g > 65 && b > 40 && Math.abs(r - g) > 8 && r > b);
-
-        if (isSkin) {
-          skinPixels++;
-          if (x < minX) minX = x;
-          if (x > maxX) maxX = x;
-          if (y < minY) minY = y;
-          if (y > maxY) maxY = y;
-          if (y < topProfile[x]) topProfile[x] = y;
-        }
-      }
-    }
-
-    if (skinPixels < 300) {
-      return null;
-    }
-
-    // Peak finger detection along top silhouette
-    let peaks = 0;
-    for (let x = 8; x < 112; x += 6) {
-      if (topProfile[x] < 85 && topProfile[x] < topProfile[x - 4] && topProfile[x] < topProfile[x + 4]) {
-        peaks++;
-      }
-    }
-
-    const width = Math.max(1, maxX - minX);
-    const height = Math.max(1, maxY - minY);
-    const aspect = height / width;
-
-    let detected = "HELP";
-    if (peaks >= 4 || width > 50) {
-      detected = "HELP";
-    } else if (peaks === 3) {
-      detected = "WATER";
-    } else if (peaks === 2 || (aspect > 1.30 && width > 25)) {
-      detected = "DOCTOR";
-    } else if (peaks === 1 || aspect > 1.55) {
-      detected = "INJURY";
-    } else if (width < 32 && height < 35) {
-      detected = "MEDICINE";
-    } else if (skinPixels > 600 && aspect < 1.25) {
-      detected = "PAIN";
-    }
-
-    const matched = !targetSign || targetSign === "AUTO" || targetSign === "OPEN" || targetSign === detected;
-    return {
-      success: matched,
-      sign: matched ? (targetSign && targetSign !== "AUTO" ? targetSign : detected) : detected,
-      confidence: 0.95,
-      phrase: CONTROLLED_PHRASES[detected] || `${detected}.`,
-      mode: "ai",
-      model_version: "isl_vision_canvas_v2",
-      message: `✓ ${detected} recognized.`,
-      extendedCount: peaks || 2,
-    };
-  } catch (e) {
-    return null;
-  }
-}
-
 /**
  * Predicts sign from camera frame via Client Landmark Kinematics or FastAPI Backend.
  */
@@ -831,18 +737,12 @@ export async function predictSign(
     };
   }
 
-  // Phase 1: If client 3D landmarks are available, evaluate kinematics immediately
+  // Phase 1: If client 3D hand landmarks are available, evaluate kinematics immediately
   if (options.landmarks && options.landmarks.length > 0 && options.landmarks[0].length >= 21) {
     const clientEval = evaluateLandmarksKinematics(options.landmarks[0], targetSign, strictness);
     if (clientEval.success || clientEval.extendedCount !== undefined) {
       return clientEval;
     }
-  }
-
-  // Phase 1.5: Fast Client Vision Silhouette Detector (Works 100% under sunlight & backlight)
-  const canvasEval = detectSignFromCanvasFrame(imageInput, targetSign);
-  if (canvasEval && canvasEval.success) {
-    return canvasEval;
   }
 
   // Phase 2: Instant Client Evaluation or FastAPI Backend
