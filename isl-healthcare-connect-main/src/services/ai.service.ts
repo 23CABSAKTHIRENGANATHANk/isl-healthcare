@@ -323,11 +323,10 @@ const getBackendUrl = (): string => {
   if (typeof import.meta !== "undefined" && import.meta.env?.VITE_AI_API_URL) {
     return import.meta.env.VITE_AI_API_URL as string;
   }
-  if (typeof window !== "undefined" && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
-    // On production HTTPS, do not attempt http://localhost:8000
-    return "";
+  if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
+    return "http://localhost:8000";
   }
-  return "http://localhost:8000";
+  return "https://isl-healthcare.onrender.com";
 };
 
 // -----------------------------------------------------------------------------
@@ -1087,15 +1086,6 @@ function fallbackSpeechSynthesis(
         v.lang.toLowerCase().startsWith(cleanPrefix) ||
         v.name.toLowerCase().includes(cleanPrefix === "ta" ? "tamil" : cleanPrefix)
     );
-
-    if (!tamilVoice && cleanPrefix === "ta") {
-      // Do NOT speak English or corrupt Tamil pronunciation. Report honestly.
-      return {
-        ok: false,
-        voiceType: "unavailable",
-        reason: "தமிழ் குரல் இந்த சாதனத்தில் கிடைக்கவில்லை. சாதனத்தின் Text-to-Speech அமைப்புகளில் தமிழ் குரலை இயக்கவும்.",
-      };
-    }
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = langCode;

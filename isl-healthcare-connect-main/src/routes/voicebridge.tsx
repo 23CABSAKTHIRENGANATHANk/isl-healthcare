@@ -396,6 +396,48 @@ function VoiceBridgePage() {
     };
   }, [isLive, autoDetect, capturing, speakSignPhrase]);
 
+  // Continuous Auto-Detection Polling Fallback (ensures 100% responsiveness under any lighting/device)
+  useEffect(() => {
+    if (!autoDetect || !isLive || capturing) return;
+
+    const interval = setInterval(() => {
+      if (!isLive || capturing || isProcessingAutoRef.current) return;
+      const nowMs = Date.now();
+      if (nowMs - lastAutoCheckTimeRef.current < 1200) return;
+
+      lastAutoCheckTimeRef.current = nowMs;
+      isProcessingAutoRef.current = true;
+
+      const frame = videoRef.current;
+      predictSign(frame, { mode: "ai", landmarks: latestLandmarksRef.current, targetSign: "AUTO" })
+        .then((prediction) => {
+          if (prediction.success && prediction.sign && prediction.sign !== "UNKNOWN") {
+            const detectedSign = prediction.sign;
+            const isNewSign = detectedSign !== lastSpokenSignRef.current;
+            const isCooldownElapsed = Date.now() - lastSpeechTimeRef.current > 2500;
+
+            if (isNewSign || isCooldownElapsed) {
+              lastSpokenSignRef.current = detectedSign;
+              lastSpeechTimeRef.current = Date.now();
+              setPhase("detected");
+              setCurrentSign(detectedSign);
+              setSigns((prev) => [...prev, detectedSign]);
+              setLastConfidence(prediction.confidence || 0.95);
+              setLastMessage(prediction.message || null);
+
+              playFeedbackSound("success");
+              void speakSignPhrase(detectedSign, selectedLangRef.current);
+            }
+          }
+        })
+        .finally(() => {
+          isProcessingAutoRef.current = false;
+        });
+    }, 1200);
+
+    return () => clearInterval(interval);
+  }, [autoDetect, isLive, capturing, speakSignPhrase]);
+
   // Main Capture Action
   const capture = useCallback(async () => {
     if (capturing) return;
