@@ -29,11 +29,11 @@ def generate_certificate_pdf(
     if issued_at:
         try:
             dt = datetime.fromisoformat(issued_at.replace("Z", "+00:00"))
-            date_str = dt.strftime("%B %d, %Y")
+            date_str = dt.strftime("%B %d, %Y at %I:%M %p")
         except Exception:
-            date_str = datetime.utcnow().strftime("%B %d, %Y")
+            date_str = datetime.now().strftime("%B %d, %Y at %I:%M %p")
     else:
-        date_str = datetime.utcnow().strftime("%B %d, %Y")
+        date_str = datetime.now().strftime("%B %d, %Y at %I:%M %p")
 
     tier_label = tier.capitalize()
     name_safe = recipient_name[:50]

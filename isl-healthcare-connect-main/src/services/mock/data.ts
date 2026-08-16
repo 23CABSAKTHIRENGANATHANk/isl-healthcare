@@ -1458,7 +1458,7 @@ export const certificates: Certificate[] = [
     signs_required: 10,
     signs_completed: 10,
     status: "completed",
-    issued_at: "2026-08-14T12:00:00Z",
+    issued_at: new Date().toISOString(),
     credential_id: "ISL-SETU-BRZ-2026-8891",
   },
   {

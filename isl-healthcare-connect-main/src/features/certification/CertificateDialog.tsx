@@ -36,18 +36,17 @@ export function CertificateDialog({
   const reduceMotion = useReducedMotion();
   const now = new Date();
   const dateObj = certificate.issued_at ? new Date(certificate.issued_at) : now;
-  const issuedDate =
-    dateObj.toLocaleDateString("en-IN", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    }) +
-    " • " +
-    dateObj.toLocaleTimeString("en-IN", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
+  const formattedDate = dateObj.toLocaleDateString("en-IN", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+  const formattedTime = dateObj.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -105,12 +104,14 @@ export function CertificateDialog({
                 </p>
               </div>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-yellow-400">Issue Date</p>
-                <p className="text-xs font-bold text-white">{issuedDate}</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-yellow-400">Issue Date & Time</p>
+                <p className="text-xs font-bold text-white">{formattedDate}</p>
+                <p className="font-mono text-[11px] text-amber-300">{formattedTime} (IST)</p>
               </div>
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Clinical Evaluation</p>
                 <p className="text-xs font-bold text-emerald-400">92% (VERIFIED)</p>
+                <p className="text-[10px] font-bold text-emerald-300/80">REAL-TIME ACCREDITED</p>
               </div>
             </div>
 
