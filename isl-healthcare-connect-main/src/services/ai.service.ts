@@ -957,100 +957,50 @@ export async function speak(
   }
 
   const cleanLang = langCode.split("-")[0].toLowerCase();
-  const ctx = getSharedAudioContext();
 
-  // Layer 0: Bundled Authentic Spoken Healthcare Audio Asset (100% Native Clarity)
-  if (signName && signName !== "AUTO" && signName !== "UNKNOWN") {
-    const signKey = signName.toUpperCase().replace(/\s+/g, "_");
-    const staticUrl = `/audio/${cleanLang}/${signKey}.mp3`;
-
-    // Attempt 1: Web Audio buffer decoding (Bypasses HTML5 audio autoplay blocking)
-    if (ctx) {
-      try {
-        if (ctx.state === "suspended") await ctx.resume();
-
-        let buffer = audioBufferCache.get(staticUrl);
-        if (!buffer) {
-          const res = await fetch(staticUrl);
-          if (res.ok) {
-            const arrayBuf = await res.arrayBuffer();
-            buffer = await ctx.decodeAudioData(arrayBuf);
-            audioBufferCache.set(staticUrl, buffer);
-          }
-        }
-
-        if (buffer) {
-          const source = ctx.createBufferSource();
-          source.buffer = buffer;
-          source.connect(ctx.destination);
-          source.start(0);
-          return { ok: true, voiceType: "neural" };
-        }
-      } catch (bufErr) {
-        console.warn("[TTS Service] WebAudio buffer fallback:", bufErr);
-      }
-    }
-
-    // Attempt 2: Direct HTML5 Audio playback
+  // Primary Instant Trigger: Synchronous Browser SpeechSynthesis (Bypasses autoplay restriction and zero latency)
+  if (typeof window !== "undefined" && "speechSynthesis" in window) {
     try {
-      const audio = new Audio(staticUrl);
-      activeAudioElement = audio;
-      audio.volume = 1.0;
-      audio.playbackRate = 1.0;
-      await audio.play();
-      return { ok: true, voiceType: "neural" };
-    } catch (staticErr) {
-      console.warn("[TTS Service] Static HTMLAudio fallback:", staticErr);
-    }
-  }
-
-  // Layer 1: High-Clarity Google Neural TTS Stream (Guaranteed authentic audio in Tamil, Hindi, etc.)
-  try {
-    const ttsLang = cleanLang === "ta" ? "ta" : cleanLang === "hi" ? "hi" : cleanLang === "te" ? "te" : cleanLang === "kn" ? "kn" : cleanLang === "ml" ? "ml" : cleanLang === "bn" ? "bn" : cleanLang === "mr" ? "mr" : "en";
-    const googleTtsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=${ttsLang}&client=tw-ob&q=${encodeURIComponent(cleanText)}`;
-
-    // Try WebAudio buffer decoding first for mobile/autoplay support
-    if (ctx) {
-      try {
-        if (ctx.state === "suspended") await ctx.resume();
-        let buffer = audioBufferCache.get(googleTtsUrl);
-        if (!buffer) {
-          const res = await fetch(googleTtsUrl);
-          if (res.ok) {
-            const arrayBuf = await res.arrayBuffer();
-            buffer = await ctx.decodeAudioData(arrayBuf);
-            audioBufferCache.set(googleTtsUrl, buffer);
-          }
-        }
-        if (buffer) {
-          const source = ctx.createBufferSource();
-          source.buffer = buffer;
-          source.connect(ctx.destination);
-          source.start(0);
-          return { ok: true, voiceType: "neural" };
-        }
-      } catch (webAudioErr) {
-        console.warn("[TTS Service] WebAudio stream notice:", webAudioErr);
+      const synth = window.speechSynthesis;
+      synth.cancel();
+      if (synth.paused) {
+        synth.resume();
       }
-    }
 
-    // Direct HTML5 Audio playback fallback
-    const audio = new Audio(googleTtsUrl);
-    activeAudioElement = audio;
-    audio.volume = 1.0;
-    audio.playbackRate = 1.0;
-    await audio.play();
-    return { ok: true, voiceType: "neural" };
-  } catch (streamErr) {
-    console.warn("[TTS Service] Google TTS stream notice, trying backend/browser:", streamErr);
+      const voices = cachedVoices.length > 0 ? cachedVoices : synth.getVoices();
+      const matchedVoice = voices.find(
+        (v) =>
+          v.lang.toLowerCase() === langCode.toLowerCase() ||
+          v.lang.toLowerCase().startsWith(cleanLang) ||
+          v.name.toLowerCase().includes(cleanLang === "ta" ? "tamil" : cleanLang)
+      );
+
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.lang = langCode;
+      utterance.rate = 0.92;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+
+      if (matchedVoice) {
+        utterance.voice = matchedVoice;
+      }
+
+      utterance.onstart = () => {
+        if (synth.paused) synth.resume();
+      };
+
+      synth.speak(utterance);
+    } catch (synthErr) {
+      console.warn("[TTS Direct Synth notice]", synthErr);
+    }
   }
 
-  // Layer 2: Call FastAPI Neural TTS Backend (POST /api/tts)
+  // Secondary Enhanced Trigger: Backend Neural TTS
   const backendUrl = getBackendUrl();
   if (backendUrl) {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3500);
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
 
       const response = await fetch(`${backendUrl}/api/tts`, {
         method: "POST",
@@ -1064,21 +1014,18 @@ export async function speak(
       if (response.ok) {
         const audioBlob = await response.blob();
         const blobUrl = URL.createObjectURL(audioBlob);
-        ttsAudioCache.set(cacheKey, blobUrl);
-
         const audio = new Audio(blobUrl);
         activeAudioElement = audio;
-        audio.playbackRate = 1.0;
+        audio.volume = 1.0;
         await audio.play();
         return { ok: true, voiceType: "neural" };
       }
     } catch (backendTtsErr) {
-      console.warn("[TTS Service] Backend Neural TTS unavailable, using browser fallback:", backendTtsErr);
+      // Backend stream fallback
     }
   }
 
-  // Layer 3: Browser Web SpeechSynthesis Fallback (Strict ta-IN matching)
-  return fallbackSpeechSynthesis(cleanText, langCode);
+  return { ok: true, voiceType: "browser" };
 }
 
 function fallbackSpeechSynthesis(
