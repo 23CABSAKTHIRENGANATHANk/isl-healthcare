@@ -234,6 +234,7 @@ export async function generateProfessionalCertificateBlob(
   ctx.stroke();
 
   const now = new Date();
+  const credId = certificate.credential_id || "ISL-SETU-BRZ-2026-8891";
   const issueDateObj = certificate.issued_at ? new Date(certificate.issued_at) : now;
   const issueDateStr = issueDateObj.toLocaleDateString("en-IN", {
     year: "numeric",

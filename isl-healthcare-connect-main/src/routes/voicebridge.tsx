@@ -39,6 +39,7 @@ import {
   getClientHandLandmarker,
   CLINICAL_SIGN_DICTIONARY,
   type LandmarkPoint,
+  evaluateLandmarksKinematics,
 } from "@/services/ai.service";
 import {
   DoctorSpeechRecognizer,
@@ -410,18 +411,19 @@ function VoiceBridgePage() {
       const prediction = await predictSign(frame, { mode, landmarks: latestLandmarksRef.current, targetSign: "AUTO" });
 
       if (prediction.success && prediction.sign) {
+        const detectedSign = prediction.sign;
         setPhase("detected");
-        setCurrentSign(prediction.sign);
-        setSigns((prev) => [...prev, prediction.sign]);
+        setCurrentSign(detectedSign);
+        setSigns((prev) => [...prev, detectedSign]);
         setLastConfidence(prediction.confidence);
         setLastMessage(prediction.message || null);
 
-        lastSpokenSignRef.current = prediction.sign;
+        lastSpokenSignRef.current = detectedSign;
         lastSpeechTimeRef.current = Date.now();
-        void speakSignPhrase(prediction.sign, selectedLang);
+        void speakSignPhrase(detectedSign, selectedLang);
 
-        if (prediction.sign === "HELP" || prediction.sign === "EMERGENCY") {
-          handleTriggerSOS(prediction.sign);
+        if (detectedSign === "HELP" || detectedSign === "EMERGENCY") {
+          handleTriggerSOS(detectedSign);
         }
       } else {
         setPhase("failed");

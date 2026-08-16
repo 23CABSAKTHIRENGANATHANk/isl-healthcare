@@ -29,7 +29,7 @@ function enrichSign(s: Sign): Sign {
     ...s,
     video_url: videoUrl,
     steps: (s.steps && s.steps.length > 0) ? s.steps : (canonical?.steps || []),
-    region_note: s.region_note || canonical?.region_note,
+    region_note: s.region_note || canonical?.region_note || "",
   };
 }
 
@@ -214,7 +214,7 @@ export async function createLesson(
       .single();
 
     if (error) return { error: error.message };
-    return { data };
+    return { error: null, data };
   } catch (err: any) {
     return { error: err.message || "Failed to create lesson" };
   }
@@ -264,7 +264,7 @@ export async function createSign(
       .single();
 
     if (error) return { error: error.message };
-    return { data };
+    return { error: null, data };
   } catch (err: any) {
     return { error: err.message || "Failed to create sign" };
   }
