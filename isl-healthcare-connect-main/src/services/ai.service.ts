@@ -986,43 +986,51 @@ export async function speak(
     const signKey = signName.toUpperCase().replace(/\s+/g, "_");
     const staticUrl = `/audio/${cleanLang}/${signKey}.mp3`;
 
-    // Priority A: WebAudio buffer playback (bypasses browser autoplay blocks)
+    // Priority A: Direct HTML5 Audio element playback (synchronous trigger)
+    try {
+      const audio = new Audio(staticUrl);
+      activeAudioElement = audio;
+      audio.volume = 1.0;
+      audio.play().catch((audioErr) => {
+        console.warn("[TTS HTML5 Play notice]", audioErr);
+      });
+    } catch (staticErr) {
+      console.warn("[TTS Static Audio notice]", staticErr);
+    }
+
+    // Priority B: WebAudio buffer playback (redundant guarantee)
     if (ctx) {
       try {
         if (ctx.state === "suspended") {
           void ctx.resume();
         }
-        let buffer = audioBufferCache.get(staticUrl);
-        if (!buffer) {
-          const res = await fetch(staticUrl);
-          if (res.ok) {
-            const arrayBuf = await res.arrayBuffer();
-            buffer = await ctx.decodeAudioData(arrayBuf);
-            audioBufferCache.set(staticUrl, buffer);
-          }
-        }
-        if (buffer) {
+        const cachedBuffer = audioBufferCache.get(staticUrl);
+        if (cachedBuffer) {
           const source = ctx.createBufferSource();
-          source.buffer = buffer;
+          source.buffer = cachedBuffer;
           source.connect(ctx.destination);
           source.start(0);
-          return { ok: true, voiceType: "neural" };
+        } else {
+          fetch(staticUrl)
+            .then((res) => (res.ok ? res.arrayBuffer() : null))
+            .then((ab) => (ab ? ctx.decodeAudioData(ab) : null))
+            .then((decodedBuf) => {
+              if (decodedBuf) {
+                audioBufferCache.set(staticUrl, decodedBuf);
+                const source = ctx.createBufferSource();
+                source.buffer = decodedBuf;
+                source.connect(ctx.destination);
+                source.start(0);
+              }
+            })
+            .catch(() => {});
         }
       } catch (bufErr) {
-        console.warn("[TTS Service] WebAudio buffer notice:", bufErr);
+        console.warn("[TTS WebAudio notice]", bufErr);
       }
     }
 
-    // Priority B: Direct HTML5 Audio element playback
-    try {
-      const audio = new Audio(staticUrl);
-      activeAudioElement = audio;
-      audio.volume = 1.0;
-      await audio.play();
-      return { ok: true, voiceType: "neural" };
-    } catch (staticErr) {
-      console.warn("[TTS Service] Static HTMLAudio notice:", staticErr);
-    }
+    return { ok: true, voiceType: "neural" };
   }
 
   // Layer 1: Synchronous Browser SpeechSynthesis (Bypasses autoplay restriction and zero latency)

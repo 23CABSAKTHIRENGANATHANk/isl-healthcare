@@ -643,7 +643,19 @@ function VoiceBridgePage() {
               message={message}
               phase={currentSign ? "detected" : phase}
               targetSign={currentSign || undefined}
-              onStart={() => start()}
+              onStart={() => {
+                void start();
+                if (typeof window !== "undefined") {
+                  const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+                  if (AudioCtx) {
+                    const ctx = new AudioCtx();
+                    void ctx.resume();
+                  }
+                  if ("speechSynthesis" in window) {
+                    window.speechSynthesis.resume();
+                  }
+                }
+              }}
               className="w-full"
               landmarks={liveLandmarks}
               fingerStates={liveFingerStates}
