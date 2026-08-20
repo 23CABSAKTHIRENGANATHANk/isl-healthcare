@@ -134,6 +134,29 @@ function LoginPage() {
                 )}
                 {busy ? "Signing in…" : "Log in"}
               </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full border-border/80 text-foreground hover:bg-accent"
+                disabled={busy}
+                onClick={async () => {
+                  setEmail("testuser@hospital.org");
+                  setPassword("TestPassword123!");
+                  setBusy(true);
+                  setError(null);
+                  const { error: signInError } = await signIn("testuser@hospital.org", "TestPassword123!");
+                  setBusy(false);
+                  if (signInError) {
+                    setError(signInError);
+                    return;
+                  }
+                  toast.success("Demo credentials loaded — Welcome to ISL Setu!");
+                  void navigate({ to: redirectTarget as string });
+                }}
+              >
+                ⚡ 1-Click Demo Login (Healthcare Staff)
+              </Button>
             </form>
 
             <p className="mt-6 text-sm text-muted-foreground">
