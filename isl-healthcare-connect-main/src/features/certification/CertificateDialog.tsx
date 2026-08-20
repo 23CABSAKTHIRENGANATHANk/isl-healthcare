@@ -73,10 +73,10 @@ export function CertificateDialog({
             <img src={logo} alt="ISL Setu logo" className="h-12 w-auto" />
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.25em] text-cyan-400">
-                National Healthcare Accessibility Council
+                ISL Setu Healthcare Accessibility Platform
               </p>
               <h3 className="mt-1.5 font-display text-2xl font-black text-yellow-400">
-                Official Certificate of Achievement
+                ISL Setu Platform Credential
               </h3>
               <p className="mt-1 text-xs font-bold uppercase tracking-wider text-emerald-400">
                 ★ {tierLabel[certificate.tier]} Clinical Healthcare Tier ★

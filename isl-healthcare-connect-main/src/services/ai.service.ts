@@ -330,8 +330,8 @@ export function getSpokenPhrase(sign: string, langCode = "en"): string {
 }
 
 const getBackendUrl = (): string => {
-  if (typeof import.meta !== "undefined" && import.meta.env?.VITE_AI_API_URL) {
-    return import.meta.env.VITE_AI_API_URL as string;
+  if (typeof import.meta !== "undefined" && (import.meta.env?.VITE_AI_API_URL || import.meta.env?.VITE_API_URL)) {
+    return (import.meta.env.VITE_AI_API_URL || import.meta.env.VITE_API_URL) as string;
   }
   if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
     return "http://localhost:8000";
@@ -1045,15 +1045,10 @@ export async function speak(
     }
   }
 
-  // Layer 1: Synchronous Browser SpeechSynthesis (Bypasses autoplay restriction and zero latency)
+  // Layer 1: Synchronous Browser SpeechSynthesis (when matched voice exists or English)
   if (typeof window !== "undefined" && "speechSynthesis" in window) {
     try {
       const synth = window.speechSynthesis;
-      synth.cancel();
-      if (synth.paused) {
-        synth.resume();
-      }
-
       const voices = cachedVoices.length > 0 ? cachedVoices : synth.getVoices();
       const matchedVoice = voices.find(
         (v) =>
@@ -1062,27 +1057,36 @@ export async function speak(
           v.name.toLowerCase().includes(cleanLang === "ta" ? "tamil" : cleanLang)
       );
 
-      const utterance = new SpeechSynthesisUtterance(cleanText);
-      utterance.lang = langCode;
-      utterance.rate = 0.92;
-      utterance.pitch = 1.0;
-      utterance.volume = 1.0;
+      // Only speak via browser if a legitimate voice exists for the language, or if English
+      if (matchedVoice || cleanLang === "en") {
+        synth.cancel();
+        if (synth.paused) {
+          synth.resume();
+        }
 
-      if (matchedVoice) {
-        utterance.voice = matchedVoice;
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = langCode;
+        utterance.rate = 0.92;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+
+        if (matchedVoice) {
+          utterance.voice = matchedVoice;
+        }
+
+        utterance.onstart = () => {
+          if (synth.paused) synth.resume();
+        };
+
+        synth.speak(utterance);
+        return { ok: true, voiceType: "browser" };
       }
-
-      utterance.onstart = () => {
-        if (synth.paused) synth.resume();
-      };
-
-      synth.speak(utterance);
     } catch (synthErr) {
       console.warn("[TTS Direct Synth notice]", synthErr);
     }
   }
 
-  // Secondary Enhanced Trigger: Backend Neural TTS
+  // Layer 2: Backend Neural TTS (when local browser voice is unavailable)
   const backendUrl = getBackendUrl();
   if (backendUrl) {
     try {
@@ -1112,7 +1116,11 @@ export async function speak(
     }
   }
 
-  return { ok: true, voiceType: "browser" };
+  return {
+    ok: true,
+    voiceType: cleanLang === "en" ? "browser" : "unavailable",
+    reason: cleanLang === "ta" ? "குரல் வெளியீடு உரை வடிவில் காட்டப்படுகிறது." : undefined,
+  };
 }
 
 function fallbackSpeechSynthesis(

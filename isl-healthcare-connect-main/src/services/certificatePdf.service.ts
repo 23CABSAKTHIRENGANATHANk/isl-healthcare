@@ -149,12 +149,12 @@ export async function generateProfessionalCertificateBlob(
   ctx.fillStyle = "#38bdf8";
   ctx.font = "700 32px 'Plus Jakarta Sans', sans-serif";
   ctx.letterSpacing = "8px";
-  ctx.fillText("NATIONAL HEALTHCARE ACCESSIBILITY & CLINICAL ISL COUNCIL", width / 2, 360);
+  ctx.fillText("ISL SETU HEALTHCARE ACCESSIBILITY PLATFORM", width / 2, 360);
 
   ctx.fillStyle = goldGrad;
   ctx.font = "900 70px 'Plus Jakarta Sans', sans-serif";
   ctx.letterSpacing = "4px";
-  ctx.fillText("OFFICIAL CERTIFICATE OF ACHIEVEMENT", width / 2, 455);
+  ctx.fillText("ISL SETU PLATFORM CREDENTIAL", width / 2, 455);
 
   // Tier Banner Ribbon
   const tierName = `${certificate.tier.toUpperCase()} CLINICAL HEALTHCARE TIER`;
@@ -302,11 +302,11 @@ export async function generateProfessionalCertificateBlob(
 
   ctx.fillStyle = "#38bdf8";
   ctx.font = "800 32px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText("ISL Training & Certification Board", leftColX, bottomY - 30);
+  ctx.fillText("ISL Setu Learning & Certification Board", leftColX, bottomY - 30);
 
   ctx.fillStyle = "#94a3b8";
   ctx.font = "600 24px 'Inter', sans-serif";
-  ctx.fillText("National Clinical Evaluation Panel", leftColX, bottomY + 45);
+  ctx.fillText("Clinical Evaluation Panel", leftColX, bottomY + 45);
 
   ctx.fillStyle = "#64748b";
   ctx.font = "500 20px 'Inter', sans-serif";
@@ -351,8 +351,8 @@ export async function generateProfessionalCertificateBlob(
 
   ctx.fillStyle = "#ffffff";
   ctx.font = "800 22px 'Inter', sans-serif";
-  ctx.fillText("OFFICIAL", sealX, sealY - 12);
-  ctx.fillText("CLINICAL", sealX, sealY + 16);
+  ctx.fillText("PLATFORM", sealX, sealY - 12);
+  ctx.fillText("CREDENTIAL", sealX, sealY + 16);
 
   ctx.fillStyle = "#34d399";
   ctx.font = "700 20px 'Inter', sans-serif";
@@ -375,11 +375,11 @@ export async function generateProfessionalCertificateBlob(
 
   ctx.fillStyle = "#34d399";
   ctx.font = "800 32px 'Plus Jakarta Sans', sans-serif";
-  ctx.fillText("Directorate of Healthcare Accessibility", rightColX, bottomY - 30);
+  ctx.fillText("ISL Setu Accessibility Directorate", rightColX, bottomY - 30);
 
   ctx.fillStyle = "#94a3b8";
   ctx.font = "600 24px 'Inter', sans-serif";
-  ctx.fillText("Medical Communication Authority", rightColX, bottomY + 45);
+  ctx.fillText("Healthcare Training Authority", rightColX, bottomY + 45);
 
   ctx.fillStyle = "#64748b";
   ctx.font = "500 20px 'Inter', sans-serif";
