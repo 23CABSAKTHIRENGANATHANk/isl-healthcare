@@ -13,18 +13,20 @@ export function useRealtimeAdmin(
 ) {
   const [state, setState] = useState<RealtimeAdminState>(realtimeAdminManager.getState());
 
+  // 1. Sync whenever async query data arrives or changes
   useEffect(() => {
-    // 1. Initialize manager with loaded data
     if (initialKpis && initialUsers.length > 0) {
       realtimeAdminManager.initialize(initialUsers, initialKpis, initialAuditLogs);
     }
+  }, [initialUsers, initialKpis]);
 
-    // 2. Subscribe to local state dispatcher
+  // 2. Subscribe to realtime events and connect channel
+  useEffect(() => {
     const unsubscribeListener = realtimeAdminManager.subscribeListener(
       (nextState, eventType, eventDetail) => {
         setState(nextState);
 
-        // Show non-blocking toast for relevant real-time events
+        // Non-blocking toast notification for live events
         if (eventType === "USER_INSERT" && eventDetail) {
           toast.success("🟢 New Clinician Joined", {
             description: eventDetail,
@@ -46,7 +48,6 @@ export function useRealtimeAdmin(
       },
     );
 
-    // 3. Connect Supabase Realtime channel
     const unsubscribeChannel = realtimeAdminManager.startRealtimeSubscription();
 
     return () => {

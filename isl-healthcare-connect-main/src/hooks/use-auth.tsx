@@ -310,7 +310,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUp: async ({ email, password, fullName, role }) => {
         if (!isSupabaseConfigured) {
           const demoProfile: AppUser = {
-            id: "demo-user",
+            id: `user-${Date.now()}`,
             full_name: fullName || "Sakthi Renganathan",
             email: email || "demo@islsetu.local",
             role,
@@ -326,24 +326,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             token_type: "bearer",
             expires_at: Math.floor(Date.now() / 1000) + 3600,
             user: {
-              id: "demo-user",
-              email: email || "demo@islsetu.local",
-              created_at: new Date().toISOString(),
+              id: demoProfile.id,
+              email: demoProfile.email,
+              created_at: demoProfile.created_at,
               aud: "authenticated",
               app_metadata: { provider: "demo" },
-              user_metadata: { full_name: fullName || "Sakthi Renganathan", healthcare_role: role },
+              user_metadata: { full_name: demoProfile.full_name, healthcare_role: role },
             } as User,
           } as Session);
           setUser({
-            id: "demo-user",
-            email: email || "demo@islsetu.local",
-            created_at: new Date().toISOString(),
+            id: demoProfile.id,
+            email: demoProfile.email,
+            created_at: demoProfile.created_at,
             aud: "authenticated",
             app_metadata: { provider: "demo" },
-            user_metadata: { full_name: fullName || "Sakthi Renganathan", healthcare_role: role },
+            user_metadata: { full_name: demoProfile.full_name, healthcare_role: role },
           } as User);
           setProfile(demoProfile);
           setLoading(false);
+
+          // Broadcast to Admin tabs
+          try {
+            const bc = new BroadcastChannel("isl-setu-realtime-admin");
+            bc.postMessage({
+              type: "USER_SIGNUP",
+              payload: {
+                id: demoProfile.id,
+                full_name: demoProfile.full_name,
+                email: demoProfile.email,
+                role: demoProfile.role,
+                hospital_name: "Apollo Multi-Speciality Hospital",
+                current_level: "bronze",
+                learning_streak: 0,
+                progress_percent: 0,
+                certification_status: "In Training",
+                status: "active",
+                created_at: demoProfile.created_at,
+                last_active_at: new Date().toISOString(),
+              },
+            });
+            bc.close();
+          } catch {
+            // non-blocking
+          }
+
           return { error: null, needsConfirmation: false };
         }
 
@@ -359,16 +385,69 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (error) return { error: error.message, needsConfirmation: false };
 
         if (data.user) {
-          // Attempt immediate profile upsert
+          const userPayload = {
+            id: data.user.id,
+            full_name: fullName,
+            email,
+            role,
+            hospital_name: "Apollo Multi-Speciality Hospital",
+            current_level: "bronze",
+            learning_streak: 0,
+            progress_percent: 0,
+            certification_status: "In Training",
+            status: "active",
+            created_at: new Date().toISOString(),
+            last_active_at: new Date().toISOString(),
+          };
+
+          // 1. Attempt immediate profile and hospital_staff insertion
           try {
-            await supabase.from("profiles").upsert({
+            await dbFrom("profiles").upsert({
               id: data.user.id,
               full_name: fullName,
               email,
               role,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            } as never);
+
+            await dbFrom("hospital_staff").insert({
+              user_id: data.user.id,
+              hospital_id: "apollo-delhi",
+              full_name: fullName,
+              role,
+              department: "Clinical Triage",
+              certification: "bronze",
+              progress_percent: 0,
+              status: "active",
             } as never);
           } catch (e) {
-            console.warn("[Auth] Profile upsert on signup:", e);
+            console.warn("[Auth] Profile/staff upsert on signup:", e);
+          }
+
+          // 2. Cross-tab BroadcastChannel delivery
+          try {
+            const bc = new BroadcastChannel("isl-setu-realtime-admin");
+            bc.postMessage({ type: "USER_SIGNUP", payload: userPayload });
+            bc.close();
+          } catch {
+            // non-blocking
+          }
+
+          // 3. Supabase Realtime broadcast channel delivery
+          try {
+            const channel = supabase.channel("admin-realtime-control-center");
+            channel.subscribe((status) => {
+              if (status === "SUBSCRIBED") {
+                void channel.send({
+                  type: "broadcast",
+                  event: "NEW_USER_SIGNUP",
+                  payload: userPayload,
+                });
+              }
+            });
+          } catch {
+            // non-blocking
           }
         }
 

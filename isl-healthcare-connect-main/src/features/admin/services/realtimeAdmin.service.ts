@@ -1,7 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import type { AdminKPIs, AdminUser, AuditLogItem } from "./admin.service";
-import type { StaffMember } from "@/types";
 
 export type RealtimeConnectionState = "live" | "reconnecting" | "offline";
 
@@ -16,6 +15,7 @@ export type RealtimeEventListener = (state: RealtimeAdminState, eventType?: stri
 
 class RealtimeAdminManager {
   private channel: RealtimeChannel | null = null;
+  private broadcastChannel: BroadcastChannel | null = null;
   private listeners: Set<RealtimeEventListener> = new Set();
   private state: RealtimeAdminState = {
     users: [],
@@ -40,6 +40,23 @@ class RealtimeAdminManager {
   };
 
   private knownUserIds: Set<string> = new Set();
+
+  constructor() {
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      try {
+        this.broadcastChannel = new BroadcastChannel("isl-setu-realtime-admin");
+        this.broadcastChannel.onmessage = (event) => {
+          if (event.data?.type === "USER_SIGNUP" && event.data?.payload) {
+            this.handleDirectUserInsert(event.data.payload);
+          } else if (event.data?.type === "USER_UPDATE" && event.data?.payload) {
+            this.handleDirectUserUpdate(event.data.payload);
+          }
+        };
+      } catch (e) {
+        console.warn("[RealtimeAdminManager] BroadcastChannel init warning:", e);
+      }
+    }
+  }
 
   public getState(): RealtimeAdminState {
     return { ...this.state };
@@ -97,6 +114,12 @@ class RealtimeAdminManager {
           { event: "*", schema: "public", table: "lesson_progress" },
           (payload) => this.handleProgressChange(payload),
         )
+        .on("broadcast", { event: "NEW_USER_SIGNUP" }, ({ payload }) => {
+          if (payload) this.handleDirectUserInsert(payload);
+        })
+        .on("broadcast", { event: "USER_UPDATE" }, ({ payload }) => {
+          if (payload) this.handleDirectUserUpdate(payload);
+        })
         .subscribe((status) => {
           if (status === "SUBSCRIBED") {
             this.state.connectionState = "live";
@@ -128,81 +151,97 @@ class RealtimeAdminManager {
   }
 
   /**
-   * Handle realtime INSERT / UPDATE / DELETE on profiles table
+   * Directly insert user into state with duplicate prevention & notification
+   */
+  public handleDirectUserInsert(user: Partial<AdminUser> & { id: string; full_name?: string; email?: string; role?: string }) {
+    if (this.knownUserIds.has(user.id)) return;
+    this.knownUserIds.add(user.id);
+
+    const newUser: AdminUser = {
+      id: user.id,
+      full_name: user.full_name || "New Healthcare Staff",
+      email: user.email || `${user.id.slice(0, 8)}@hospital.org`,
+      role: (user.role as any) || "nurse",
+      hospital_name: user.hospital_name || "Apollo Multi-Speciality Hospital",
+      current_level: user.current_level || "bronze",
+      learning_streak: user.learning_streak || 0,
+      progress_percent: 0,
+      certification_status: "In Training",
+      status: "active",
+      created_at: user.created_at || new Date().toISOString(),
+      last_active_at: new Date().toISOString(),
+    };
+
+    this.state.users = [newUser, ...this.state.users];
+    this.state.kpis = {
+      ...this.state.kpis,
+      totalUsers: this.state.kpis.totalUsers + 1,
+      activeUsers: this.state.kpis.activeUsers + 1,
+      newUsers7Days: this.state.kpis.newUsers7Days + 1,
+      healthcareStaff: this.state.kpis.healthcareStaff + 1,
+    };
+
+    const auditEvent: AuditLogItem = {
+      id: `audit-live-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      admin_name: "Realtime Gateway",
+      admin_email: "system@islsetu.org",
+      action: "NEW_USER_REGISTRATION",
+      entity: "UserProfile",
+      entity_id: newUser.id,
+      details: `${newUser.full_name} joined as ${newUser.role.toUpperCase()}`,
+      result: "SUCCESS",
+    };
+
+    this.state.activityFeed = [auditEvent, ...this.state.activityFeed.slice(0, 20)];
+    this.notify("USER_INSERT", `${newUser.full_name} joined as ${newUser.role}`);
+  }
+
+  /**
+   * Directly update existing user in state
+   */
+  public handleDirectUserUpdate(user: { id: string; role?: string; full_name?: string; status?: string; learning_streak?: number; current_level?: string }) {
+    this.state.users = this.state.users.map((u) => {
+      if (u.id === user.id) {
+        return {
+          ...u,
+          full_name: user.full_name || u.full_name,
+          role: (user.role as any) || u.role,
+          status: (user.status as any) || u.status,
+          learning_streak: user.learning_streak !== undefined ? user.learning_streak : u.learning_streak,
+          current_level: user.current_level || u.current_level,
+          last_active_at: new Date().toISOString(),
+        };
+      }
+      return u;
+    });
+
+    const auditEvent: AuditLogItem = {
+      id: `audit-live-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      admin_name: "Realtime Gateway",
+      admin_email: "system@islsetu.org",
+      action: "USER_PROFILE_UPDATE",
+      entity: "UserProfile",
+      entity_id: user.id,
+      details: `Updated role to ${user.role || "staff"}`,
+      result: "SUCCESS",
+    };
+
+    this.state.activityFeed = [auditEvent, ...this.state.activityFeed.slice(0, 20)];
+    this.notify("USER_UPDATE", `Updated profile for ${user.full_name || "staff member"}`);
+  }
+
+  /**
+   * Handle realtime Postgres Changes on profiles table
    */
   public handleProfileChange(payload: { eventType: string; new: any; old: any }) {
     const { eventType, new: newRow, old: oldRow } = payload;
 
     if (eventType === "INSERT" && newRow) {
-      if (this.knownUserIds.has(newRow.id)) return; // Duplicate prevention
-      this.knownUserIds.add(newRow.id);
-
-      const newUser: AdminUser = {
-        id: newRow.id,
-        full_name: newRow.full_name || "New Healthcare Staff",
-        email: newRow.email || `${newRow.id.slice(0, 8)}@hospital.org`,
-        role: newRow.role || "nurse",
-        hospital_name: newRow.hospital_id ? "Apollo Multi-Speciality Hospital" : "AIIMS Healthcare Network",
-        current_level: newRow.current_level || "bronze",
-        learning_streak: newRow.learning_streak || 0,
-        progress_percent: 0,
-        certification_status: "In Training",
-        status: "active",
-        created_at: newRow.created_at || new Date().toISOString(),
-        last_active_at: new Date().toISOString(),
-      };
-
-      this.state.users = [newUser, ...this.state.users];
-      this.state.kpis = {
-        ...this.state.kpis,
-        totalUsers: this.state.kpis.totalUsers + 1,
-        activeUsers: this.state.kpis.activeUsers + 1,
-        newUsers7Days: this.state.kpis.newUsers7Days + 1,
-      };
-
-      const auditEvent: AuditLogItem = {
-        id: `audit-${Date.now()}`,
-        timestamp: new Date().toISOString(),
-        admin_name: "Realtime Gateway",
-        admin_email: "system@islsetu.org",
-        action: "NEW_USER_REGISTRATION",
-        entity: "UserProfile",
-        entity_id: newUser.id,
-        details: `${newUser.full_name} joined as ${newUser.role.toUpperCase()}`,
-        result: "SUCCESS",
-      };
-
-      this.state.activityFeed = [auditEvent, ...this.state.activityFeed.slice(0, 20)];
-      this.notify("USER_INSERT", `${newUser.full_name} joined as ${newUser.role}`);
+      this.handleDirectUserInsert(newRow);
     } else if (eventType === "UPDATE" && newRow) {
-      this.state.users = this.state.users.map((u) => {
-        if (u.id === newRow.id) {
-          return {
-            ...u,
-            full_name: newRow.full_name || u.full_name,
-            role: newRow.role || u.role,
-            current_level: newRow.current_level || u.current_level,
-            learning_streak: newRow.learning_streak ?? u.learning_streak,
-            last_active_at: new Date().toISOString(),
-          };
-        }
-        return u;
-      });
-
-      const auditEvent: AuditLogItem = {
-        id: `audit-${Date.now()}`,
-        timestamp: new Date().toISOString(),
-        admin_name: "Realtime Gateway",
-        admin_email: "system@islsetu.org",
-        action: "USER_PROFILE_UPDATE",
-        entity: "UserProfile",
-        entity_id: newRow.id,
-        details: `Updated role to ${newRow.role || "staff"}`,
-        result: "SUCCESS",
-      };
-
-      this.state.activityFeed = [auditEvent, ...this.state.activityFeed.slice(0, 20)];
-      this.notify("USER_UPDATE", `Updated profile for ${newRow.full_name || "staff member"}`);
+      this.handleDirectUserUpdate(newRow);
     } else if (eventType === "DELETE" && oldRow) {
       this.knownUserIds.delete(oldRow.id);
       this.state.users = this.state.users.filter((u) => u.id !== oldRow.id);
@@ -213,7 +252,7 @@ class RealtimeAdminManager {
       };
 
       const auditEvent: AuditLogItem = {
-        id: `audit-${Date.now()}`,
+        id: `audit-live-${Date.now()}`,
         timestamp: new Date().toISOString(),
         admin_name: "Realtime Gateway",
         admin_email: "system@islsetu.org",
@@ -235,11 +274,13 @@ class RealtimeAdminManager {
   public handleStaffChange(payload: { eventType: string; new: any; old: any }) {
     const { eventType, new: newRow, old: oldRow } = payload;
     if (eventType === "INSERT" && newRow) {
-      this.state.kpis = {
-        ...this.state.kpis,
-        healthcareStaff: this.state.kpis.healthcareStaff + 1,
-      };
-      this.notify("STAFF_INSERT", `Staff member ${newRow.full_name} enrolled`);
+      this.handleDirectUserInsert({
+        id: newRow.user_id || newRow.id,
+        full_name: newRow.full_name,
+        role: newRow.role,
+        hospital_name: "Apollo Multi-Speciality Hospital",
+        current_level: newRow.certification || "bronze",
+      });
     } else if (eventType === "DELETE" && oldRow) {
       this.state.kpis = {
         ...this.state.kpis,
@@ -264,7 +305,7 @@ class RealtimeAdminManager {
       };
 
       const auditEvent: AuditLogItem = {
-        id: `audit-${Date.now()}`,
+        id: `audit-live-${Date.now()}`,
         timestamp: new Date().toISOString(),
         admin_name: "Certification Authority",
         admin_email: "system@islsetu.org",
@@ -287,7 +328,7 @@ class RealtimeAdminManager {
     const { eventType, new: newRow } = payload;
     if ((eventType === "INSERT" || eventType === "UPDATE") && newRow && newRow.completed) {
       const auditEvent: AuditLogItem = {
-        id: `audit-${Date.now()}`,
+        id: `audit-live-${Date.now()}`,
         timestamp: new Date().toISOString(),
         admin_name: "Learning Engine",
         admin_email: "system@islsetu.org",
