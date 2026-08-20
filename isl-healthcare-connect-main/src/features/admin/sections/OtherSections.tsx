@@ -98,27 +98,53 @@ const staffStatus: Record<string, StatusKind> = {
 };
 
 // ==========================================
-// 1. USERS SECTION (WITH USER DETAIL MODAL)
+// 1. USERS SECTION (WITH USER DETAIL MODAL & PRESENCE)
 // ==========================================
-export function UsersSection({ staff }: { staff: StaffMember[] }) {
+function getPresenceInfo(lastActiveAt: string) {
+  const diffMs = Date.now() - new Date(lastActiveAt).getTime();
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  if (isNaN(diffMinutes) || diffMinutes < 5) {
+    return { label: "Online", color: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10", dot: "bg-emerald-400 animate-pulse", text: "Active now" };
+  }
+  if (diffMinutes < 30) {
+    return { label: "Recently Active", color: "text-amber-400 border-amber-500/30 bg-amber-500/10", dot: "bg-amber-400", text: `${diffMinutes}m ago` };
+  }
+  if (diffMinutes < 60 * 24) {
+    const hours = Math.floor(diffMinutes / 60);
+    return { label: "Offline", color: "text-muted-foreground border-border/80 bg-muted/40", dot: "bg-muted-foreground/60", text: `${hours}h ago` };
+  }
+  return { label: "Offline", color: "text-muted-foreground border-border/80 bg-muted/40", dot: "bg-muted-foreground/60", text: "Yesterday" };
+}
+
+export function UsersSection({ users, staff = [] }: { users?: AdminUser[]; staff?: StaffMember[] }) {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<StaffMember | null>(null);
+  const [selectedUser, setSelectedUser] = useState<AdminUser | StaffMember | null>(null);
   const [name, setName] = useState("");
   const [role, setRole] = useState("nurse");
   const [dept, setDept] = useState("Emergency Triage");
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
 
-  const filteredStaff = useMemo(() => {
-    return staff.filter((member) => {
+  const displayUsers: (AdminUser | StaffMember)[] = useMemo(() => {
+    if (users && users.length > 0) return users;
+    return staff;
+  }, [users, staff]);
+
+  const filteredUsers = useMemo(() => {
+    return displayUsers.filter((member) => {
+      const memberName = "full_name" in member ? member.full_name : "";
+      const memberDept = "department" in member ? member.department : "hospital_name" in member ? member.hospital_name : "";
+      const memberRole = member.role || "";
+
       const matchesSearch =
-        member.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        member.department.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesRole = roleFilter === "all" || member.role === roleFilter;
+        memberName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        memberDept.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        ("email" in member && member.email ? member.email.toLowerCase().includes(searchQuery.toLowerCase()) : false);
+      const matchesRole = roleFilter === "all" || memberRole === roleFilter;
       return matchesSearch && matchesRole;
     });
-  }, [staff, searchQuery, roleFilter]);
+  }, [displayUsers, searchQuery, roleFilter]);
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,6 +172,7 @@ export function UsersSection({ staff }: { staff: StaffMember[] }) {
       });
       toast.success(`Staff member ${name} registered successfully`);
       void queryClient.invalidateQueries({ queryKey: ["admin-staff"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin-users-list"] });
       void queryClient.invalidateQueries({ queryKey: ["staff"] });
       setOpen(false);
       setName("");
@@ -157,6 +184,7 @@ export function UsersSection({ staff }: { staff: StaffMember[] }) {
     if (!res.error) {
       toast.success(`Role updated to ${roleLabel(newRole)}`);
       void queryClient.invalidateQueries({ queryKey: ["admin-staff"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin-users-list"] });
       if (selectedUser) setSelectedUser({ ...selectedUser, role: newRole as any });
     } else {
       toast.error("Failed to update role", { description: res.error });
@@ -167,9 +195,9 @@ export function UsersSection({ staff }: { staff: StaffMember[] }) {
     <Card className="rounded-2xl border-border/70 shadow-soft">
       <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <CardTitle className="text-lg font-bold text-foreground">Healthcare Staff Management</CardTitle>
+          <CardTitle className="text-lg font-bold text-foreground">Live User & Clinician Roster</CardTitle>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Manage hospital clinicians, training statuses, and department rosters.
+            Real-time synchronization across registered medical staff, departments, and active learning sessions.
           </p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
@@ -236,7 +264,7 @@ export function UsersSection({ staff }: { staff: StaffMember[] }) {
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name or department..."
+              placeholder="Search by name, email, or department..."
               className="pl-9 h-10"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -259,7 +287,7 @@ export function UsersSection({ staff }: { staff: StaffMember[] }) {
           </div>
         </div>
 
-        {filteredStaff.length === 0 ? (
+        {filteredUsers.length === 0 ? (
           <EmptyState
             icon={ShieldX}
             title="No staff members found"
@@ -270,46 +298,57 @@ export function UsersSection({ staff }: { staff: StaffMember[] }) {
             <Table>
               <TableHeader className="bg-muted/40">
                 <TableRow>
-                  <TableHead scope="col" className="font-bold">Staff Member</TableHead>
+                  <TableHead scope="col" className="font-bold">Clinician & Email</TableHead>
                   <TableHead scope="col" className="font-bold">Role</TableHead>
-                  <TableHead scope="col" className="font-bold">Department</TableHead>
-                  <TableHead scope="col" className="font-bold">Status</TableHead>
+                  <TableHead scope="col" className="font-bold">Department / Facility</TableHead>
+                  <TableHead scope="col" className="font-bold">Live Presence</TableHead>
                   <TableHead scope="col" className="font-bold">Credential</TableHead>
                   <TableHead scope="col" className="font-bold text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredStaff.map((member) => (
-                  <TableRow key={member.id} className="hover:bg-muted/20">
-                    <TableCell className="font-semibold text-foreground">
-                      {member.full_name}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-xs font-medium">
-                      {roleLabel(member.role)}
-                    </TableCell>
-                    <TableCell className="text-foreground text-xs">
-                      {member.department}
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={staffStatus[member.status] || "in_progress"} />
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="capitalize text-xs font-semibold">
-                        {member.certification} Tier
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-xs"
-                        onClick={() => setSelectedUser(member)}
-                      >
-                        <Eye className="size-3.5 mr-1" /> View Details
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {filteredUsers.map((member) => {
+                  const presence = "last_active_at" in member ? getPresenceInfo(member.last_active_at) : { label: "Recently Active", color: "text-amber-400 border-amber-500/30 bg-amber-500/10", dot: "bg-amber-400", text: "Active today" };
+                  const email = "email" in member ? member.email : `${member.full_name.toLowerCase().replace(/\s+/g, ".")}@hospital.org`;
+                  const deptOrFacility = "department" in member ? member.department : "hospital_name" in member ? member.hospital_name : "Apollo Multi-Speciality";
+                  const cert = "certification" in member ? member.certification : "current_level" in member ? member.current_level : "bronze";
+
+                  return (
+                    <TableRow key={member.id} className="hover:bg-muted/20">
+                      <TableCell>
+                        <p className="font-semibold text-foreground text-xs sm:text-sm">{member.full_name}</p>
+                        <p className="text-[11px] text-muted-foreground font-mono">{email}</p>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-xs font-medium">
+                        {roleLabel(member.role)}
+                      </TableCell>
+                      <TableCell className="text-foreground text-xs">
+                        {deptOrFacility}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5">
+                          <span className={`size-2 rounded-full ${presence.dot}`} />
+                          <span className="text-xs font-medium text-foreground">{presence.text}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="capitalize text-xs font-semibold">
+                          {cert} Tier
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-xs"
+                          onClick={() => setSelectedUser(member)}
+                        >
+                          <Eye className="size-3.5 mr-1" /> Profile
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
@@ -332,11 +371,11 @@ export function UsersSection({ staff }: { staff: StaffMember[] }) {
                 <div className="grid grid-cols-2 gap-3 text-xs">
                   <div className="rounded-xl border border-border/80 bg-muted/20 p-3">
                     <p className="text-muted-foreground font-semibold">Hospital Facility</p>
-                    <p className="font-bold text-foreground mt-0.5">Apollo Multi-Speciality</p>
+                    <p className="font-bold text-foreground mt-0.5">Apollo Multi-Speciality Hospital</p>
                   </div>
                   <div className="rounded-xl border border-border/80 bg-muted/20 p-3">
                     <p className="text-muted-foreground font-semibold">Department</p>
-                    <p className="font-bold text-foreground mt-0.5">{selectedUser.department}</p>
+                    <p className="font-bold text-foreground mt-0.5">{"department" in selectedUser ? selectedUser.department : "Emergency Triage"}</p>
                   </div>
                   <div className="rounded-xl border border-border/80 bg-muted/20 p-3">
                     <p className="text-muted-foreground font-semibold">Learning Progress</p>
@@ -344,7 +383,7 @@ export function UsersSection({ staff }: { staff: StaffMember[] }) {
                   </div>
                   <div className="rounded-xl border border-border/80 bg-muted/20 p-3">
                     <p className="text-muted-foreground font-semibold">Credential Level</p>
-                    <p className="font-bold text-amber-400 mt-0.5 capitalize">{selectedUser.certification} Certified</p>
+                    <p className="font-bold text-amber-400 mt-0.5 capitalize">{"certification" in selectedUser ? selectedUser.certification : "current_level" in selectedUser ? selectedUser.current_level : "Bronze"} Certified</p>
                   </div>
                 </div>
 

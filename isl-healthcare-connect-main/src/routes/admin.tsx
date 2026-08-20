@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { Radio } from "lucide-react";
 
 import { PageHeader } from "@/components/common/PageHeader";
 import { PageShell } from "@/components/layout/AppLayout";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
+import { Badge } from "@/components/ui/badge";
 import { AdminGuard } from "@/features/admin/components/AdminGuard";
 import { AdminSidebar, type AdminSection } from "@/features/admin/AdminSidebar";
 import { DashboardSection } from "@/features/admin/sections/DashboardSection";
@@ -24,7 +26,8 @@ import {
 import { listLessons, listSigns } from "@/services/content.service";
 import { getHospitalAnalytics, listHospitals, listStaff } from "@/services/hospital.service";
 import { listCertificates, getAssessment } from "@/services/assessment.service";
-import { getAdminKPIs, listAuditLogs } from "@/features/admin/services/admin.service";
+import { getAdminKPIs, listAdminUsers, listAuditLogs } from "@/features/admin/services/admin.service";
+import { useRealtimeAdmin } from "@/features/admin/hooks/useRealtimeAdmin";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -60,6 +63,7 @@ function AdminPage() {
   const [section, setSection] = useState<AdminSection>("dashboard");
 
   const kpisQuery = useQuery({ queryKey: ["admin-kpis"], queryFn: getAdminKPIs });
+  const adminUsersQuery = useQuery({ queryKey: ["admin-users-list"], queryFn: listAdminUsers });
   const lessonsQuery = useQuery({ queryKey: ["admin-lessons"], queryFn: listLessons });
   const signsQuery = useQuery({ queryKey: ["admin-signs"], queryFn: listSigns });
   const staffQuery = useQuery({ queryKey: ["admin-staff"], queryFn: () => listStaff() });
@@ -76,16 +80,48 @@ function AdminPage() {
   const staff = staffQuery.data ?? [];
   const certificates = certsQuery.data ?? [];
   const hospitals = hospitalsQuery.data ?? [];
-  const auditLogs = listAuditLogs();
+  const initialAuditLogs = listAuditLogs();
   const isLoading = lessonsQuery.isLoading || signsQuery.isLoading || kpisQuery.isLoading;
+
+  // Real-time Gateway Subscription
+  const realtimeState = useRealtimeAdmin(adminUsersQuery.data ?? [], kpisQuery.data, initialAuditLogs);
 
   return (
     <PageShell>
-      <PageHeader
-        eyebrow="Enterprise Governance"
-        title="Admin & Trainer Control Center"
-        description="Manage healthcare ISL curriculum, clinician credentials, facility compliance, and AI telemetry."
-      />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <PageHeader
+          eyebrow="Enterprise Governance"
+          title="Admin & Trainer Control Center"
+          description="Manage healthcare ISL curriculum, clinician credentials, facility compliance, and AI telemetry."
+        />
+        <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+          <Badge
+            variant="outline"
+            className={`text-xs font-bold px-3 py-1.5 gap-2 transition-colors ${
+              realtimeState.connectionState === "live"
+                ? "text-emerald-400 border-emerald-500/40 bg-emerald-500/10"
+                : realtimeState.connectionState === "reconnecting"
+                ? "text-amber-400 border-amber-500/40 bg-amber-500/10"
+                : "text-muted-foreground border-border/80 bg-muted/40"
+            }`}
+          >
+            <span
+              className={`size-2 rounded-full ${
+                realtimeState.connectionState === "live"
+                  ? "bg-emerald-400 animate-pulse"
+                  : realtimeState.connectionState === "reconnecting"
+                  ? "bg-amber-400 animate-ping"
+                  : "bg-muted-foreground"
+              }`}
+            />
+            {realtimeState.connectionState === "live"
+              ? "LIVE UPDATES ACTIVE"
+              : realtimeState.connectionState === "reconnecting"
+              ? "RECONNECTING GATEWAY..."
+              : "OFFLINE GATEWAY"}
+          </Badge>
+        </div>
+      </div>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-4">
         <aside className="lg:col-span-1">
@@ -99,19 +135,19 @@ function AdminPage() {
 
           {section === "dashboard" && (
             <DashboardSection
-              kpis={kpisQuery.data}
+              kpis={realtimeState.kpis}
               lessons={lessons}
               signs={signs}
               staff={staff}
               certificates={certificates}
               analytics={analyticsQuery.data}
-              auditLogs={auditLogs}
+              auditLogs={realtimeState.activityFeed}
               isLoading={isLoading}
               onNavigate={setSection}
             />
           )}
 
-          {section === "users" && <UsersSection staff={staff} />}
+          {section === "users" && <UsersSection users={realtimeState.users} staff={staff} />}
           {section === "lessons" && <LessonsSection lessons={lessons} />}
           {section === "signs" && <SignsSection signs={signs} />}
           {section === "media" && <MediaSection />}
