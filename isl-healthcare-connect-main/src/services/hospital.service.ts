@@ -38,6 +38,11 @@ export async function getHospital(hospitalId?: string): Promise<Hospital> {
   return clone(mockHospital);
 }
 
+export async function listHospitals(): Promise<Hospital[]> {
+  const primary = await getHospital();
+  return [primary];
+}
+
 export async function listStaff(hospitalId?: string): Promise<StaffMember[]> {
   try {
     const query = dbFrom("hospital_staff").select("*");

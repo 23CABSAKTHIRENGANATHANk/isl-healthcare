@@ -5,33 +5,41 @@ import { useQuery } from "@tanstack/react-query";
 import { PageHeader } from "@/components/common/PageHeader";
 import { PageShell } from "@/components/layout/AppLayout";
 import { ProtectedRoute } from "@/components/common/ProtectedRoute";
+import { AdminGuard } from "@/features/admin/components/AdminGuard";
 import { AdminSidebar, type AdminSection } from "@/features/admin/AdminSidebar";
 import { DashboardSection } from "@/features/admin/sections/DashboardSection";
 import {
+  AnalyticsSection,
   AssessmentsSection,
+  AuditSection,
+  CertificatesSection,
+  HealthSection,
+  HospitalsSection,
   LessonsSection,
+  MediaSection,
   SettingsSection,
   SignsSection,
   UsersSection,
 } from "@/features/admin/sections/OtherSections";
 import { listLessons, listSigns } from "@/services/content.service";
-import { getHospitalAnalytics, listStaff } from "@/services/hospital.service";
-import { listCertificates } from "@/services/assessment.service";
+import { getHospitalAnalytics, listHospitals, listStaff } from "@/services/hospital.service";
+import { listCertificates, getAssessment } from "@/services/assessment.service";
+import { getAdminKPIs, listAuditLogs } from "@/features/admin/services/admin.service";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
     meta: [
-      { title: "Admin & Trainer Portal | ISL Setu" },
+      { title: "Admin & Trainer Control Center | ISL Setu" },
       {
         name: "description",
         content:
-          "Manage ISL healthcare lessons, signs, assessment questions, staff rosters and platform settings.",
+          "Enterprise command center for healthcare ISL curriculum, staff compliance, analytics, and platform governance.",
       },
-      { property: "og:title", content: "Admin & Trainer Portal | ISL Setu" },
+      { property: "og:title", content: "Admin & Trainer Control Center | ISL Setu" },
       {
         property: "og:description",
         content:
-          "Admin portal for healthcare sign language curriculum and staff readiness management.",
+          "Production-grade administration control center for healthcare sign language education and telemetry.",
       },
     ],
   }),
@@ -41,7 +49,9 @@ export const Route = createFileRoute("/admin")({
 function AdminPageWrapper() {
   return (
     <ProtectedRoute>
-      <AdminPage />
+      <AdminGuard>
+        <AdminPage />
+      </AdminGuard>
     </ProtectedRoute>
   );
 }
@@ -49,24 +59,32 @@ function AdminPageWrapper() {
 function AdminPage() {
   const [section, setSection] = useState<AdminSection>("dashboard");
 
+  const kpisQuery = useQuery({ queryKey: ["admin-kpis"], queryFn: getAdminKPIs });
   const lessonsQuery = useQuery({ queryKey: ["admin-lessons"], queryFn: listLessons });
   const signsQuery = useQuery({ queryKey: ["admin-signs"], queryFn: listSigns });
   const staffQuery = useQuery({ queryKey: ["admin-staff"], queryFn: () => listStaff() });
   const certsQuery = useQuery({ queryKey: ["admin-certs"], queryFn: listCertificates });
+  const hospitalsQuery = useQuery({ queryKey: ["admin-hospitals"], queryFn: listHospitals });
+  const assessmentQuery = useQuery({
+    queryKey: ["admin-assessment"],
+    queryFn: () => getAssessment("assessment-bronze-healthcare"),
+  });
   const analyticsQuery = useQuery({ queryKey: ["admin-analytics"], queryFn: getHospitalAnalytics });
 
   const lessons = lessonsQuery.data ?? [];
   const signs = signsQuery.data ?? [];
   const staff = staffQuery.data ?? [];
   const certificates = certsQuery.data ?? [];
-  const isLoading = lessonsQuery.isLoading || signsQuery.isLoading;
+  const hospitals = hospitalsQuery.data ?? [];
+  const auditLogs = listAuditLogs();
+  const isLoading = lessonsQuery.isLoading || signsQuery.isLoading || kpisQuery.isLoading;
 
   return (
     <PageShell>
       <PageHeader
-        eyebrow="Portal"
-        title="Admin & Trainer Portal"
-        description="Manage healthcare ISL lessons, vocabulary, assessments, and facility compliance."
+        eyebrow="Enterprise Governance"
+        title="Admin & Trainer Control Center"
+        description="Manage healthcare ISL curriculum, clinician credentials, facility compliance, and AI telemetry."
       />
 
       <div className="mt-8 grid gap-8 lg:grid-cols-4">
@@ -81,19 +99,28 @@ function AdminPage() {
 
           {section === "dashboard" && (
             <DashboardSection
+              kpis={kpisQuery.data}
               lessons={lessons}
               signs={signs}
               staff={staff}
               certificates={certificates}
               analytics={analyticsQuery.data}
+              auditLogs={auditLogs}
               isLoading={isLoading}
+              onNavigate={setSection}
             />
           )}
 
+          {section === "users" && <UsersSection staff={staff} />}
           {section === "lessons" && <LessonsSection lessons={lessons} />}
           {section === "signs" && <SignsSection signs={signs} />}
-          {section === "assessments" && <AssessmentsSection />}
-          {section === "users" && <UsersSection staff={staff} />}
+          {section === "media" && <MediaSection />}
+          {section === "assessments" && <AssessmentsSection assessment={assessmentQuery.data} />}
+          {section === "certificates" && <CertificatesSection certificates={certificates} />}
+          {section === "hospitals" && <HospitalsSection hospital={hospitals[0]} />}
+          {section === "analytics" && <AnalyticsSection analytics={analyticsQuery.data} />}
+          {section === "audit" && <AuditSection />}
+          {section === "health" && <HealthSection />}
           {section === "settings" && <SettingsSection />}
         </section>
       </div>
