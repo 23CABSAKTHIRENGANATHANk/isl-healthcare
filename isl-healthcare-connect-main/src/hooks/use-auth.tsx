@@ -79,16 +79,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
+  const formatNameFromEmail = (email?: string): string => {
+    if (!email) return "Healthcare Staff";
+    const handle = email.split("@")[0];
+    const words = handle.split(/[._-]/).filter(Boolean);
+    if (words.length > 0) {
+      return words.map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+    }
+    return "Healthcare Staff";
+  };
+
   const fetchProfile = useCallback(
     async (userId: string, userEmail?: string, userMeta?: Record<string, unknown>) => {
       try {
-        const { data, error } = await dbFrom("profiles").select("*").eq("id", userId).maybeSingle();
+        const { data } = await dbFrom("profiles").select("*").eq("id", userId).maybeSingle();
 
-        if (data) {
+        if (data && data.full_name) {
           setProfile({
             id: data.id,
             full_name: data.full_name,
-            email: data.email,
+            email: data.email || userEmail,
             role: (data.role as HealthcareRole) || "nurse",
             hospital_id: data.hospital_id,
             sector: "healthcare",
@@ -96,9 +106,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             created_at: data.created_at,
           });
         } else {
-          // Fallback: build temporary profile from metadata or upsert
+          // Fallback: build temporary profile from metadata or formatted email
           const fallbackName =
-            (userMeta?.["full_name"] as string) || userEmail?.split("@")[0] || "Healthcare Worker";
+            (userMeta?.["full_name"] as string) ||
+            (userMeta?.["name"] as string) ||
+            (userMeta?.["user_name"] as string) ||
+            formatNameFromEmail(userEmail);
           const fallbackRole = (userMeta?.["healthcare_role"] as HealthcareRole) || "nurse";
 
           const fallbackUser: AppUser = {
@@ -112,6 +125,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             created_at: new Date().toISOString(),
           };
           setProfile(fallbackUser);
+
+          // Auto-sync profile to Supabase if missing
+          try {
+            await dbFrom("profiles").upsert({
+              id: userId,
+              full_name: fallbackName,
+              email: userEmail || "",
+              role: fallbackRole,
+            } as never);
+          } catch {
+            // non-blocking
+          }
         }
       } catch (err) {
         console.warn("[Auth] Failed to load profile:", err);
@@ -171,10 +196,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AuthContextValue>(() => {
     const metadata = (user?.user_metadata ?? {}) as {
       full_name?: string;
+      name?: string;
+      user_name?: string;
       healthcare_role?: HealthcareRole;
     };
     const name =
-      profile?.full_name || metadata.full_name || user?.email?.split("@")[0] || "Healthcare Staff";
+      profile?.full_name ||
+      metadata.full_name ||
+      metadata.name ||
+      metadata.user_name ||
+      formatNameFromEmail(user?.email);
     const userRole = profile?.role || metadata.healthcare_role || "nurse";
 
     return {
