@@ -134,37 +134,129 @@ export async function submitAssessment({
 export async function listCertificates(): Promise<Certificate[]> {
   const userId = await getAuthUserId();
 
-  try {
-    const { data, error } = await dbFrom("certificates")
-      .select("*")
-      .order("issued_at", { ascending: false });
+  const tiersConfig = [
+    {
+      tier: "bronze" as const,
+      title: "Bronze ISL Healthcare Certificate",
+      subtitle: "Clinical Greetings & Patient Reception",
+      requirements: [
+        "Complete Healthcare Curriculum",
+        "Pass Timed Assessment (>=75%)",
+        "Adhere to Healthcare Communication Code",
+      ],
+      signsRequired: 10,
+    },
+    {
+      tier: "silver" as const,
+      title: "Silver ISL Healthcare Certificate",
+      subtitle: "Clinical & Emergency Triage",
+      requirements: [
+        "Complete Clinical Triage Lesson",
+        "Pass Timed Silver Assessment (>=75%)",
+        "Demonstrate Real-Time AI Camera Accuracy",
+      ],
+      signsRequired: 25,
+    },
+    {
+      tier: "gold" as const,
+      title: "Gold ISL Healthcare Master Certificate",
+      subtitle: "Comprehensive Clinical & Hospital Mastery",
+      requirements: [
+        "Master All 5 Healthcare Modules (70+ Signs)",
+        "Pass Comprehensive Gold Clinical Assessment",
+        "Complete 50+ Real-Time VoiceBridge Translations",
+      ],
+      signsRequired: 50,
+    },
+  ];
 
-    if (!error && data && data.length > 0) {
-      const userCerts = userId ? data.filter((c: any) => c.user_id === userId) : data;
-      if (userCerts.length > 0) {
-        return userCerts.map((row: any) => ({
-          id: row.id,
-          tier: row.tier as Certificate["tier"],
-          title: row.title,
-          subtitle: row.subtitle,
-          requirements: [
-            "Complete Healthcare Curriculum",
-            "Pass Timed Assessment (>=75%)",
-            "Adhere to Responsible AI Code",
-          ],
-          signs_required: row.tier === "bronze" ? 40 : row.tier === "silver" ? 150 : 300,
-          signs_completed: row.tier === "bronze" ? 40 : row.tier === "silver" ? 150 : 300,
-          status: row.status as Certificate["status"],
-          issued_at: row.issued_at,
-          credential_id: row.certificate_number,
-        }));
-      }
+  try {
+    let earnedCerts: any[] = [];
+    let completedSignsCount = 0;
+
+    if (userId) {
+      const { data: certData } = await dbFrom("certificates")
+        .select("*")
+        .eq("user_id", userId)
+        .order("issued_at", { ascending: false });
+      earnedCerts = certData ?? [];
+
+      const { data: progData } = await dbFrom("lesson_progress")
+        .select("*")
+        .eq("user_id", userId);
+
+      const completedProg = (progData ?? []).filter((p: any) => p.completed);
+      completedSignsCount = completedProg.length * 5;
     }
+
+    const bronzeEarned = earnedCerts.find((c: any) => c.tier === "bronze");
+    const silverEarned = earnedCerts.find((c: any) => c.tier === "silver");
+    const goldEarned = earnedCerts.find((c: any) => c.tier === "gold");
+
+    return tiersConfig.map((cfg) => {
+      const earned =
+        cfg.tier === "bronze" ? bronzeEarned : cfg.tier === "silver" ? silverEarned : goldEarned;
+
+      if (earned) {
+        return {
+          id: earned.id || `cert-${cfg.tier}`,
+          tier: cfg.tier,
+          title: cfg.title,
+          subtitle: cfg.subtitle,
+          requirements: cfg.requirements,
+          signs_required: cfg.signsRequired,
+          signs_completed: cfg.signsRequired,
+          status: "completed" as const,
+          issued_at: earned.issued_at,
+          credential_id: earned.certificate_number || `ISL-SETU-${cfg.tier.toUpperCase()}-2026`,
+        };
+      }
+
+      let status: "in_progress" | "locked" = "locked";
+      let signsCompleted = 0;
+
+      if (cfg.tier === "bronze") {
+        status = "in_progress";
+        signsCompleted = Math.min(cfg.signsRequired, completedSignsCount);
+      } else if (cfg.tier === "silver") {
+        if (bronzeEarned) {
+          status = "in_progress";
+          signsCompleted = Math.min(cfg.signsRequired, Math.max(0, completedSignsCount - 10));
+        }
+      } else if (cfg.tier === "gold") {
+        if (silverEarned) {
+          status = "in_progress";
+          signsCompleted = Math.min(cfg.signsRequired, Math.max(0, completedSignsCount - 35));
+        }
+      }
+
+      return {
+        id: `cert-${cfg.tier}`,
+        tier: cfg.tier,
+        title: cfg.title,
+        subtitle: cfg.subtitle,
+        requirements: cfg.requirements,
+        signs_required: cfg.signsRequired,
+        signs_completed: signsCompleted,
+        status,
+        issued_at: null,
+      };
+    });
   } catch (err) {
-    console.warn("[AssessmentService] listCertificates fallback:", err);
+    console.warn("[AssessmentService] listCertificates dynamic fallback:", err);
   }
 
-  return clone(mockCertificates);
+  return tiersConfig.map((cfg) => ({
+    id: `cert-${cfg.tier}`,
+    tier: cfg.tier,
+    title: cfg.title,
+    subtitle: cfg.subtitle,
+    requirements: cfg.requirements,
+    signs_required: cfg.signsRequired,
+    signs_completed: 0,
+    status: cfg.tier === "bronze" ? ("in_progress" as const) : ("locked" as const),
+    issued_at: null,
+  }));
 }
 
 export async function getCertificate(id: string): Promise<Certificate | null> {

@@ -39,7 +39,26 @@ async function getAuthUserId(): Promise<string | null> {
 
 export async function getProgressSummary(customUserId?: string): Promise<UserProgressSummary> {
   const userId = customUserId || (await getAuthUserId());
-  if (!userId) return clone(mockProgressSummary);
+  if (!userId) {
+    return {
+      overall_percent: 0,
+      level: "bronze",
+      streak_days: 0,
+      accuracy_percent: 0,
+      daily_goal_minutes: 15,
+      daily_goal_done_minutes: 0,
+      signs_learned: 0,
+      weekly: [
+        { day: "Mon", minutes: 0, accuracy: 0 },
+        { day: "Tue", minutes: 0, accuracy: 0 },
+        { day: "Wed", minutes: 0, accuracy: 0 },
+        { day: "Thu", minutes: 0, accuracy: 0 },
+        { day: "Fri", minutes: 0, accuracy: 0 },
+        { day: "Sat", minutes: 0, accuracy: 0 },
+        { day: "Sun", minutes: 0, accuracy: 0 },
+      ],
+    };
+  }
 
   try {
     const allLessons = await listLessons();
@@ -62,7 +81,7 @@ export async function getProgressSummary(customUserId?: string): Promise<UserPro
       .filter((l) => completedLessonIds.has(l.id))
       .reduce((acc, l) => acc + l.sign_ids.length, 0);
 
-    const streak = profile?.learning_streak || (completedCount > 0 ? 1 : 0);
+    const streak = profile?.learning_streak || 0;
 
     return {
       overall_percent: overallPercent,
@@ -71,26 +90,43 @@ export async function getProgressSummary(customUserId?: string): Promise<UserPro
       accuracy_percent: completedCount > 0 ? 92 : 0,
       daily_goal_minutes: 15,
       daily_goal_done_minutes: Math.min(15, completedCount * 8),
-      signs_learned: Math.max(signsLearned, completedCount * 3),
+      signs_learned: signsLearned,
       weekly: [
-        { day: "Mon", minutes: completedCount > 0 ? 12 : 0, accuracy: 90 },
-        { day: "Tue", minutes: completedCount > 1 ? 15 : 0, accuracy: 94 },
-        { day: "Wed", minutes: completedCount > 2 ? 10 : 0, accuracy: 88 },
-        { day: "Thu", minutes: completedCount > 3 ? 18 : 0, accuracy: 95 },
-        { day: "Fri", minutes: completedCount > 4 ? 20 : 0, accuracy: 92 },
+        { day: "Mon", minutes: completedCount > 0 ? 12 : 0, accuracy: completedCount > 0 ? 90 : 0 },
+        { day: "Tue", minutes: completedCount > 1 ? 15 : 0, accuracy: completedCount > 1 ? 94 : 0 },
+        { day: "Wed", minutes: completedCount > 2 ? 10 : 0, accuracy: completedCount > 2 ? 88 : 0 },
+        { day: "Thu", minutes: completedCount > 3 ? 18 : 0, accuracy: completedCount > 3 ? 95 : 0 },
+        { day: "Fri", minutes: completedCount > 4 ? 20 : 0, accuracy: completedCount > 4 ? 92 : 0 },
         { day: "Sat", minutes: 0, accuracy: 0 },
         { day: "Sun", minutes: 0, accuracy: 0 },
       ],
     };
   } catch (err) {
     console.warn("[ProgressService] getProgressSummary error:", err);
-    return clone(mockProgressSummary);
+    return {
+      overall_percent: 0,
+      level: "bronze",
+      streak_days: 0,
+      accuracy_percent: 0,
+      daily_goal_minutes: 15,
+      daily_goal_done_minutes: 0,
+      signs_learned: 0,
+      weekly: [
+        { day: "Mon", minutes: 0, accuracy: 0 },
+        { day: "Tue", minutes: 0, accuracy: 0 },
+        { day: "Wed", minutes: 0, accuracy: 0 },
+        { day: "Thu", minutes: 0, accuracy: 0 },
+        { day: "Fri", minutes: 0, accuracy: 0 },
+        { day: "Sat", minutes: 0, accuracy: 0 },
+        { day: "Sun", minutes: 0, accuracy: 0 },
+      ],
+    };
   }
 }
 
 export async function listLessonProgress(customUserId?: string): Promise<LessonProgress[]> {
   const userId = customUserId || (await getAuthUserId());
-  if (!userId) return clone(mockLessonProgress);
+  if (!userId) return [];
 
   try {
     const { data, error } = await dbFrom("lesson_progress").select("*").eq("user_id", userId);
@@ -107,7 +143,7 @@ export async function listLessonProgress(customUserId?: string): Promise<LessonP
   } catch (err) {
     console.warn("[ProgressService] listLessonProgress fallback:", err);
   }
-  return clone(mockLessonProgress);
+  return [];
 }
 
 export async function progressForLesson(lessonId: string, customUserId?: string): Promise<number> {
@@ -237,7 +273,7 @@ export async function getContinueLesson(): Promise<{ lesson: Lesson; percent: nu
     return { lesson: nextIncomplete, percent: currentPercent };
   }
 
-  return allLessons[0] ? { lesson: allLessons[0], percent: 100 } : null;
+  return allLessons[0] ? { lesson: allLessons[0], percent: 0 } : null;
 }
 
 export async function getRecommendedLessons(limit = 3): Promise<Lesson[]> {
@@ -253,7 +289,7 @@ export async function getRecommendedLessons(limit = 3): Promise<Lesson[]> {
 
 export async function listActivity(): Promise<ActivityItem[]> {
   const userId = await getAuthUserId();
-  if (!userId) return clone(mockActivity);
+  if (!userId) return [];
 
   try {
     const { data: progressRows } = (await dbFrom("lesson_progress")
@@ -276,7 +312,7 @@ export async function listActivity(): Promise<ActivityItem[]> {
           kind: "certificate",
           title: `Earned ${cert.title}`,
           detail: `Certificate #${cert.certificate_number} with score ${cert.score}%`,
-          at: cert.issued_at,
+          at: cert.issued_at || new Date().toISOString(),
         });
       });
     }
@@ -290,28 +326,31 @@ export async function listActivity(): Promise<ActivityItem[]> {
           detail: p.completed
             ? "Mastered all signs and quiz"
             : `Reached ${p.progress_percent}% progress`,
-          at: p.updated_at,
+          at: p.updated_at || new Date().toISOString(),
         });
       });
     }
 
-    if (items.length > 0) return items;
+    return items;
   } catch (err) {
     console.warn("[ProgressService] listActivity fallback:", err);
   }
 
-  return clone(mockActivity);
+  return [];
 }
+
+const DEFAULT_ACHIEVEMENTS: Achievement[] = [
+  { id: "first_lesson", name: "First Step", description: "Complete your first healthcare ISL lesson", icon: "Sparkles", earned: false, earned_at: null },
+  { id: "five_lessons", name: "Dedicated Learner", description: "Complete 5 healthcare ISL lessons", icon: "BookOpen", earned: false, earned_at: null },
+  { id: "streak_7", name: "Week-Long Streak", description: "Maintain a 7-day learning streak", icon: "Flame", earned: false, earned_at: null },
+  { id: "first_assessment", name: "Assessed & Verified", description: "Pass your first clinical ISL assessment", icon: "Award", earned: false, earned_at: null },
+  { id: "bronze_certified", name: "Bronze Healthcare Certified", description: "Earn your Bronze Healthcare ISL credential", icon: "Award", earned: false, earned_at: null },
+];
 
 export async function listAchievements(): Promise<Achievement[]> {
   const userId = await getAuthUserId();
 
   try {
-    const { data: allAchievements } = (await dbFrom("achievements").select("*")) as {
-      data: Tables<"achievements">[] | null;
-      error: unknown;
-    };
-
     const { data: rawUserEarned } = userId
       ? ((await dbFrom("user_achievements").select("*").eq("user_id", userId)) as {
           data: Tables<"user_achievements">[] | null;
@@ -322,21 +361,19 @@ export async function listAchievements(): Promise<Achievement[]> {
 
     const earnedSet = new Map((userEarned ?? []).map((e) => [e.achievement_id, e.earned_at]));
 
-    if (allAchievements && allAchievements.length > 0) {
-      return allAchievements.map((ach) => ({
-        id: ach.id,
-        name: ach.name,
-        description: ach.description,
-        icon: ach.icon,
-        earned: earnedSet.has(ach.id),
-        earned_at: earnedSet.get(ach.id) ?? null,
-      }));
-    }
+    return DEFAULT_ACHIEVEMENTS.map((ach) => ({
+      id: ach.id,
+      name: ach.name,
+      description: ach.description,
+      icon: ach.icon,
+      earned: earnedSet.has(ach.id),
+      earned_at: earnedSet.get(ach.id) ?? null,
+    }));
   } catch (err) {
     console.warn("[ProgressService] listAchievements fallback:", err);
   }
 
-  return clone(mockAchievements);
+  return DEFAULT_ACHIEVEMENTS;
 }
 
 /**

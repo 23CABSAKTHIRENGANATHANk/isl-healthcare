@@ -298,10 +298,15 @@ function DashboardPage() {
                         <p className="text-sm font-medium text-foreground">{item.title}</p>
                         <p className="text-xs text-muted-foreground">{item.detail}</p>
                         <p className="text-xs text-muted-foreground">
-                          {new Date(item.at).toLocaleDateString("en-IN", {
-                            day: "numeric",
-                            month: "short",
-                          })}
+                          {(() => {
+                            const d = new Date(item.at);
+                            return isNaN(d.getTime())
+                              ? item.at
+                              : d.toLocaleDateString("en-IN", {
+                                  day: "numeric",
+                                  month: "short",
+                                });
+                          })()}
                         </p>
                       </div>
                     </li>
