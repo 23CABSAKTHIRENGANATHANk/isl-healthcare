@@ -135,28 +135,53 @@ function LoginPage() {
                 {busy ? "Signing in…" : "Log in"}
               </Button>
 
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full border-border/80 text-foreground hover:bg-accent"
-                disabled={busy}
-                onClick={async () => {
-                  setEmail("testuser@hospital.org");
-                  setPassword("TestPassword123!");
-                  setBusy(true);
-                  setError(null);
-                  const { error: signInError } = await signIn("testuser@hospital.org", "TestPassword123!");
-                  setBusy(false);
-                  if (signInError) {
-                    setError(signInError);
-                    return;
-                  }
-                  toast.success("Demo credentials loaded — Welcome to ISL Setu!");
-                  void navigate({ to: redirectTarget as string });
-                }}
-              >
-                ⚡ 1-Click Demo Login (Healthcare Staff)
-              </Button>
+              <div className="pt-2 space-y-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full border-primary/40 bg-primary/5 text-primary hover:bg-primary/10 font-bold"
+                  disabled={busy}
+                  onClick={async () => {
+                    setEmail("admin@islsetu.org");
+                    setPassword("Admin@ISLSetu2026!");
+                    setBusy(true);
+                    setError(null);
+                    const { error: signInError } = await signIn("admin@islsetu.org", "Admin@ISLSetu2026!");
+                    setBusy(false);
+                    if (signInError) {
+                      setError(signInError);
+                      return;
+                    }
+                    toast.success("Administrator access authenticated");
+                    void navigate({ to: "/admin" as string });
+                  }}
+                >
+                  🛡️ 1-Click Admin Login (Portal Access)
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full border-border/80 text-foreground hover:bg-accent"
+                  disabled={busy}
+                  onClick={async () => {
+                    setEmail("staff@hospital.org");
+                    setPassword("TestPassword123!");
+                    setBusy(true);
+                    setError(null);
+                    const { error: signInError } = await signIn("staff@hospital.org", "TestPassword123!");
+                    setBusy(false);
+                    if (signInError) {
+                      setError(signInError);
+                      return;
+                    }
+                    toast.success("Healthcare Staff authenticated");
+                    void navigate({ to: redirectTarget as string });
+                  }}
+                >
+                  ⚡ 1-Click Staff Login (Healthcare Staff)
+                </Button>
+              </div>
             </form>
 
             <p className="mt-6 text-sm text-muted-foreground">
