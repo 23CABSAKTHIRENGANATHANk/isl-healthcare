@@ -405,3 +405,18 @@ insert into public.hospital_staff (hospital_id, full_name, role, department, cer
 ('apollo-delhi', 'Sunita Rao', 'asha_anm', 'Community Health', 'bronze', 85, 'training'),
 ('apollo-delhi', 'Vikram Singh', 'security', 'Main Entrance', null, 45, 'training')
 on conflict do nothing;
+
+-- =============================================================================
+-- 10. SUPABASE REALTIME REPLICATION CONFIGURATION
+-- =============================================================================
+
+-- Enable Realtime publication on critical admin-monitored tables
+alter publication supabase_realtime add table public.profiles;
+alter publication supabase_realtime add table public.hospital_staff;
+alter publication supabase_realtime add table public.certificates;
+alter publication supabase_realtime add table public.lesson_progress;
+
+-- Ensure profiles are visible to authenticated clinicians & administrators
+create policy "Authenticated users can view profiles" on public.profiles
+  for select using (auth.role() = 'authenticated');
+
